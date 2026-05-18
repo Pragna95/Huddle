@@ -466,3 +466,62 @@ body {
     height: 34px;
   }
 }
+
+
+/* PARTICIPANTS SIDEBAR */
+
+.participants-sidebar {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-left: 18px;
+}
+
+.participant-card {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(14px);
+  border-radius: 22px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: 0.3s ease;
+}
+
+.participant-card:hover {
+  transform: translateY(-3px);
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.participant-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  object-fit: cover;
+}
+
+.participant-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+}
+
+.participant-details h4 {
+  margin: 0;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mute-badge {
+  width: 34px;
+  height: 34px;
+  background: rgba(239, 68, 68, 0.18);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

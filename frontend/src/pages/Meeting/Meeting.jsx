@@ -5,6 +5,27 @@ import {
 } from 'lucide-react';
 import './Meeting.css';
 
+const participants = [
+  {
+    id: 1,
+    name: "Sharmila",
+    avatar: "https://i.pravatar.cc/150?u=1",
+    muted: true,
+  },
+  {
+    id: 2,
+    name: "Ajay",
+    avatar: "https://i.pravatar.cc/150?u=2",
+    muted: false,
+  },
+  {
+    id: 3,
+    name: "Sona",
+    avatar: "https://i.pravatar.cc/150?u=3",
+    muted: true,
+  },
+];
+
 const Meeting = () => {
   return (
     <div className="meeting-page">
@@ -65,6 +86,35 @@ const Meeting = () => {
               <span className="pip-label">Sam</span>
             </div>
           </div>
+        </div>
+        {/* PARTICIPANTS SIDEBAR */}
+
+        <div className="participants-sidebar">
+
+          {participants.map((user) => (
+            <div className="participant-card" key={user.id}>
+
+              <img
+                src={user.avatar}
+                alt={user.name}
+                className="participant-avatar"
+              />
+
+              <div className="participant-details">
+
+                <h4>{user.name}</h4>
+
+                {user.muted && (
+                  <span className="mute-badge">
+                    🔇
+                  </span>
+                )}
+
+              </div>
+
+            </div>
+          ))}
+
         </div>
       </main>
 
