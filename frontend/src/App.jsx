@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
-import Meeting from "./pages/Meeting/Meeting";
+import Meeting from "./pages/Meeting";
 
 function App() {
 
