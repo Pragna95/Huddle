@@ -1,4 +1,5 @@
-import React from "react";
+ import React, { useState } from "react";
+
 import {
   MicOff,
   VideoOff,
@@ -12,7 +13,8 @@ import {
   LayoutGrid,
   FileText,
   Monitor,
-  ChevronDown
+  ChevronDown,
+  Search,
 } from "lucide-react";
 
 const participants = [
@@ -36,7 +38,33 @@ const participants = [
   },
 ];
 
+const handRaiseMembers = [
+  "Rahul",
+  "Anika",
+  "James",
+  "Priya",
+  "Michael",
+  "Fatima",
+  "Kevin",
+  "Sofia",
+];
+
+const participantMembers = [
+  "Rahul",
+  "Anika",
+  "James",
+  "Priya",
+  "Michael",
+  "Fatima",
+  "Kevin",
+  "Sofia",
+];
+
 const Meeting = () => {
+
+  const [showHandRaise, setShowHandRaise] = useState(false);
+  const [showParticipants, setShowParticipants] = useState(false);
+
   return (
     <div className="h-screen w-screen bg-[#f4f4f5] flex flex-col overflow-hidden font-sans">
 
@@ -46,12 +74,10 @@ const Meeting = () => {
         {/* LEFT */}
         <div className="flex items-center gap-4">
 
-          {/* LOGO */}
           <div className="w-11 h-11 rounded-2xl bg-[#0f172a] text-white flex items-center justify-center shadow-sm">
             <Monitor size={22} fill="white" />
           </div>
 
-          {/* MEETING INFO */}
           <div className="leading-tight">
             <h2 className="text-[17px] font-bold text-slate-800">
               Huddle_Name
@@ -62,7 +88,6 @@ const Meeting = () => {
             </p>
           </div>
 
-          {/* RECORD BUTTON */}
           <button className="ml-4 flex items-center gap-2 border border-red-200 text-red-500 px-4 py-2 rounded-2xl text-[13px] font-semibold bg-red-50/30 hover:bg-red-50 transition">
 
             <Circle
@@ -92,7 +117,12 @@ const Meeting = () => {
       <main className="flex-1 p-4 flex gap-4 min-h-0 overflow-hidden">
 
         {/* ================= MAIN VIDEO ================= */}
-        <div className="flex-1 relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full">
+        <div
+          className={`relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full transition-all duration-300 ${
+            showHandRaise || showParticipants ? "w-[75%]" : "w-full"
+          }`}
+        >
+
           {/* IMAGE */}
           <img
             src="https://images.unsplash.com/photo-1546961329-78bef0414d7c?q=80&w=1600"
@@ -100,10 +130,10 @@ const Meeting = () => {
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
 
-          {/* LIGHT OVERLAY */}
+          {/* OVERLAY */}
           <div className="absolute inset-0 bg-black/5"></div>
 
-          {/* ================= TOP RIGHT STATS ================= */}
+          {/* TOP RIGHT */}
           <div className="absolute top-5 right-5 flex flex-col gap-3 z-20">
 
             {/* USERS */}
@@ -150,12 +180,12 @@ const Meeting = () => {
 
           </div>
 
-          {/* ================= NAME ================= */}
+          {/* NAME */}
           <h1 className="absolute bottom-7 left-7 text-white text-[38px] font-bold drop-shadow-lg z-20">
             Sam
           </h1>
 
-          {/* ================= PIP ================= */}
+          {/* PIP */}
           <div className="absolute bottom-5 right-5 w-[170px] h-[110px] rounded-[55px] bg-slate-800/75 backdrop-blur-2xl border border-white/10 flex items-center justify-center z-20 shadow-2xl">
 
             <div className="text-center">
@@ -174,39 +204,95 @@ const Meeting = () => {
 
         </div>
 
-        {/* ================= SIDEBAR ================= */}
-        <div className="w-[280px] flex flex-col gap-4 shrink-0">
+        {/* ================= RIGHT SIDEBAR ================= */}
+        {(showHandRaise || showParticipants) && (
 
-          {participants.map((user) => (
-            <div
-              key={user.id}
-              className="bg-slate-500/95 backdrop-blur-xl border border-white/5 rounded-[24px] p-4 flex items-center gap-4 shadow-lg hover:-translate-y-1 transition duration-300"
-            >
+          <div className="w-[25%] bg-white rounded-[24px] border border-slate-200 p-4 flex flex-col h-full">
 
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className="w-16 h-16 rounded-[18px] object-cover"
-              />
+            {/* TOP */}
+            <div className="flex items-center justify-between mb-4">
 
-              <div className="flex-1 flex items-center justify-between">
+              <h2 className="text-[17px] font-semibold text-slate-700">
+                {showHandRaise ? "Hand Rise" : "Participants"}
+              </h2>
 
-                <h4 className="text-white font-semibold text-[15px]">
-                  {user.name}
-                </h4>
-
-                {user.muted && (
-                  <div className="w-9 h-9 rounded-xl bg-red-500/20 flex items-center justify-center text-sm">
-                    🔇
-                  </div>
-                )}
-
-              </div>
+              <button
+                onClick={() => {
+                  setShowHandRaise(false);
+                  setShowParticipants(false);
+                }}
+                className="w-6 h-6 border border-slate-300 rounded flex items-center justify-center text-slate-500"
+              >
+                ×
+              </button>
 
             </div>
-          ))}
 
-        </div>
+            {/* SEARCH */}
+            <div className="relative mb-4">
+
+              <Search
+                size={15}
+                className="absolute left-3 top-3 text-slate-400"
+              />
+
+              <input
+                type="text"
+                placeholder="search"
+                className="w-full border border-slate-300 rounded-lg py-2 pl-9 pr-3 text-sm outline-none"
+              />
+
+            </div>
+
+            {/* MEMBER COUNT */}
+            <p className="text-sm text-slate-500 mb-4">
+              {showHandRaise ? "12 members" : "40 Participants"}
+            </p>
+
+            {/* MEMBERS */}
+            <div className="space-y-3 overflow-y-auto">
+
+              {(showHandRaise
+                ? handRaiseMembers
+                : participantMembers
+              ).map((member, index) => (
+
+                <div
+                  key={index}
+                  className="border border-slate-300 rounded-xl px-3 py-2 flex items-center justify-between hover:bg-slate-50 transition"
+                >
+
+                  <div className="flex items-center gap-3">
+
+                    <img
+                      src={`https://randomuser.me/api/portraits/${
+                        index % 2 === 0 ? "men" : "women"
+                      }/${index + 20}.jpg`}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+
+                    <span className="text-sm font-medium text-slate-700">
+                      {member}
+                    </span>
+
+                  </div>
+
+                  {/* HOST LABEL */}
+                  {!showHandRaise && index === 0 && (
+                    <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded-full font-semibold">
+                      Host
+                    </span>
+                  )}
+
+                </div>
+
+              ))}
+
+            </div>
+
+          </div>
+
+        )}
 
       </main>
 
@@ -236,7 +322,7 @@ const Meeting = () => {
           {/* MIC */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
 
-            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
               <MicOff size={18} />
             </button>
 
@@ -247,7 +333,7 @@ const Meeting = () => {
           {/* VIDEO */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
 
-            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
               <VideoOff size={18} />
             </button>
 
@@ -256,7 +342,7 @@ const Meeting = () => {
           </div>
 
           {/* SHARE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
             <Share size={18} />
           </button>
 
@@ -264,17 +350,29 @@ const Meeting = () => {
           <div className="w-px h-7 bg-slate-200"></div>
 
           {/* HAND */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-100 transition">
+          <button
+            onClick={() => {
+              setShowHandRaise(!showHandRaise);
+              setShowParticipants(false);
+            }}
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-100 transition"
+          >
             <Hand size={18} />
           </button>
 
           {/* USERS */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+          <button
+            onClick={() => {
+              setShowParticipants(!showParticipants);
+              setShowHandRaise(false);
+            }}
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition"
+          >
             <Users size={18} />
           </button>
 
           {/* MORE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
             <MoreVertical size={18} />
           </button>
 
@@ -283,13 +381,13 @@ const Meeting = () => {
         {/* RIGHT */}
         <div className="flex items-center gap-3">
 
-          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
+          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm">
 
             <FileText size={18} />
 
           </button>
 
-          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
+          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm">
 
             <LayoutGrid size={18} />
 
