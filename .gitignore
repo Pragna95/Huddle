@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Python/Django
+__pycache__/
+*.py[cod]
+db.sqlite3
+.env
+
+# Python virtual environment
+venv/
+env/
