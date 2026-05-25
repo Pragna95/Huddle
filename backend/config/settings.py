@@ -46,8 +46,8 @@ INSTALLED_APPS = [
     'modules.websocket',
     'modules.realtime',
     'modules.audit_logs',
+    'rest_framework',
 ]
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -124,3 +124,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+AUTH_USER_MODEL = 'authentication.User'
