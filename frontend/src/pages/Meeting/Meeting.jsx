@@ -1,113 +1,204 @@
-import React from 'react';
+import React from "react";
 import {
-  Mic, MicOff, Video, VideoOff, Share, Hand, Users, MoreVertical,
-  Copy, PhoneOff, Circle, LayoutGrid, FileText, Monitor
-} from 'lucide-react';
-import './Meeting.css';
+  MicOff,
+  VideoOff,
+  Share,
+  Hand,
+  Users,
+  MoreVertical,
+  Copy,
+  PhoneOff,
+  Circle,
+  LayoutGrid,
+  FileText,
+  Monitor,
+  ChevronDown
+} from "lucide-react";
 
 const participants = [
   {
     id: 1,
-    name: "Sharmila",
-    avatar: "https://i.pravatar.cc/150?u=1",
+    name: "Shilpa",
+    avatar: "https://randomuser.me/api/portraits/women/49.jpg",
     muted: true,
   },
   {
     id: 2,
-    name: "Ajay",
-    avatar: "https://i.pravatar.cc/150?u=2",
-    muted: false,
+    name: "Jack",
+    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+    muted: true,
   },
   {
     id: 3,
-    name: "Sona",
-    avatar: "https://i.pravatar.cc/150?u=3",
+    name: "Alexa",
+    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
     muted: true,
   },
 ];
 
 const Meeting = () => {
   return (
-    <div className="meeting-page">
-      {/* HEADER SECTION */}
-      <header className="meeting-header">
-        <div className="header-left">
-          <div className="app-logo">
-            <Monitor size={22} fill="currentColor" />
+    <div className="h-screen w-screen bg-[#f4f4f5] flex flex-col overflow-hidden font-sans">
+
+      {/* ================= HEADER ================= */}
+      <header className="h-[78px] bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
+
+        {/* LEFT */}
+        <div className="flex items-center gap-4">
+
+          {/* LOGO */}
+          <div className="w-11 h-11 rounded-2xl bg-[#0f172a] text-white flex items-center justify-center shadow-sm">
+            <Monitor size={22} fill="white" />
           </div>
-          <div className="meeting-info">
-            <h2 className="huddle-name">Huddle_Name</h2>
-            <p className="current-date">Tuesday, 07-04-2026</p>
+
+          {/* MEETING INFO */}
+          <div className="leading-tight">
+            <h2 className="text-[17px] font-bold text-slate-800">
+              Huddle_Name
+            </h2>
+
+            <p className="text-[12px] text-slate-400 mt-1">
+              Tuesday, 07-04-2026
+            </p>
           </div>
-          <button className="recording-btn">
-            <Circle size={10} fill="#ef4444" color="#ef4444" />
-            <span>Start Recording</span>
+
+          {/* RECORD BUTTON */}
+          <button className="ml-4 flex items-center gap-2 border border-red-200 text-red-500 px-4 py-2 rounded-2xl text-[13px] font-semibold bg-red-50/30 hover:bg-red-50 transition">
+
+            <Circle
+              size={10}
+              fill="#ef4444"
+              color="#ef4444"
+            />
+
+            Start Recording
+
           </button>
+
         </div>
 
-        <div className="header-right">
-          <button className="leave-btn">
-            <span>leave Huddle</span>
-            <PhoneOff size={18} fill="white" />
-          </button>
-        </div>
+        {/* RIGHT */}
+        <button className="bg-rose-600 hover:bg-rose-700 transition text-white px-5 py-3 rounded-2xl flex items-center gap-3 text-sm font-semibold shadow-sm">
+
+          leave Huddle
+
+          <PhoneOff size={18} />
+
+        </button>
+
       </header>
 
-      {/* BODY SECTION */}
-      <main className="meeting-body">
-        <div className="main-video-container">
+      {/* ================= BODY ================= */}
+      <main className="flex-1 p-4 flex gap-4 min-h-0 overflow-hidden">
+
+        {/* ================= MAIN VIDEO ================= */}
+        <div className="flex-1 relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full">
+          {/* IMAGE */}
           <img
-            src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=1920"
-            alt="Main Video"
-            className="background-video"
+            src="https://images.unsplash.com/photo-1546961329-78bef0414d7c?q=80&w=1600"
+            alt="meeting"
+            className="absolute inset-0 w-full h-full object-cover object-center"
           />
 
-          {/* Top Right Participants Info */}
-          <div className="participants-overlay">
-            <div className="stat-badge">
-              <img src="https://i.pravatar.cc/30?u=1" alt="" />
-              <img src="https://i.pravatar.cc/30?u=2" alt="" />
-              <span className="count-plus">+3</span>
+          {/* LIGHT OVERLAY */}
+          <div className="absolute inset-0 bg-black/5"></div>
+
+          {/* ================= TOP RIGHT STATS ================= */}
+          <div className="absolute top-5 right-5 flex flex-col gap-3 z-20">
+
+            {/* USERS */}
+            <div className="bg-black/35 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 border border-white/10 shadow-lg">
+
+              <img
+                src="https://randomuser.me/api/portraits/women/65.jpg"
+                className="w-7 h-7 rounded-lg border border-white/20"
+              />
+
+              <img
+                src="https://randomuser.me/api/portraits/men/60.jpg"
+                className="w-7 h-7 rounded-lg border border-white/20"
+              />
+
+              <span className="text-white/80 text-xs font-medium px-1">
+                +3
+              </span>
+
             </div>
-            <div className="stat-badge hand-badge">
-              <span className="hand-emoji">✋ 12</span>
-              <img src="https://i.pravatar.cc/30?u=3" alt="" />
-              <img src="https://i.pravatar.cc/30?u=4" alt="" />
-              <span className="count-plus highlight">+3</span>
+
+            {/* HANDS */}
+            <div className="bg-white/95 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 shadow-lg">
+
+              <span className="text-[15px] font-bold text-slate-700">
+                ✋ 12
+              </span>
+
+              <img
+                src="https://randomuser.me/api/portraits/women/33.jpg"
+                className="w-7 h-7 rounded-lg"
+              />
+
+              <img
+                src="https://randomuser.me/api/portraits/men/33.jpg"
+                className="w-7 h-7 rounded-lg"
+              />
+
+              <span className="text-slate-400 text-xs font-semibold">
+                +3
+              </span>
+
             </div>
+
           </div>
 
-          <h1 className="main-name">Sam</h1>
+          {/* ================= NAME ================= */}
+          <h1 className="absolute bottom-7 left-7 text-white text-[38px] font-bold drop-shadow-lg z-20">
+            Sam
+          </h1>
 
-          {/* Bottom Right PIP */}
-          <div className="pip-oval">
-            <div className="avatar-wrap">
-              <div className="avatar-circle">SM</div>
-              <span className="pip-label">Sam</span>
+          {/* ================= PIP ================= */}
+          <div className="absolute bottom-5 right-5 w-[170px] h-[110px] rounded-[55px] bg-slate-800/75 backdrop-blur-2xl border border-white/10 flex items-center justify-center z-20 shadow-2xl">
+
+            <div className="text-center">
+
+              <div className="w-12 h-12 rounded-full bg-blue-800 text-white flex items-center justify-center mx-auto font-bold text-sm">
+                SM
+              </div>
+
+              <p className="text-white text-xs font-semibold mt-2">
+                Sam
+              </p>
+
             </div>
+
           </div>
+
         </div>
-        {/* PARTICIPANTS SIDEBAR */}
 
-        <div className="participants-sidebar">
+        {/* ================= SIDEBAR ================= */}
+        <div className="w-[280px] flex flex-col gap-4 shrink-0">
 
           {participants.map((user) => (
-            <div className="participant-card" key={user.id}>
+            <div
+              key={user.id}
+              className="bg-slate-500/95 backdrop-blur-xl border border-white/5 rounded-[24px] p-4 flex items-center gap-4 shadow-lg hover:-translate-y-1 transition duration-300"
+            >
 
               <img
                 src={user.avatar}
                 alt={user.name}
-                className="participant-avatar"
+                className="w-16 h-16 rounded-[18px] object-cover"
               />
 
-              <div className="participant-details">
+              <div className="flex-1 flex items-center justify-between">
 
-                <h4>{user.name}</h4>
+                <h4 className="text-white font-semibold text-[15px]">
+                  {user.name}
+                </h4>
 
                 {user.muted && (
-                  <span className="mute-badge">
+                  <div className="w-9 h-9 rounded-xl bg-red-500/20 flex items-center justify-center text-sm">
                     🔇
-                  </span>
+                  </div>
                 )}
 
               </div>
@@ -116,41 +207,98 @@ const Meeting = () => {
           ))}
 
         </div>
+
       </main>
 
-      {/* FOOTER SECTION */}
-      <footer className="meeting-footer">
-        <div className="footer-left">
-          <span className="id-label">Meet ID</span>
-          <div className="id-badge">
+      {/* ================= FOOTER ================= */}
+      <footer className="h-[95px] bg-[#f8fafc] border-t border-slate-200 flex items-center justify-between px-6 shrink-0">
+
+        {/* LEFT */}
+        <div className="flex items-center gap-3">
+
+          <span className="text-[11px] uppercase tracking-wide font-semibold text-slate-400">
+            Meet ID
+          </span>
+
+          <div className="bg-slate-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-medium shadow-sm">
+
             NFT-rdtve9
-            <Copy size={14} className="copy-icon" />
+
+            <Copy size={14} />
+
           </div>
+
         </div>
 
-        <div className="footer-center">
-          <div className="control-bar">
-            <div className="btn-pair">
-              <button className="icon-btn muted"><MicOff size={18} /></button>
-              <span className="arrow">▾</span>
-            </div>
-            <div className="btn-pair">
-              <button className="icon-btn muted"><VideoOff size={18} /></button>
-              <span className="arrow">▾</span>
-            </div>
-            <button className="icon-btn"><Share size={18} /></button>
-            <div className="divider"></div>
-            <button className="icon-btn"><Hand size={18} color="#f59e0b" /></button>
-            <button className="icon-btn"><Users size={18} /></button>
-            <button className="icon-btn"><MoreVertical size={18} /></button>
+        {/* CENTER */}
+        <div className="bg-white px-5 py-3 rounded-[24px] shadow-md flex items-center gap-3 border border-slate-100">
+
+          {/* MIC */}
+          <div className="flex items-center bg-slate-50 rounded-xl px-1">
+
+            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+              <MicOff size={18} />
+            </button>
+
+            <ChevronDown size={15} className="text-slate-400 mr-2" />
+
           </div>
+
+          {/* VIDEO */}
+          <div className="flex items-center bg-slate-50 rounded-xl px-1">
+
+            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+              <VideoOff size={18} />
+            </button>
+
+            <ChevronDown size={15} className="text-slate-400 mr-2" />
+
+          </div>
+
+          {/* SHARE */}
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+            <Share size={18} />
+          </button>
+
+          {/* DIVIDER */}
+          <div className="w-px h-7 bg-slate-200"></div>
+
+          {/* HAND */}
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-100 transition">
+            <Hand size={18} />
+          </button>
+
+          {/* USERS */}
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+            <Users size={18} />
+          </button>
+
+          {/* MORE */}
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+            <MoreVertical size={18} />
+          </button>
+
         </div>
 
-        <div className="footer-right">
-          <button className="tool-btn"><FileText size={18} /></button>
-          <button className="tool-btn"><LayoutGrid size={18} /></button>
+        {/* RIGHT */}
+        <div className="flex items-center gap-3">
+
+          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
+
+            <FileText size={18} />
+
+          </button>
+
+          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
+
+            <LayoutGrid size={18} />
+
+          </button>
+
         </div>
+
       </footer>
+
     </div>
   );
 };
