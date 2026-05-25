@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ChatList from "../layout copy 3/ChatList";
+import ChatList from "../chat/ChatList";
 import SessionCard from "./SessionCard";
 import CreateHuddle from "./CreateHuddle";
 import MiniCalendar from "../calender/MiniCalender";
