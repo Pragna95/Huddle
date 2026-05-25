@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import AISummaryCard from "../AISummaryCard";
-import TranscriptModal from "../TranscriptModal";
+import AISummaryCard from "@/components/chat/AISummaryCard";
+import TranscriptModal from "@/components/chat/TranscriptModal";
 
 function handleTranscript(session) {
     // Call your backend API to get transcript
