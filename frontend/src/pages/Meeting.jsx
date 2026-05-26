@@ -17,27 +17,6 @@ import {
   Search,
 } from "lucide-react";
 
-const participants = [
-  {
-    id: 1,
-    name: "Shilpa",
-    avatar: "https://randomuser.me/api/portraits/women/49.jpg",
-    muted: true,
-  },
-  {
-    id: 2,
-    name: "Jack",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    muted: true,
-  },
-  {
-    id: 3,
-    name: "Alexa",
-    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
-    muted: true,
-  },
-];
-
 const handRaiseMembers = [
   "Rahul",
   "Anika",
@@ -61,9 +40,11 @@ const participantMembers = [
 ];
 
 const Meeting = () => {
+  const [showHandRaise, setShowHandRaise] =
+    useState(false);
 
-  const [showHandRaise, setShowHandRaise] = useState(false);
-  const [showParticipants, setShowParticipants] = useState(false);
+  const [showParticipants, setShowParticipants] =
+    useState(false);
 
   return (
     <div className="h-screen w-screen bg-[#f4f4f5] flex flex-col overflow-hidden font-sans">
@@ -75,10 +56,13 @@ const Meeting = () => {
         <div className="flex items-center gap-4">
 
           <div className="w-11 h-11 rounded-2xl bg-[#0f172a] text-white flex items-center justify-center shadow-sm">
+
             <Monitor size={22} fill="white" />
+
           </div>
 
           <div className="leading-tight">
+
             <h2 className="text-[17px] font-bold text-slate-800">
               Huddle_Name
             </h2>
@@ -86,6 +70,7 @@ const Meeting = () => {
             <p className="text-[12px] text-slate-400 mt-1">
               Tuesday, 07-04-2026
             </p>
+
           </div>
 
           <button className="ml-4 flex items-center gap-2 border border-red-200 text-red-500 px-4 py-2 rounded-2xl text-[13px] font-semibold bg-red-50/30 hover:bg-red-50 transition">
@@ -105,7 +90,7 @@ const Meeting = () => {
         {/* RIGHT */}
         <button className="bg-rose-600 hover:bg-rose-700 transition text-white px-5 py-3 rounded-2xl flex items-center gap-3 text-sm font-semibold shadow-sm">
 
-          leave Huddle
+          Leave Huddle
 
           <PhoneOff size={18} />
 
@@ -119,7 +104,9 @@ const Meeting = () => {
         {/* ================= MAIN VIDEO ================= */}
         <div
           className={`relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full transition-all duration-300 ${
-            showHandRaise || showParticipants ? "w-[75%]" : "w-full"
+            showHandRaise || showParticipants
+              ? "w-[75%]"
+              : "w-full"
           }`}
         >
 
@@ -133,52 +120,64 @@ const Meeting = () => {
           {/* OVERLAY */}
           <div className="absolute inset-0 bg-black/5"></div>
 
-          {/* TOP RIGHT */}
-          <div className="absolute top-5 right-5 flex flex-col gap-3 z-20">
+          {/* ================= TOP RIGHT ================= */}
+          {!showParticipants && (
 
-            {/* USERS */}
-            <div className="bg-black/35 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 border border-white/10 shadow-lg">
+            <div className="absolute top-5 right-5 flex flex-col gap-3 z-20">
 
-              <img
-                src="https://randomuser.me/api/portraits/women/65.jpg"
-                className="w-7 h-7 rounded-lg border border-white/20"
-              />
+              {/* PARTICIPANTS BUTTON */}
+              <button
+                onClick={() => {
+                  setShowParticipants(
+                    !showParticipants
+                  );
+                  setShowHandRaise(false);
+                }}
+                className="bg-black/35 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 border border-white/10 shadow-lg hover:scale-105 transition"
+              >
 
-              <img
-                src="https://randomuser.me/api/portraits/men/60.jpg"
-                className="w-7 h-7 rounded-lg border border-white/20"
-              />
+                <img
+                  src="https://randomuser.me/api/portraits/women/65.jpg"
+                  className="w-7 h-7 rounded-lg border border-white/20"
+                />
 
-              <span className="text-white/80 text-xs font-medium px-1">
-                +3
-              </span>
+                <img
+                  src="https://randomuser.me/api/portraits/men/60.jpg"
+                  className="w-7 h-7 rounded-lg border border-white/20"
+                />
+
+                <span className="text-white/80 text-xs font-medium px-1">
+                  +3
+                </span>
+
+              </button>
+
+              {/* HANDS */}
+              <div className="bg-white/95 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 shadow-lg">
+
+                <span className="text-[15px] font-bold text-slate-700">
+                  ✋ 12
+                </span>
+
+                <img
+                  src="https://randomuser.me/api/portraits/women/33.jpg"
+                  className="w-7 h-7 rounded-lg"
+                />
+
+                <img
+                  src="https://randomuser.me/api/portraits/men/33.jpg"
+                  className="w-7 h-7 rounded-lg"
+                />
+
+                <span className="text-slate-400 text-xs font-semibold">
+                  +3
+                </span>
+
+              </div>
 
             </div>
 
-            {/* HANDS */}
-            <div className="bg-white/95 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 shadow-lg">
-
-              <span className="text-[15px] font-bold text-slate-700">
-                ✋ 12
-              </span>
-
-              <img
-                src="https://randomuser.me/api/portraits/women/33.jpg"
-                className="w-7 h-7 rounded-lg"
-              />
-
-              <img
-                src="https://randomuser.me/api/portraits/men/33.jpg"
-                className="w-7 h-7 rounded-lg"
-              />
-
-              <span className="text-slate-400 text-xs font-semibold">
-                +3
-              </span>
-
-            </div>
-
-          </div>
+          )}
 
           {/* NAME */}
           <h1 className="absolute bottom-7 left-7 text-white text-[38px] font-bold drop-shadow-lg z-20">
@@ -213,7 +212,9 @@ const Meeting = () => {
             <div className="flex items-center justify-between mb-4">
 
               <h2 className="text-[17px] font-semibold text-slate-700">
-                {showHandRaise ? "Hand Rise" : "Participants"}
+                {showHandRaise
+                  ? "Hand Raise"
+                  : "Participants"}
               </h2>
 
               <button
@@ -244,9 +245,11 @@ const Meeting = () => {
 
             </div>
 
-            {/* MEMBER COUNT */}
+            {/* COUNT */}
             <p className="text-sm text-slate-500 mb-4">
-              {showHandRaise ? "12 members" : "40 Participants"}
+              {showHandRaise
+                ? "12 Members"
+                : "40 Participants"}
             </p>
 
             {/* MEMBERS */}
@@ -266,7 +269,9 @@ const Meeting = () => {
 
                     <img
                       src={`https://randomuser.me/api/portraits/${
-                        index % 2 === 0 ? "men" : "women"
+                        index % 2 === 0
+                          ? "men"
+                          : "women"
                       }/${index + 20}.jpg`}
                       className="w-10 h-10 rounded-full object-cover"
                     />
@@ -277,12 +282,14 @@ const Meeting = () => {
 
                   </div>
 
-                  {/* HOST LABEL */}
-                  {!showHandRaise && index === 0 && (
-                    <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded-full font-semibold">
-                      Host
-                    </span>
-                  )}
+                  {!showHandRaise &&
+                    index === 0 && (
+
+                      <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded-full font-semibold">
+                        Host
+                      </span>
+
+                    )}
 
                 </div>
 
@@ -322,28 +329,40 @@ const Meeting = () => {
           {/* MIC */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
 
-            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+
               <MicOff size={18} />
+
             </button>
 
-            <ChevronDown size={15} className="text-slate-400 mr-2" />
+            <ChevronDown
+              size={15}
+              className="text-slate-400 mr-2"
+            />
 
           </div>
 
           {/* VIDEO */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
 
-            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+
               <VideoOff size={18} />
+
             </button>
 
-            <ChevronDown size={15} className="text-slate-400 mr-2" />
+            <ChevronDown
+              size={15}
+              className="text-slate-400 mr-2"
+            />
 
           </div>
 
           {/* SHARE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+
             <Share size={18} />
+
           </button>
 
           {/* DIVIDER */}
@@ -355,25 +374,25 @@ const Meeting = () => {
               setShowHandRaise(!showHandRaise);
               setShowParticipants(false);
             }}
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-100 transition"
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-200 transition"
           >
+
             <Hand size={18} />
+
           </button>
 
           {/* USERS */}
-          <button
-            onClick={() => {
-              setShowParticipants(!showParticipants);
-              setShowHandRaise(false);
-            }}
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition"
-          >
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+
             <Users size={18} />
+
           </button>
 
           {/* MORE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+
             <MoreVertical size={18} />
+
           </button>
 
         </div>
@@ -381,13 +400,13 @@ const Meeting = () => {
         {/* RIGHT */}
         <div className="flex items-center gap-3">
 
-          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm">
+          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
 
             <FileText size={18} />
 
           </button>
 
-          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm">
+          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
 
             <LayoutGrid size={18} />
 
