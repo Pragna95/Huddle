@@ -15,6 +15,7 @@ import {
   Monitor,
   ChevronDown,
   Search,
+  X,
 } from "lucide-react";
 
 const handRaiseMembers = [
@@ -59,6 +60,10 @@ const Meeting = () => {
     useState(false);
 
   const [showParticipantsGrid, setShowParticipantsGrid] =
+    useState(false);
+
+  // MENU PAGE
+  const [showMenuPage, setShowMenuPage] =
     useState(false);
 
   return (
@@ -119,13 +124,15 @@ const Meeting = () => {
           className={`relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full transition-all duration-300 ${
             showParticipantsGrid
               ? "w-full"
-              : showHandRaise || showParticipants
+              : showHandRaise ||
+                showParticipants ||
+                showMenuPage
               ? "w-[80%]"
               : "w-full"
           }`}
         >
 
-          {/* ================= PARTICIPANTS GRID FULL SCREEN ================= */}
+          {/* ================= PARTICIPANTS GRID ================= */}
           {showParticipantsGrid ? (
 
             <div className="w-full h-full bg-[#0f172a] p-6 overflow-y-auto">
@@ -221,6 +228,7 @@ const Meeting = () => {
                         !showParticipants
                       );
                       setShowHandRaise(false);
+                      setShowMenuPage(false);
                     }}
                     className="bg-black/35 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 border border-white/10 shadow-lg hover:scale-105 transition"
                   >
@@ -270,20 +278,20 @@ const Meeting = () => {
 
               {/* NAME */}
               <h1 className="absolute bottom-7 left-7 text-white text-[38px] font-bold drop-shadow-lg z-20">
-                Sam
+                Andaya
               </h1>
 
               {/* PIP */}
-              <div className="absolute bottom-5 right-5 w-[170px] h-[110px] rounded-[55px] bg-slate-800/75 backdrop-blur-2xl border border-white/10 flex items-center justify-center z-20 shadow-2xl">
+              <div className="absolute bottom-5 right-5 w-[220px] h-[140px] rounded-[40px] bg-[#1f1f24] backdrop-blur-2xl border border-white/10 flex items-center justify-center z-20 shadow-2xl">
 
                 <div className="text-center">
 
-                  <div className="w-12 h-12 rounded-full bg-blue-800 text-white flex items-center justify-center mx-auto font-bold text-sm">
-                    SM
+                  <div className="w-16 h-16 rounded-full bg-blue-900 text-white flex items-center justify-center mx-auto font-bold text-lg border border-blue-500">
+                    AD
                   </div>
 
-                  <p className="text-white text-xs font-semibold mt-2">
-                    Sam
+                  <p className="text-white text-sm font-semibold mt-3">
+                    Andaya
                   </p>
 
                 </div>
@@ -293,9 +301,10 @@ const Meeting = () => {
           )}
         </div>
 
-        {/* ================= RIGHT SIDEBAR ================= */}
+        {/* ================= PARTICIPANTS SIDEBAR ================= */}
         {(showHandRaise || showParticipants) &&
-          !showParticipantsGrid && (
+          !showParticipantsGrid &&
+          !showMenuPage && (
 
             <div className="w-[20%] bg-white rounded-[24px] border border-slate-200 p-4 flex flex-col h-full">
 
@@ -373,15 +382,6 @@ const Meeting = () => {
 
                     </div>
 
-                    {!showHandRaise &&
-                      index === 0 && (
-
-                        <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded-full font-semibold">
-                          Host
-                        </span>
-
-                      )}
-
                   </div>
 
                 ))}
@@ -403,6 +403,64 @@ const Meeting = () => {
             </div>
 
           )}
+
+        {/* ================= MENU PAGE ================= */}
+        {showMenuPage && (
+
+          <div className="w-[20%] bg-white rounded-[24px] border border-slate-200 p-4 h-full flex flex-col">
+
+            {/* HEADER */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+
+              <h2 className="text-[18px] font-semibold text-slate-700">
+                Menu
+              </h2>
+
+              <button
+                onClick={() => setShowMenuPage(false)}
+                className="w-7 h-7 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-100"
+              >
+                <X size={16} />
+              </button>
+
+            </div>
+
+            {/* TABS */}
+            <div className="mt-5 bg-slate-100 rounded-full p-1 flex items-center justify-between">
+
+              <button className="flex-1 py-2 text-sm text-slate-500 font-medium">
+                Chat
+              </button>
+
+              <button className="flex-1 py-2 text-sm text-slate-500 font-medium">
+                Note
+              </button>
+
+              <button className="flex-1 py-2 bg-[#0f2a78] text-white rounded-full text-sm font-medium">
+                Assistance
+              </button>
+
+            </div>
+
+            {/* AI ASSISTANT */}
+            <div className="mt-10 flex items-center justify-between">
+
+              <p className="text-sm text-slate-500">
+                AI Transcription assistance
+              </p>
+
+              {/* TOGGLE */}
+              <div className="w-10 h-6 bg-slate-200 rounded-full relative cursor-pointer">
+
+                <div className="absolute right-1 top-1 w-4 h-4 rounded-full bg-[#0f2a78]"></div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        )}
 
       </main>
 
@@ -470,6 +528,7 @@ const Meeting = () => {
             onClick={() => {
               setShowHandRaise(!showHandRaise);
               setShowParticipants(false);
+              setShowMenuPage(false);
             }}
             className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-200 transition"
           >
@@ -495,7 +554,15 @@ const Meeting = () => {
             <FileText size={18} />
           </button>
 
-          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
+          {/* 4 DOTS MENU BUTTON */}
+          <button
+            onClick={() => {
+              setShowMenuPage(!showMenuPage);
+              setShowParticipants(false);
+              setShowHandRaise(false);
+            }}
+            className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm"
+          >
             <LayoutGrid size={18} />
           </button>
 
