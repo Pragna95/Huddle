@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import AISummaryCard from "@/components/chat/AISummaryCard";
+import TranscriptModal from "@/components/chat/TranscriptModal";
 
 function handleTranscript(session) {
     // Call your backend API to get transcript
@@ -15,6 +17,8 @@ function handleTranscript(session) {
 }
 
 export default function SessionCard({ session }) {
+    const [showSummary, setShowSummary] = useState(false);
+    const [showTranscript, setShowTranscript] = useState(false);
     return (
         <div
             className={`rounded-lg border ${["Ongoing", "Scheduled", "Completed"].includes(session.status)
@@ -67,15 +71,28 @@ export default function SessionCard({ session }) {
 
                 {session.status === "Completed" && (
                     <div className="flex justify-between gap-3">
-                        <button className="border border-[#1e2b72] text-[#1e2b72] hover:bg-[#1e2b72] hover:text-white px-3 py-1 rounded-md text-sm font-medium">
-                            AI Summary
+                  <button
+                    onClick={() => setShowSummary(true)}
+           className="border border-[#1e2b72] text-[#1e2b72] hover:bg-[#1e2b72] hover:text-white px-3 py-1 rounded-md text-sm font-medium"
+>
+                    AI Summary
+                    
                         </button>
+                        {showSummary && (
+    <AISummaryCard closeCard={() => setShowSummary(false)} />
+)}
+                        
                         <button
-                            onClick={() => handleTranscript(session)}
-                            className="border border-[#1e2b72] text-[#1e2b72] hover:bg-[#1e2b72] hover:text-white px-3 py-1 rounded-md text-sm font-medium text-center"
-                        >
-                            View Transcript
-                        </button>
+    onClick={() => setShowTranscript(true)}
+    className="border border-[#1e2b72] text-[#1e2b72] hover:bg-[#1e2b72] hover:text-white px-3 py-1 rounded-md text-sm font-medium"
+                >
+                      View Transcript
+                     </button>
+                     {showTranscript && (
+                     <TranscriptModal
+                     closeTranscript={() => setShowTranscript(false)}
+                      />
+                      )}  
                         <button className="border border-[#1e2b72] text-[#1e2b72] hover:bg-[#1e2b72] hover:text-white px-3 py-1 rounded-md text-sm font-medium">
                             View Recording
                         </button>
