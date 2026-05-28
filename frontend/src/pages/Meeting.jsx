@@ -786,7 +786,7 @@ const Meeting = () => {
             <button
               onClick={() => setIsMicOn(!isMicOn)}
               className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${isMicOn
-                ? "text-slate-600 hover:bg-slate-200"
+                ? "text-slate-600 hover:bg-slate-400"
                 : "bg-red-500 text-white"
                 }`}
             >
@@ -812,7 +812,7 @@ const Meeting = () => {
             <button
               onClick={() => setIsVideoOn(!isVideoOn)}
               className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${isVideoOn
-                ? "text-slate-600 hover:bg-slate-200"
+                ? "text-slate-600 hover:bg-slate-400"
                 : "bg-red-500 text-white"
                 }`}
             >
