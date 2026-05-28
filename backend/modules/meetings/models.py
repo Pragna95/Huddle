@@ -1,7 +1,4 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
 from django.conf import settings
 import uuid
 
@@ -31,7 +28,19 @@ class Meeting(models.Model):
 
     @property
     def join_link(self):
-        return f"https://huddle.com/join/{self.meeting_id}"
+
+        app_name = "huddle"
+
+        first_letter = self.host.username[0].lower()
+
+        short_key = str(self.host.api_key)[:8]
+
+        return (
+            f"https://{app_name}.com/"
+            f"{first_letter}/"
+            f"{short_key}/"
+            f"{self.meeting_id}"
+        )
 
     def __str__(self):
         return self.title
