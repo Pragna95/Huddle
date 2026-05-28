@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from .utils import generate_meeting_code
 from apps.users.models import User, Product
 
 class Meeting(models.Model):
@@ -8,7 +9,8 @@ class Meeting(models.Model):
     created_by_user         = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="meetings_created")
     title                   = models.CharField(max_length=255)
     description             = models.TextField(blank=True, null=True)
-    meeting_code            = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    #public join id
+    meeting_code            = models.CharField(max_length=100,unique=True,default=generate_meeting_code)
     status                  = models.CharField(max_length=50)
     scheduled_start         = models.DateTimeField(blank=True, null=True)
     scheduled_end           = models.DateTimeField(blank=True, null=True)
@@ -24,6 +26,11 @@ class Meeting(models.Model):
 
     class Meta:
         db_table = "meetings"
+#checks if meeting_code exists if not, generates one automatically
+    def save(self, *args, **kwargs):
+        if not self.meeting_code:
+            self.meeting_code = generate_meeting_code()
+        super().save(*args, **kwargs)
 
 class MeetingParticipant(models.Model):
     id                = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -27,7 +27,7 @@ __pycache__/
 *.py[cod]
 db.sqlite3
 .env
-
+.env_local
 # Python virtual environment
 venv/
 env/
