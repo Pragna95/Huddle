@@ -70,33 +70,135 @@ export default function SessionCard({ session }) {
                 )}
 
                 {session.status === "Completed" && (
-                    <div className="flex justify-between gap-3">
-                  <button
-                    onClick={() => setShowSummary(true)}
-           className="border border-[#1e2b72] text-[#1e2b72] hover:bg-[#1e2b72] hover:text-white px-3 py-1 rounded-md text-sm font-medium"
+                <div className="flex items-center gap-3 mt-4 flex-nowrap overflow-x-auto">
+
+<div
+  className="
+    p-[2px]
+    rounded-[16px]
+
+    bg-[linear-gradient(90deg,#ff7a18,#ff4fd8,#3b82f6,#1d4ed8)]
+
+    shadow-[0_8px_25px_rgba(29,78,216,0.25)]
+  "
 >
-                    AI Summary
-                    
-                        </button>
-                        {showSummary && (
-    <AISummaryCard closeCard={() => setShowSummary(false)} />
-)}
-                        
-                        <button
-    onClick={() => setShowTranscript(true)}
-    className="border border-[#1e2b72] text-[#1e2b72] hover:bg-[#1e2b72] hover:text-white px-3 py-1 rounded-md text-sm font-medium"
-                >
-                      View Transcript
-                     </button>
-                     {showTranscript && (
-                     <TranscriptModal
-                     closeTranscript={() => setShowTranscript(false)}
-                      />
-                      )}  
-                        <button className="border border-[#1e2b72] text-[#1e2b72] hover:bg-[#1e2b72] hover:text-white px-3 py-1 rounded-md text-sm font-medium">
-                            View Recording
-                        </button>
-                    </div>
+  <button
+  onClick={() => setShowSummary(true)}
+    className="
+      
+      h-[42px]
+      min-w-[150px]
+
+      px-5
+
+      rounded-[12px]
+
+      bg-white
+
+      text-[#0b43b8]
+
+      text-[15px]
+      font-semibold
+
+      flex
+      items-center
+      justify-center
+
+      transition-all
+      duration-300
+      whitespace-nowrap
+    "
+  >
+    AI Summary
+  </button>
+</div>
+              
+                {showSummary && (
+                  <AISummaryCard closeCard={() => setShowSummary(false)} />
+                )}
+              
+                {/* VIEW TRANSCRIPT BUTTON */}
+                <button
+                onClick={() => setShowTranscript(true)}
+  className="
+  shadow-[0_8px_25px_rgba(29,78,216,0.25)]
+    h-[42px]
+    min-w-[150px]
+
+    px-5
+
+    rounded-[13px]
+
+    bg-white
+
+    border-2
+    border-[#261e92]
+
+    text-[#261e92]
+
+    text-[15px]
+    font-semibold
+
+    flex
+    items-center
+    justify-center
+
+    transition-all
+    duration-300
+
+    whitespace-nowrap
+
+    hover:bg-[#0b43b8]
+    hover:text-white
+  "
+>
+  View transcript
+</button>
+              
+                {showTranscript && (
+                  <TranscriptModal
+                    closeTranscript={() => setShowTranscript(false)}
+                  />
+                )}
+              
+                {/* VIEW RECORDING BUTTON */}
+                <button
+  className="
+  shadow-[0_5px_15px_rgba(29,78,216,0.25)]
+    h-[42px]
+    min-w-[150px]
+
+    px-5
+
+    rounded-[13px]
+
+    bg-white
+
+    border-2
+    border-[#261e92]
+
+    text-[#261e92]
+
+    text-[15px]
+    font-semibold
+
+    flex
+    items-center
+    justify-center
+
+    transition-all
+    duration-300
+
+    whitespace-nowrap
+
+    hover:bg-[#0b43b8]
+    hover:text-white
+  "
+>
+  View Recording
+</button>
+              
+              </div>
                 )}
             </div>
         </div>
