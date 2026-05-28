@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   Mic,
@@ -6,7 +6,6 @@ import {
   Video,
   VideoOff,
   Share,
-  Hand,
   UserPlus,
   MoreVertical,
   Copy,
@@ -74,6 +73,22 @@ const Meeting = () => {
   const [transcriptionEnabled, setTranscriptionEnabled] =
     useState(true);
 
+  const [isRecording, setIsRecording] =
+    useState(false);
+
+  const [isHandRaised, setIsHandRaised] =
+    useState(false);
+
+  const [recordingTime, setRecordingTime] =
+    useState(0);
+
+  const [recordingStopped, setRecordingStopped] =
+    useState(false);
+
+  const [isMicOn, setIsMicOn] = useState(true);
+
+  const [isVideoOn, setIsVideoOn] = useState(true);
+
   // CHAT
   const [message, setMessage] = useState("");
 
@@ -88,6 +103,27 @@ const Meeting = () => {
         text: "Sharing the screen now.",
       },
     ]);
+  useEffect(() => {
+    let interval;
+
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [isRecording]);
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+
+    return `${minutes}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
 
   // SEND MESSAGE
   const handleSendMessage = () => {
@@ -129,29 +165,63 @@ const Meeting = () => {
 
           </div>
 
-          <button className="ml-4 flex items-center gap-2 border border-red-200 text-red-500 px-4 py-2 rounded-2xl text-[13px] font-semibold bg-red-50/30 hover:bg-red-50 transition">
+          <button
+            onClick={() => {
+              if (isRecording) {
+                setIsRecording(false);
+                setRecordingStopped(true);
+
+                setTimeout(() => {
+                  setRecordingStopped(false);
+                  setRecordingTime(0);
+                }, 2000);
+              } else {
+                setRecordingTime(0);
+                setIsRecording(true);
+              }
+            }}
+            className={`ml-5 flex items-center gap-2 px-4 py-2 h-[40px] rounded-[8px] text-[14px] font-semibold border transition-all duration-300 ${isRecording
+              ? "bg-[#D14343] text-white border-[#D14343]"
+              : "bg-white text-[#D14343] border-[#D14343] hover:bg-red-50"
+              }`}
+          >
 
             <Circle
               size={10}
-              fill="#ef4444"
-              color="#ef4444"
+              fill={
+                isRecording
+                  ? "white"
+                  : recordingStopped
+                    ? "#ef4444"
+                    : "#D14343"
+              }
+              color={
+                isRecording
+                  ? "white"
+                  : recordingStopped
+                    ? "#ef4444"
+                    : "#D14343"
+              }
+              className={isRecording ? "animate-pulse" : ""}
             />
 
-            Start Recording
-
+            {isRecording
+              ? `REC ${formatTime(recordingTime)}`
+              : recordingStopped
+                ? "Stop Recording"
+                : "Start Recording"}
           </button>
 
         </div>
 
         {/* RIGHT */}
-        <button className="bg-rose-600 hover:bg-rose-700 transition text-white px-5 py-3 rounded-2xl flex items-center gap-3 text-sm font-semibold shadow-sm">
+        <button className="bg-[#D14343] hover:bg-[#a51f1f] transition text-white px-4 h-[40px] rounded-[8px] flex items-center gap-2 text-[16px] font-bold shadow-sm">
 
           Leave Huddle
 
           <PhoneOff size={18} />
 
         </button>
-
       </header>
 
       {/* ================= BODY ================= */}
@@ -160,12 +230,12 @@ const Meeting = () => {
         {/* ================= MAIN AREA ================= */}
         <div
           className={`relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full transition-all duration-300 ${showParticipantsGrid
-              ? "w-full"
-              : showHandRaise ||
-                showParticipants ||
-                showMenuPage
-                ? "w-[80%]"
-                : "w-full"
+            ? "w-full"
+            : showHandRaise ||
+              showParticipants ||
+              showMenuPage
+              ? "w-[80%]"
+              : "w-full"
             }`}
         >
 
@@ -205,8 +275,8 @@ const Meeting = () => {
 
                       <img
                         src={`https://randomuser.me/api/portraits/${index % 2 === 0
-                            ? "men"
-                            : "women"
+                          ? "men"
+                          : "women"
                           }/${index + 20}.jpg`}
                         alt={member}
                         className="w-full h-full object-cover"
@@ -250,69 +320,94 @@ const Meeting = () => {
 
               <div className="absolute inset-0 bg-black/5"></div>
 
-              {/* TOP RIGHT */}
-              <div className="absolute top-5 right-5 flex flex-col gap-3 z-20">
+              {/* ================= TOP RIGHT OVERLAYS ================= */}
+              <div className="absolute top-5 right-5 flex flex-col items-end gap-4 z-40">
 
-                {/* PARTICIPANTS */}
+                {/* PARTICIPANTS OVERLAY */}
                 <button
                   onClick={() => {
-                    setShowParticipants(
-                      !showParticipants
-                    );
+                    setShowParticipants(!showParticipants);
                     setShowHandRaise(false);
                     setShowMenuPage(false);
                   }}
-                  className="bg-black/35 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 border border-white/10 shadow-lg hover:scale-105 transition"
+                  className="relative w-[96px] h-[40px]"
                 >
 
+                  {/* Avatar 1 */}
                   <img
                     src="https://randomuser.me/api/portraits/women/65.jpg"
-                    className="w-7 h-7 rounded-lg border border-white/20"
+                    alt=""
+                    className="absolute left-0 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md"
                   />
 
+                  {/* Avatar 2 */}
                   <img
                     src="https://randomuser.me/api/portraits/men/60.jpg"
-                    className="w-7 h-7 rounded-lg border border-white/20"
+                    alt=""
+                    className="absolute left-7 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md"
                   />
 
-                  <span className="text-white/80 text-xs font-medium px-1">
-                    +3
-                  </span>
+                  {/* +3 */}
+                  <div className="absolute left-[56px] top-0 w-10 h-10 rounded-[12px] border-2 border-white bg-[#ACBFFF] flex items-center justify-center shadow-md">
+
+                    <span className="text-[12px] font-semibold text-[#394C84]">
+                      +3
+                    </span>
+
+                  </div>
 
                 </button>
 
-                {/* HAND RAISE */}
-                <button
-                  onClick={() => {
-                    setShowHandRaise(!showHandRaise);
-                    setShowParticipants(false);
-                    setShowMenuPage(false);
-                  }}
-                  className="bg-white/95 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 shadow-lg hover:scale-105 transition"
-                >
+                {/* HAND RAISE OVERLAY */}
+                <div className="flex items-end gap-3">
 
-                  <span className="text-[15px] font-bold text-slate-700">
-                    ✋ 12
-                  </span>
+                  {/* HAND RAISE COUNT */}
+                  <button
+                    onClick={() => {
+                      setShowHandRaise(!showHandRaise);
+                      setShowParticipants(false);
+                      setShowMenuPage(false);
+                    }}
+                    className="bg-white h-[38px] px-4 rounded-[22px] flex items-center justify-center shadow-lg"
+                  >
 
-                  <img
-                    src="https://randomuser.me/api/portraits/women/33.jpg"
-                    className="w-7 h-7 rounded-lg"
-                  />
+                    <span className="text-[22px] font-semibold leading-none text-black">
+                      ✋ 12
+                    </span>
 
-                  <img
-                    src="https://randomuser.me/api/portraits/men/33.jpg"
-                    className="w-7 h-7 rounded-lg"
-                  />
+                  </button>
 
-                  <span className="text-slate-400 text-xs font-semibold">
-                    +3
-                  </span>
+                  {/* AVATAR STACK */}
+                  <div className="relative w-[96px] h-[40px]">
 
-                </button>
+                    {/* Avatar 1 */}
+                    <img
+                      src="https://randomuser.me/api/portraits/women/33.jpg"
+                      alt=""
+                      className="absolute left-0 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md"
+                    />
+
+                    {/* Avatar 2 */}
+                    <img
+                      src="https://randomuser.me/api/portraits/men/33.jpg"
+                      alt=""
+                      className="absolute left-7 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md"
+                    />
+
+                    {/* +3 */}
+                    <div className="absolute left-[56px] top-0 w-10 h-10 rounded-[12px] border-2 border-white bg-[#ACBFFF] flex items-center justify-center shadow-md">
+
+                      <span className="text-[12px] font-semibold text-[#394C84]">
+                        +3
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </div>
 
               </div>
-
               {/* NAME */}
               <h1 className="absolute bottom-7 left-7 text-white text-[38px] font-bold drop-shadow-lg z-20">
                 Andaya
@@ -407,8 +502,8 @@ const Meeting = () => {
 
                       <img
                         src={`https://randomuser.me/api/portraits/${index % 2 === 0
-                            ? "men"
-                            : "women"
+                          ? "men"
+                          : "women"
                           }/${index + 20}.jpg`}
                         className="w-10 h-10 rounded-full object-cover"
                       />
@@ -470,8 +565,8 @@ const Meeting = () => {
               <button
                 onClick={() => setActiveMenu("chat")}
                 className={`flex-1 py-2 rounded-full text-sm font-medium transition ${activeMenu === "chat"
-                    ? "bg-[#0f2a78] text-white"
-                    : "text-slate-500"
+                  ? "bg-[#0f2a78] text-white"
+                  : "text-slate-500"
                   }`}
               >
                 Chat
@@ -480,8 +575,8 @@ const Meeting = () => {
               <button
                 onClick={() => setActiveMenu("notes")}
                 className={`flex-1 py-2 rounded-full text-sm font-medium transition ${activeMenu === "notes"
-                    ? "bg-[#0f2a78] text-white"
-                    : "text-slate-500"
+                  ? "bg-[#0f2a78] text-white"
+                  : "text-slate-500"
                   }`}
               >
                 Notes
@@ -492,8 +587,8 @@ const Meeting = () => {
                   setActiveMenu("assistance")
                 }
                 className={`flex-1 py-2 rounded-full text-sm font-medium transition ${activeMenu === "assistance"
-                    ? "bg-[#0f2a78] text-white"
-                    : "text-slate-500"
+                  ? "bg-[#0f2a78] text-white"
+                  : "text-slate-500"
                   }`}
               >
                 AI
@@ -516,15 +611,15 @@ const Meeting = () => {
                       <div
                         key={index}
                         className={`flex ${msg.sender === "You"
-                            ? "justify-end"
-                            : "justify-start"
+                          ? "justify-end"
+                          : "justify-start"
                           }`}
                       >
 
                         <div
                           className={`max-w-[85%] px-4 py-3 rounded-2xl ${msg.sender === "You"
-                              ? "bg-[#0f2a78] text-white"
-                              : "bg-slate-100 text-slate-700"
+                            ? "bg-[#0f2a78] text-white"
+                            : "bg-slate-100 text-slate-700"
                             }`}
                         >
 
@@ -604,15 +699,15 @@ const Meeting = () => {
                         )
                       }
                       className={`w-14 h-7 rounded-full flex items-center px-1 transition ${transcriptionEnabled
-                          ? "bg-[#0f2a78]"
-                          : "bg-slate-300"
+                        ? "bg-[#0f2a78]"
+                        : "bg-slate-300"
                         }`}
                     >
 
                       <div
                         className={`w-5 h-5 rounded-full bg-white transition ${transcriptionEnabled
-                            ? "translate-x-7"
-                            : ""
+                          ? "translate-x-7"
+                          : ""
                           }`}
                       ></div>
 
@@ -684,11 +779,24 @@ const Meeting = () => {
         {/* CENTER */}
         <div className="bg-white px-5 py-3 rounded-[24px] shadow-md flex items-center gap-3 border border-slate-100">
 
+
           {/* MIC */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
 
-            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
-              <Mic size={18} />
+            <button
+              onClick={() => setIsMicOn(!isMicOn)}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${isMicOn
+                ? "text-slate-600 hover:bg-slate-200"
+                : "bg-red-500 text-white"
+                }`}
+            >
+
+              {isMicOn ? (
+                <Mic size={18} />
+              ) : (
+                <MicOff size={18} />
+              )}
+
             </button>
 
             <ChevronDown
@@ -701,8 +809,20 @@ const Meeting = () => {
           {/* VIDEO */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
 
-            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
-              <Video size={18} />
+            <button
+              onClick={() => setIsVideoOn(!isVideoOn)}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${isVideoOn
+                ? "text-slate-600 hover:bg-slate-200"
+                : "bg-red-500 text-white"
+                }`}
+            >
+
+              {isVideoOn ? (
+                <Video size={18} />
+              ) : (
+                <VideoOff size={18} />
+              )}
+
             </button>
 
             <ChevronDown
@@ -720,8 +840,12 @@ const Meeting = () => {
           <div className="w-px h-7 bg-slate-200"></div>
 
           {/* HAND */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-200 transition">
-            <Hand size={18} />
+          <button
+            className="w-11 h-11 rounded-xl flex items-center justify-center bg-white hover:bg-yellow-300"
+          >
+            <span className="text-[20px]">
+              🤚
+            </span>
           </button>
 
           {/* USER PLUS */}
