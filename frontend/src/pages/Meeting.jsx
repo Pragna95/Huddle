@@ -1,17 +1,19 @@
 import React, { useState } from "react";
 
 import {
+  Mic,
   MicOff,
+  Video,
   VideoOff,
   Share,
   Hand,
-  Users,
+  UserPlus,
   MoreVertical,
   Copy,
   PhoneOff,
   Circle,
   LayoutGrid,
-  FileText,
+  FilePenLine,
   Monitor,
   ChevronDown,
   Search,
@@ -157,15 +159,14 @@ const Meeting = () => {
 
         {/* ================= MAIN AREA ================= */}
         <div
-          className={`relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full transition-all duration-300 ${
-            showParticipantsGrid
+          className={`relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full transition-all duration-300 ${showParticipantsGrid
               ? "w-full"
               : showHandRaise ||
                 showParticipants ||
                 showMenuPage
-              ? "w-[80%]"
-              : "w-full"
-          }`}
+                ? "w-[80%]"
+                : "w-full"
+            }`}
         >
 
           {/* ================= PARTICIPANTS GRID ================= */}
@@ -203,11 +204,10 @@ const Meeting = () => {
                     >
 
                       <img
-                        src={`https://randomuser.me/api/portraits/${
-                          index % 2 === 0
+                        src={`https://randomuser.me/api/portraits/${index % 2 === 0
                             ? "men"
                             : "women"
-                        }/${index + 20}.jpg`}
+                          }/${index + 20}.jpg`}
                         alt={member}
                         className="w-full h-full object-cover"
                       />
@@ -406,11 +406,10 @@ const Meeting = () => {
                     <div className="flex items-center gap-3">
 
                       <img
-                        src={`https://randomuser.me/api/portraits/${
-                          index % 2 === 0
+                        src={`https://randomuser.me/api/portraits/${index % 2 === 0
                             ? "men"
                             : "women"
-                        }/${index + 20}.jpg`}
+                          }/${index + 20}.jpg`}
                         className="w-10 h-10 rounded-full object-cover"
                       />
 
@@ -470,22 +469,20 @@ const Meeting = () => {
 
               <button
                 onClick={() => setActiveMenu("chat")}
-                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
-                  activeMenu === "chat"
+                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${activeMenu === "chat"
                     ? "bg-[#0f2a78] text-white"
                     : "text-slate-500"
-                }`}
+                  }`}
               >
                 Chat
               </button>
 
               <button
                 onClick={() => setActiveMenu("notes")}
-                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
-                  activeMenu === "notes"
+                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${activeMenu === "notes"
                     ? "bg-[#0f2a78] text-white"
                     : "text-slate-500"
-                }`}
+                  }`}
               >
                 Notes
               </button>
@@ -494,11 +491,10 @@ const Meeting = () => {
                 onClick={() =>
                   setActiveMenu("assistance")
                 }
-                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
-                  activeMenu === "assistance"
+                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${activeMenu === "assistance"
                     ? "bg-[#0f2a78] text-white"
                     : "text-slate-500"
-                }`}
+                  }`}
               >
                 AI
               </button>
@@ -519,19 +515,17 @@ const Meeting = () => {
 
                       <div
                         key={index}
-                        className={`flex ${
-                          msg.sender === "You"
+                        className={`flex ${msg.sender === "You"
                             ? "justify-end"
                             : "justify-start"
-                        }`}
+                          }`}
                       >
 
                         <div
-                          className={`max-w-[85%] px-4 py-3 rounded-2xl ${
-                            msg.sender === "You"
+                          className={`max-w-[85%] px-4 py-3 rounded-2xl ${msg.sender === "You"
                               ? "bg-[#0f2a78] text-white"
                               : "bg-slate-100 text-slate-700"
-                          }`}
+                            }`}
                         >
 
                           <p className="text-xs font-semibold mb-1">
@@ -609,19 +603,17 @@ const Meeting = () => {
                           !transcriptionEnabled
                         )
                       }
-                      className={`w-14 h-7 rounded-full flex items-center px-1 transition ${
-                        transcriptionEnabled
+                      className={`w-14 h-7 rounded-full flex items-center px-1 transition ${transcriptionEnabled
                           ? "bg-[#0f2a78]"
                           : "bg-slate-300"
-                      }`}
+                        }`}
                     >
 
                       <div
-                        className={`w-5 h-5 rounded-full bg-white transition ${
-                          transcriptionEnabled
+                        className={`w-5 h-5 rounded-full bg-white transition ${transcriptionEnabled
                             ? "translate-x-7"
                             : ""
-                        }`}
+                          }`}
                       ></div>
 
                     </button>
@@ -695,8 +687,8 @@ const Meeting = () => {
           {/* MIC */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
 
-            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
-              <MicOff size={18} />
+            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+              <Mic size={18} />
             </button>
 
             <ChevronDown
@@ -709,8 +701,8 @@ const Meeting = () => {
           {/* VIDEO */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
 
-            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
-              <VideoOff size={18} />
+            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+              <Video size={18} />
             </button>
 
             <ChevronDown
@@ -721,24 +713,24 @@ const Meeting = () => {
           </div>
 
           {/* SHARE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
             <Share size={18} />
           </button>
 
           <div className="w-px h-7 bg-slate-200"></div>
 
           {/* HAND */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-100 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-200 transition">
             <Hand size={18} />
           </button>
 
-          {/* USERS */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
-            <Users size={18} />
+          {/* USER PLUS */}
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+            <UserPlus size={18} />
           </button>
 
           {/* MORE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
             <MoreVertical size={18} />
           </button>
 
@@ -747,8 +739,8 @@ const Meeting = () => {
         {/* RIGHT */}
         <div className="flex items-center gap-3">
 
-          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm">
-            <FileText size={18} />
+          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
+            <FilePenLine size={18} />
           </button>
 
           {/* MENU */}
@@ -758,7 +750,7 @@ const Meeting = () => {
               setShowParticipants(false);
               setShowHandRaise(false);
             }}
-            className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm"
+            className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm"
           >
             <LayoutGrid size={18} />
           </button>
