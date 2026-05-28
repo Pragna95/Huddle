@@ -15,7 +15,6 @@ import {
   Monitor,
   ChevronDown,
   Search,
-  X,
 } from "lucide-react";
 
 const handRaiseMembers = [
@@ -60,10 +59,6 @@ const Meeting = () => {
     useState(false);
 
   const [showParticipantsGrid, setShowParticipantsGrid] =
-    useState(false);
-
-  // MENU PAGE
-  const [showMenuPage, setShowMenuPage] =
     useState(false);
 
   return (
@@ -124,9 +119,7 @@ const Meeting = () => {
           className={`relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full transition-all duration-300 ${
             showParticipantsGrid
               ? "w-full"
-              : showHandRaise ||
-                showParticipants ||
-                showMenuPage
+              : showHandRaise || showParticipants
               ? "w-[80%]"
               : "w-full"
           }`}
@@ -228,7 +221,6 @@ const Meeting = () => {
                         !showParticipants
                       );
                       setShowHandRaise(false);
-                      setShowMenuPage(false);
                     }}
                     className="bg-black/35 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 border border-white/10 shadow-lg hover:scale-105 transition"
                   >
@@ -250,7 +242,13 @@ const Meeting = () => {
                   </button>
 
                   {/* HAND RAISE */}
-                  <div className="bg-white/95 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 shadow-lg">
+                  <button
+                    onClick={() => {
+                      setShowHandRaise(!showHandRaise);
+                      setShowParticipants(false);
+                    }}
+                    className="bg-white/95 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 shadow-lg hover:scale-105 transition"
+                  >
 
                     <span className="text-[15px] font-bold text-slate-700">
                       ✋ 12
@@ -270,7 +268,7 @@ const Meeting = () => {
                       +3
                     </span>
 
-                  </div>
+                  </button>
 
                 </div>
 
@@ -301,10 +299,9 @@ const Meeting = () => {
           )}
         </div>
 
-        {/* ================= PARTICIPANTS SIDEBAR ================= */}
+        {/* ================= SIDEBAR ================= */}
         {(showHandRaise || showParticipants) &&
-          !showParticipantsGrid &&
-          !showMenuPage && (
+          !showParticipantsGrid && (
 
             <div className="w-[20%] bg-white rounded-[24px] border border-slate-200 p-4 flex flex-col h-full">
 
@@ -404,64 +401,6 @@ const Meeting = () => {
 
           )}
 
-        {/* ================= MENU PAGE ================= */}
-        {showMenuPage && (
-
-          <div className="w-[20%] bg-white rounded-[24px] border border-slate-200 p-4 h-full flex flex-col">
-
-            {/* HEADER */}
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-
-              <h2 className="text-[18px] font-semibold text-slate-700">
-                Menu
-              </h2>
-
-              <button
-                onClick={() => setShowMenuPage(false)}
-                className="w-7 h-7 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-100"
-              >
-                <X size={16} />
-              </button>
-
-            </div>
-
-            {/* TABS */}
-            <div className="mt-5 bg-slate-100 rounded-full p-1 flex items-center justify-between">
-
-              <button className="flex-1 py-2 text-sm text-slate-500 font-medium">
-                Chat
-              </button>
-
-              <button className="flex-1 py-2 text-sm text-slate-500 font-medium">
-                Note
-              </button>
-
-              <button className="flex-1 py-2 bg-[#0f2a78] text-white rounded-full text-sm font-medium">
-                Assistance
-              </button>
-
-            </div>
-
-            {/* AI ASSISTANT */}
-            <div className="mt-10 flex items-center justify-between">
-
-              <p className="text-sm text-slate-500">
-                AI Transcription assistance
-              </p>
-
-              {/* TOGGLE */}
-              <div className="w-10 h-6 bg-slate-200 rounded-full relative cursor-pointer">
-
-                <div className="absolute right-1 top-1 w-4 h-4 rounded-full bg-[#0f2a78]"></div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        )}
-
       </main>
 
       {/* ================= FOOTER ================= */}
@@ -524,14 +463,7 @@ const Meeting = () => {
           <div className="w-px h-7 bg-slate-200"></div>
 
           {/* HAND */}
-          <button
-            onClick={() => {
-              setShowHandRaise(!showHandRaise);
-              setShowParticipants(false);
-              setShowMenuPage(false);
-            }}
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-200 transition"
-          >
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-200 transition">
             <Hand size={18} />
           </button>
 
@@ -554,15 +486,7 @@ const Meeting = () => {
             <FileText size={18} />
           </button>
 
-          {/* 4 DOTS MENU BUTTON */}
-          <button
-            onClick={() => {
-              setShowMenuPage(!showMenuPage);
-              setShowParticipants(false);
-              setShowHandRaise(false);
-            }}
-            className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm"
-          >
+          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
             <LayoutGrid size={18} />
           </button>
 
