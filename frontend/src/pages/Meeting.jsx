@@ -15,6 +15,8 @@ import {
   Monitor,
   ChevronDown,
   Search,
+  X,
+  SendHorizontal,
 } from "lucide-react";
 
 const handRaiseMembers = [
@@ -60,6 +62,45 @@ const Meeting = () => {
 
   const [showParticipantsGrid, setShowParticipantsGrid] =
     useState(false);
+
+  const [showMenuPage, setShowMenuPage] =
+    useState(false);
+
+  const [activeMenu, setActiveMenu] =
+    useState("assistance");
+
+  const [transcriptionEnabled, setTranscriptionEnabled] =
+    useState(true);
+
+  // CHAT
+  const [message, setMessage] = useState("");
+
+  const [chatMessages, setChatMessages] =
+    useState([
+      {
+        sender: "Rahul",
+        text: "Can we start the demo?",
+      },
+      {
+        sender: "Anika",
+        text: "Sharing the screen now.",
+      },
+    ]);
+
+  // SEND MESSAGE
+  const handleSendMessage = () => {
+    if (message.trim() === "") return;
+
+    setChatMessages([
+      ...chatMessages,
+      {
+        sender: "You",
+        text: message,
+      },
+    ]);
+
+    setMessage("");
+  };
 
   return (
     <div className="h-screen w-screen bg-[#f4f4f5] flex flex-col overflow-hidden font-sans">
@@ -119,7 +160,9 @@ const Meeting = () => {
           className={`relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full transition-all duration-300 ${
             showParticipantsGrid
               ? "w-full"
-              : showHandRaise || showParticipants
+              : showHandRaise ||
+                showParticipants ||
+                showMenuPage
               ? "w-[80%]"
               : "w-full"
           }`}
@@ -149,7 +192,7 @@ const Meeting = () => {
               </div>
 
               {/* GRID */}
-              <div className="grid grid-cols-5 gap-5">
+              <div className="grid grid-cols-4 gap-5">
 
                 {participantMembers.map(
                   (member, index) => (
@@ -171,7 +214,6 @@ const Meeting = () => {
 
                       <div className="absolute inset-0 bg-black/20"></div>
 
-                      {/* BOTTOM INFO */}
                       <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
 
                         <div className="bg-black/40 backdrop-blur-xl px-3 py-1 rounded-xl text-white text-sm font-medium">
@@ -206,80 +248,77 @@ const Meeting = () => {
                 className="absolute inset-0 w-full h-full object-cover object-center"
               />
 
-              {/* OVERLAY */}
               <div className="absolute inset-0 bg-black/5"></div>
 
-              {/* ================= TOP RIGHT ================= */}
-              {!showParticipants && (
+              {/* TOP RIGHT */}
+              <div className="absolute top-5 right-5 flex flex-col gap-3 z-20">
 
-                <div className="absolute top-5 right-5 flex flex-col gap-3 z-20">
+                {/* PARTICIPANTS */}
+                <button
+                  onClick={() => {
+                    setShowParticipants(
+                      !showParticipants
+                    );
+                    setShowHandRaise(false);
+                    setShowMenuPage(false);
+                  }}
+                  className="bg-black/35 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 border border-white/10 shadow-lg hover:scale-105 transition"
+                >
 
-                  {/* PARTICIPANTS BUTTON */}
-                  <button
-                    onClick={() => {
-                      setShowParticipants(
-                        !showParticipants
-                      );
-                      setShowHandRaise(false);
-                    }}
-                    className="bg-black/35 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 border border-white/10 shadow-lg hover:scale-105 transition"
-                  >
+                  <img
+                    src="https://randomuser.me/api/portraits/women/65.jpg"
+                    className="w-7 h-7 rounded-lg border border-white/20"
+                  />
 
-                    <img
-                      src="https://randomuser.me/api/portraits/women/65.jpg"
-                      className="w-7 h-7 rounded-lg border border-white/20"
-                    />
+                  <img
+                    src="https://randomuser.me/api/portraits/men/60.jpg"
+                    className="w-7 h-7 rounded-lg border border-white/20"
+                  />
 
-                    <img
-                      src="https://randomuser.me/api/portraits/men/60.jpg"
-                      className="w-7 h-7 rounded-lg border border-white/20"
-                    />
+                  <span className="text-white/80 text-xs font-medium px-1">
+                    +3
+                  </span>
 
-                    <span className="text-white/80 text-xs font-medium px-1">
-                      +3
-                    </span>
+                </button>
 
-                  </button>
+                {/* HAND RAISE */}
+                <button
+                  onClick={() => {
+                    setShowHandRaise(!showHandRaise);
+                    setShowParticipants(false);
+                    setShowMenuPage(false);
+                  }}
+                  className="bg-white/95 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 shadow-lg hover:scale-105 transition"
+                >
 
-                  {/* HAND RAISE */}
-                  <button
-                    onClick={() => {
-                      setShowHandRaise(!showHandRaise);
-                      setShowParticipants(false);
-                    }}
-                    className="bg-white/95 backdrop-blur-xl px-3 py-2 rounded-2xl flex items-center gap-2 shadow-lg hover:scale-105 transition"
-                  >
+                  <span className="text-[15px] font-bold text-slate-700">
+                    ✋ 12
+                  </span>
 
-                    <span className="text-[15px] font-bold text-slate-700">
-                      ✋ 12
-                    </span>
+                  <img
+                    src="https://randomuser.me/api/portraits/women/33.jpg"
+                    className="w-7 h-7 rounded-lg"
+                  />
 
-                    <img
-                      src="https://randomuser.me/api/portraits/women/33.jpg"
-                      className="w-7 h-7 rounded-lg"
-                    />
+                  <img
+                    src="https://randomuser.me/api/portraits/men/33.jpg"
+                    className="w-7 h-7 rounded-lg"
+                  />
 
-                    <img
-                      src="https://randomuser.me/api/portraits/men/33.jpg"
-                      className="w-7 h-7 rounded-lg"
-                    />
+                  <span className="text-slate-400 text-xs font-semibold">
+                    +3
+                  </span>
 
-                    <span className="text-slate-400 text-xs font-semibold">
-                      +3
-                    </span>
+                </button>
 
-                  </button>
-
-                </div>
-
-              )}
+              </div>
 
               {/* NAME */}
               <h1 className="absolute bottom-7 left-7 text-white text-[38px] font-bold drop-shadow-lg z-20">
                 Andaya
               </h1>
 
-              {/* PIP */}
+              {/* SMALL VIDEO */}
               <div className="absolute bottom-5 right-5 w-[220px] h-[140px] rounded-[40px] bg-[#1f1f24] backdrop-blur-2xl border border-white/10 flex items-center justify-center z-20 shadow-2xl">
 
                 <div className="text-center">
@@ -295,13 +334,15 @@ const Meeting = () => {
                 </div>
 
               </div>
+
             </>
           )}
         </div>
 
         {/* ================= SIDEBAR ================= */}
         {(showHandRaise || showParticipants) &&
-          !showParticipantsGrid && (
+          !showParticipantsGrid &&
+          !showMenuPage && (
 
             <div className="w-[20%] bg-white rounded-[24px] border border-slate-200 p-4 flex flex-col h-full">
 
@@ -350,7 +391,7 @@ const Meeting = () => {
               </p>
 
               {/* MEMBERS */}
-              <div className="space-y-3 overflow-y-auto">
+              <div className="space-y-3 overflow-y-auto flex-1">
 
                 {(showHandRaise
                   ? handRaiseMembers
@@ -385,8 +426,9 @@ const Meeting = () => {
 
               </div>
 
-              {/* VIEW ALL BUTTON */}
+              {/* VIEW ALL PARTICIPANTS */}
               {!showHandRaise && (
+
                 <button
                   onClick={() =>
                     setShowParticipantsGrid(true)
@@ -395,11 +437,235 @@ const Meeting = () => {
                 >
                   View All Participants
                 </button>
+
               )}
 
             </div>
 
           )}
+
+        {/* ================= MENU PAGE ================= */}
+        {showMenuPage && (
+
+          <div className="w-[20%] bg-white rounded-[24px] border border-slate-200 p-4 h-full flex flex-col">
+
+            {/* HEADER */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+
+              <h2 className="text-[18px] font-semibold text-slate-700">
+                Menu
+              </h2>
+
+              <button
+                onClick={() => setShowMenuPage(false)}
+                className="w-7 h-7 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-100"
+              >
+                <X size={16} />
+              </button>
+
+            </div>
+
+            {/* TABS */}
+            <div className="mt-5 bg-[#f3f4f6] rounded-full p-1 flex items-center">
+
+              <button
+                onClick={() => setActiveMenu("chat")}
+                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                  activeMenu === "chat"
+                    ? "bg-[#0f2a78] text-white"
+                    : "text-slate-500"
+                }`}
+              >
+                Chat
+              </button>
+
+              <button
+                onClick={() => setActiveMenu("notes")}
+                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                  activeMenu === "notes"
+                    ? "bg-[#0f2a78] text-white"
+                    : "text-slate-500"
+                }`}
+              >
+                Notes
+              </button>
+
+              <button
+                onClick={() =>
+                  setActiveMenu("assistance")
+                }
+                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                  activeMenu === "assistance"
+                    ? "bg-[#0f2a78] text-white"
+                    : "text-slate-500"
+                }`}
+              >
+                AI
+              </button>
+
+            </div>
+
+            {/* CONTENT */}
+            <div className="mt-5 flex-1 overflow-hidden flex flex-col">
+
+              {/* CHAT */}
+              {activeMenu === "chat" && (
+
+                <div className="flex flex-col h-full">
+
+                  <div className="flex-1 overflow-y-auto space-y-4">
+
+                    {chatMessages.map((msg, index) => (
+
+                      <div
+                        key={index}
+                        className={`flex ${
+                          msg.sender === "You"
+                            ? "justify-end"
+                            : "justify-start"
+                        }`}
+                      >
+
+                        <div
+                          className={`max-w-[85%] px-4 py-3 rounded-2xl ${
+                            msg.sender === "You"
+                              ? "bg-[#0f2a78] text-white"
+                              : "bg-slate-100 text-slate-700"
+                          }`}
+                        >
+
+                          <p className="text-xs font-semibold mb-1">
+                            {msg.sender}
+                          </p>
+
+                          <p className="text-sm">
+                            {msg.text}
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                    ))}
+
+                  </div>
+
+                  {/* INPUT */}
+                  <div className="mt-4 flex items-center gap-2">
+
+                    <input
+                      type="text"
+                      value={message}
+                      onChange={(e) =>
+                        setMessage(e.target.value)
+                      }
+                      placeholder="Type a message..."
+                      className="flex-1 border border-slate-300 rounded-2xl px-4 py-3 text-sm outline-none"
+                    />
+
+                    <button
+                      onClick={handleSendMessage}
+                      className="w-12 h-12 rounded-2xl bg-[#0f2a78] text-white flex items-center justify-center"
+                    >
+                      <SendHorizontal size={18} />
+                    </button>
+
+                  </div>
+
+                </div>
+
+              )}
+
+              {/* NOTES */}
+              {activeMenu === "notes" && (
+
+                <textarea
+                  placeholder="Write meeting notes..."
+                  className="w-full h-full border border-slate-300 rounded-2xl p-4 outline-none resize-none"
+                ></textarea>
+
+              )}
+
+              {/* AI */}
+              {activeMenu === "assistance" && (
+
+                <div className="flex flex-col gap-4">
+
+                  <div className="bg-slate-100 rounded-2xl p-4 flex items-center justify-between">
+
+                    <div>
+                      <p className="font-semibold text-slate-700">
+                        AI Transcription
+                      </p>
+
+                      <p className="text-sm text-slate-500 mt-1">
+                        Live captions enabled
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        setTranscriptionEnabled(
+                          !transcriptionEnabled
+                        )
+                      }
+                      className={`w-14 h-7 rounded-full flex items-center px-1 transition ${
+                        transcriptionEnabled
+                          ? "bg-[#0f2a78]"
+                          : "bg-slate-300"
+                      }`}
+                    >
+
+                      <div
+                        className={`w-5 h-5 rounded-full bg-white transition ${
+                          transcriptionEnabled
+                            ? "translate-x-7"
+                            : ""
+                        }`}
+                      ></div>
+
+                    </button>
+
+                  </div>
+
+                  {/* LIVE TRANSCRIPTION */}
+                  {transcriptionEnabled && (
+
+                    <div className="space-y-3">
+
+                      <div className="bg-slate-100 rounded-2xl p-4">
+                        <p className="text-xs font-semibold text-blue-700 mb-1">
+                          LIVE
+                        </p>
+
+                        <p className="text-sm text-slate-700">
+                          Rahul: Let's begin the sprint review meeting.
+                        </p>
+                      </div>
+
+                      <div className="bg-slate-100 rounded-2xl p-4">
+                        <p className="text-xs font-semibold text-blue-700 mb-1">
+                          LIVE
+                        </p>
+
+                        <p className="text-sm text-slate-700">
+                          Anika: Sharing the analytics dashboard now.
+                        </p>
+                      </div>
+
+                    </div>
+
+                  )}
+
+                </div>
+
+              )}
+
+            </div>
+
+          </div>
+
+        )}
 
       </main>
 
@@ -429,7 +695,7 @@ const Meeting = () => {
           {/* MIC */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
 
-            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
               <MicOff size={18} />
             </button>
 
@@ -443,7 +709,7 @@ const Meeting = () => {
           {/* VIDEO */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
 
-            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+            <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
               <VideoOff size={18} />
             </button>
 
@@ -455,25 +721,24 @@ const Meeting = () => {
           </div>
 
           {/* SHARE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
             <Share size={18} />
           </button>
 
-          {/* DIVIDER */}
           <div className="w-px h-7 bg-slate-200"></div>
 
           {/* HAND */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-200 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-yellow-500 hover:bg-yellow-100 transition">
             <Hand size={18} />
           </button>
 
           {/* USERS */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
             <Users size={18} />
           </button>
 
           {/* MORE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
             <MoreVertical size={18} />
           </button>
 
@@ -482,11 +747,19 @@ const Meeting = () => {
         {/* RIGHT */}
         <div className="flex items-center gap-3">
 
-          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
+          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm">
             <FileText size={18} />
           </button>
 
-          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
+          {/* MENU */}
+          <button
+            onClick={() => {
+              setShowMenuPage(!showMenuPage);
+              setShowParticipants(false);
+              setShowHandRaise(false);
+            }}
+            className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm"
+          >
             <LayoutGrid size={18} />
           </button>
 
