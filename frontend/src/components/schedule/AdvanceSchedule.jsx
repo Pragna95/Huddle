@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 import {
-  CalendarDays,
+  Calendar,
   ChevronDown,
 } from "lucide-react"
 
@@ -62,60 +62,65 @@ export default function AdvanceSchedule({ open, setOpen }) {
     <Dialog open={open} onOpenChange={setOpen}>
 
       <DialogContent
-        className="
-          w-[90vw]
+  className="
+   
+    w-[981px]
+    max-w-[95vw]
 
-          sm:w-[85vw]
+    h-[953.19px]
+    max-h-[90vh]
 
-          md:w-[78vw]
+    rounded-[20px]
 
-          lg:w-[950px]
+    border
+    border-gray-200
+    
 
-          xl:w-[1000px]
+    pt-[32px]
+    pr-[32px]
+    pb-[48px]
+    pl-[32px]
 
-          max-h-[82vh]
+    gap-[32px]
 
-          bg-[#f7f7f7]
+    bg-[#f7f7f7]
 
-          rounded-[28px]
+    opacity-100
 
-          p-0
+    overflow-hidden
 
-          overflow-hidden
+    shadow-2xl
 
-          border-none
+    flex
+    flex-col
 
-          shadow-2xl
-
-          flex
-          flex-col
-
-          [&>button]:top-4
-          [&>button]:right-4
-          [&>button]:w-10
-          [&>button]:h-10
-          [&>button]:rounded-xl
-          [&>button]:border
-          [&>button]:border-gray-400
-          [&>button]:text-gray-700
-        "
-      >
-
+    [&>button]:top-6
+    [&>button]:right-6
+    [&>button]:w-[24px]
+    [&>button]:h-[24px]
+    [&>button]:rounded-5px]
+    [&>button]:border
+    [&>button]:border-gray-400
+    [&>button]:text-gray-700
+  "
+>
         {/* HEADER */}
 
         <div
-          className="
-            flex
-            items-center
-            gap-4
+  className="
+    w-[915px]
+    h-[44px]
 
-            px-5
-            md:px-8
+    flex
+    items-center
+    justify-space-between
 
-            pt-6
-            pb-4
-          "
-        >
+    opacity-100
+    rotate-0
+
+    mx-auto
+  "
+>
 
           <div
             className="
@@ -126,65 +131,94 @@ export default function AdvanceSchedule({ open, setOpen }) {
             "
           >
 
-            <CalendarDays
+            <Calendar
               className="
-                w-7
-                h-7
+                w-[24px]
+                h-[24px]
+
                 text-[#0b2a7a]
               "
             />
 
           </div>
 
-          <div>
+          <div
+  className="
+    w-fit
+    h-[44px]
 
-            <h1
-              className="
-                text-[24px]
-                md:text-[34px]
+    opacity-100
+    rotate-0
+  "
+>
 
-                font-bold
+  <h1
+    className="
+      text-[20px]
+      w-[272.7px]
+      h-[28px]
 
-                text-[#0f172a]
+      font-bold
 
-                whitespace-nowrap
-              "
-            >
-              Schedule Advanced Session
-            </h1>
+      text-[#0f172a]
 
-            <p
-              className="
-                text-[14px]
-                md:text-[16px]
+      whitespace-nowrap
 
-                text-gray-500
+      leading-[44px]
+      pl-2
+      -mt-2
+    "
+  >
+    Schedule Advanced Session
+  </h1>
 
-                mt-1
-              "
-            >
-              Set up complex recurring meetings
-            </p>
+  <p
+    className="
+      text-[12px]
+      w-[272.7px]
+      h-[16px]
 
-          </div>
+      text-gray-500
 
+      mt-1
+      pl-3
+      
+    "
+  >
+    Set up complex recurring meetings
+  </p>
+
+</div>
         </div>
 
         {/* BODY */}
 
         <div
-          className="
-            flex-1
+  className="
+    w-[915px]
+max-w-full
 
-            overflow-y-auto
+h-[795.19px]
 
-            px-5
-            md:px-8
+    gap-[24px]
 
-            pb-6
-          "
-        >
+    opacity-100
+    rotate-0
 
+    overflow-y-auto
+
+    mx-auto
+
+    flex
+    flex-col
+
+    px-5
+    md:px-3
+    pt-0
+    pb-0  
+    
+  "
+>
           <div
             className="
               grid
@@ -202,11 +236,11 @@ export default function AdvanceSchedule({ open, setOpen }) {
 
               {/* TITLE */}
 
-              <div className="space-y-2">
+              <div className="space-y-2 ">
 
                 <label
                   className="
-                    text-xs
+                    text-[12px]
                     md:text-sm
 
                     tracking-[2px]
@@ -216,6 +250,11 @@ export default function AdvanceSchedule({ open, setOpen }) {
                     text-gray-500
 
                     uppercase
+                    mb-2
+                    block
+                    
+                    
+                    
                   "
                 >
                   Meeting Title
@@ -238,6 +277,9 @@ export default function AdvanceSchedule({ open, setOpen }) {
                     text-base
 
                     px-4
+                    
+                    
+                    
                   "
                 />
 
@@ -259,6 +301,8 @@ export default function AdvanceSchedule({ open, setOpen }) {
                     text-gray-500
 
                     uppercase
+                    mb-2
+                    block
                   "
                 >
                   Description
@@ -294,65 +338,55 @@ export default function AdvanceSchedule({ open, setOpen }) {
               {/* START DATE */}
 
               <div className="space-y-2">
+  <label
+    className="
+      text-xs
+      md:text-sm
+      tracking-[2px]
+      font-semibold
+      text-gray-500
+      uppercase
+      mb-2
+      block
+    "
+  >
+    Start Date
+  </label>
 
-                <label
-                  className="
-                    text-xs
-                    md:text-sm
+  <div className="relative">
+    <Input
+      type="date"
+      value={startDate}
+      onChange={(e) => setStartDate(e.target.value)}
+      className="
+        h-12
+        rounded-xl
+        bg-[#eef2f7]
+        border
+        border-gray-200
+        text-base
 
-                    tracking-[2px]
+        px-4
+        pr-12
+        [&::-webkit-calendar-picker-indicator]:opacity-0
+        
+      "
+    />
 
-                    font-semibold
-
-                    text-gray-500
-
-                    uppercase
-                  "
-                >
-                  Start Date
-                </label>
-
-                <div className="relative">
-
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="
-                      h-12
-
-                      rounded-xl
-
-                      bg-[#eef2f7]
-
-                      border
-                      border-gray-200
-
-                      text-base
-
-                      px-4
-                    "
-                  />
-
-                  <CalendarDays
-                    className="
-                      absolute
-
-                      right-4
-                      top-1/2
-
-                      -translate-y-1/2
-
-                      text-gray-500
-
-                      w-5
-                      h-5
-                    "
-                  />
-
-                </div>
-
-              </div>
+    <Calendar
+      className="
+        absolute
+        right-4
+        top-1/2
+        -translate-y-1/2
+        w-5
+        h-5
+        text-[#0b2a7a]
+        pointer-events-none
+      "
+    />
+  </div>
+</div>
 
               {/* TIME */}
 
@@ -381,6 +415,8 @@ export default function AdvanceSchedule({ open, setOpen }) {
                       text-gray-500
 
                       uppercase
+                      mb-2
+                    block
                     "
                   >
                     Start Time
@@ -423,6 +459,8 @@ export default function AdvanceSchedule({ open, setOpen }) {
                       text-gray-500
 
                       uppercase
+                      mb-2
+                    block
                     "
                   >
                     End Time
@@ -455,13 +493,14 @@ export default function AdvanceSchedule({ open, setOpen }) {
 
               {/* ✅ ALL DAY CHECKBOX */}
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 -mt-3">
 
                 <input
                   type="checkbox"
                   checked={allDay}
                   onChange={() => setAllDay(!allDay)}
                   className="
+                   
                     w-4
                     h-4
 
@@ -491,6 +530,8 @@ export default function AdvanceSchedule({ open, setOpen }) {
                     text-gray-500
 
                     uppercase
+                    mb-2
+                    block
                   "
                 >
                   Recurrence
@@ -543,6 +584,8 @@ export default function AdvanceSchedule({ open, setOpen }) {
                     text-gray-500
 
                     uppercase
+                    mb-2
+                    block
                   "
                 >
                   Repeat On Days
@@ -587,28 +630,81 @@ export default function AdvanceSchedule({ open, setOpen }) {
                 </div>
 
               </div>
+              {/* END RECURRENCE AFTER */}
+<div className="mt-8">
+  <label
+    className="
+      block
+      text-[14px]
+      font-semibold
+      tracking-[2px]
+      uppercase
+      text-[#64748b]
+      mb-2
+    "
+  >
+    End Recurrence After
+  </label>
 
-              {/* ✅ NEVER CHECKBOX */}
+  <div className="flex items-center gap-3">
+    
+    {/* Number Box */}
+    <input
+      type="number"
+      defaultValue={10}
+      className="
+        w-[96px]
+        h-[42px]
+        rounded-[12px]
+        border
+        border-[#d9e0ea]
+        bg-[#eef2f6]
+        px-4
+        text-[16px]
+        text-[#0f172a]
+        outline-none
+      "
+    />
 
-              <div className="flex items-center gap-3">
+    {/* Dropdown */}
+    <select
+      className="
+        w-[110px]
+        h-[42px]
+        rounded-[12px]
+        border
+        border-[#d9e0ea]
+        bg-[#eef2f6]
+        px-3
+        text-[16px]
+        text-[#0f172a]
+        outline-none
+        cursor-pointer
+      "
+    >
+      <option>Weeks</option>
+      <option>Days</option>
+      <option>Months</option>
+    </select>
 
-                <input
-                  type="checkbox"
-                  checked={neverEnds}
-                  onChange={() => setNeverEnds(!neverEnds)}
-                  className="
-                    w-4
-                    h-4
+    {/* Text */}
+    <span className="text-[16px] text-[#64748b]">
+      occurrences
+    </span>
+  </div>
 
-                    accent-[#0b2a7a]
-                  "
-                />
+  {/* Never Checkbox */}
+  <div className="flex items-center gap-2 mt-3">
+    <input
+      type="checkbox"
+      className="w-5 h-5 rounded border-[#cbd5e1]"
+    />
 
-                <label className="text-sm text-gray-700">
-                  Never
-                </label>
-
-              </div>
+    <span className="text-[16px] text-[#64748b]">
+      Never
+    </span>
+  </div>
+</div>
 
               {/* BUTTONS */}
 
@@ -688,6 +784,8 @@ export default function AdvanceSchedule({ open, setOpen }) {
                     text-gray-500
 
                     uppercase
+                    mb-2
+                    block
                   "
                 >
                   Add People To Invite
@@ -717,10 +815,13 @@ export default function AdvanceSchedule({ open, setOpen }) {
 
               <div
                 className="
-                  border
-                  border-gray-200
+                border-b
+              border-gray-100
+                  
+                 
+              
 
-                  rounded-2xl
+                  
 
                   overflow-hidden
 
@@ -741,8 +842,8 @@ export default function AdvanceSchedule({ open, setOpen }) {
                       px-4
                       py-3
 
-                      border-b
-                      border-gray-100
+                        border-b
+                        border-gray-100
                     "
                   >
 
