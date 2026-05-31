@@ -1,11 +1,12 @@
 import { useState } from "react";
 import axios from "axios";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, } from "react-router-dom";
 import "./Admin.css";
 import Meeting from "./pages/Meeting";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import HuddlePage from "@/components/huddle/HuddlePage";
+import Messaging from "@/components/chat/Messaging";
 
 function DashboardUI() {
   return (
@@ -153,6 +154,8 @@ function App() {
           )
         } />
         <Route path="/dashboard-ui" element={<DashboardUI />} />
+        
+        
       </Routes>
     </Router>
   );

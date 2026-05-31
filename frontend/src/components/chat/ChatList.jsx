@@ -18,7 +18,8 @@ export default function ChatList() {
   const [chatSearch, setChatSearch] = useState("");
 
   return (
-    <div className="w-[288px] h-full flex flex-col bg-white border-r border-gray-100 overflow-y-auto flex-shrink-0">
+    <div className="w-[324px] h-[824px] flex flex-col bg-white border-r border-gray-100 overflow-y-auto flex-shrink-0">
+      {/* Announcements */}
       <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100">
         <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
           <Bell className="w-4 h-4 text-gray-600" />
@@ -29,6 +30,7 @@ export default function ChatList() {
         </span>
       </div>
 
+      {/* Huddles */}
       <div className="flex items-center gap-3 px-4 py-3 bg-[#1e2b72] cursor-pointer">
         <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
           <span className="text-white text-sm">🎥</span>
@@ -36,6 +38,7 @@ export default function ChatList() {
         <span className="flex-1 text-sm font-semibold text-white">Huddles</span>
       </div>
 
+      {/* Channels */}
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Channels</span>
@@ -78,6 +81,7 @@ export default function ChatList() {
         </button>
       </div>
 
+      {/* Chats */}
       <div className="px-4 pt-3 border-t border-gray-100">
         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
           General chats
