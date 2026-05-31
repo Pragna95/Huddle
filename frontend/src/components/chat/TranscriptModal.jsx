@@ -1,109 +1,146 @@
-import { Mic, X } from "lucide-react";
+import {  X } from "lucide-react";
 
 export default function TranscriptModal({ closeTranscript }) {
+  const transcripts = [
+    {
+      name: "Jane Smith",
+      message:
+        "I've reviewed the portfolio for candidate John Doe. His React architecture patterns are impressive.",
+    },
+    {
+      name: "Michael Johnson",
+      message:
+        "I analyzed the work samples of Sara Lee. Her UI designs are user-centric and visually appealing.",
+    },
+    {
+      name: "Emily Davis",
+      message:
+        "I've assessed the project submissions of Alex Brown. His attention to detail in animation is commendable.",
+    },
+    {
+      name: "David Wilson",
+      message:
+        "After going through the portfolio of Maria Garcia, I found her accessibility practices to be quite advanced.",
+    },
+    {
+      name: "Sophia Turner",
+      message:
+        "I evaluated the case studies of Chris White. His data visualization skills are particularly strong.",
+    },
+    {
+      name: "Daniel Martinez",
+      message:
+        "I reviewed the design frameworks used by Olivia Thompson. Her approach to prototyping is highly efficient.",
+    },
+  ];
 
-    const transcripts = [
-        {
-            name: "Jane Smith",
-            message:
-                "I've reviewed the portfolio for candidate John Doe. His React architecture patterns are impressive.",
-        },
-        {
-            name: "Michael Johnson",
-            message:
-                "I analyzed the work samples of Sara Lee. Her UI designs are user-centric and visually appealing.",
-        },
-        {
-            name: "Emily Davis",
-            message:
-                "I've assessed the project submissions of Alex Brown. His attention to detail in animation is commendable.",
-        },
-        {
-            name: "David Wilson",
-            message:
-                "After going through the portfolio of Maria Garcia, I found her accessibility practices to be quite advanced.",
-        },
-        {
-            name: "Sophia Turner",
-            message:
-                "I evaluated the case studies of Chris White. His data visualization skills are particularly strong.",
-        },
-        {
-            name: "Daniel Martinez",
-            message:
-                "I reviewed the design frameworks used by Olivia Thompson. Her approach to prototyping is highly efficient.",
-        },
-    ];
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      {/* Main Modal */}
+      <div
+        className="
+          bg-white
 
-    return (
+          w-[650px]
+          h-[714px]
 
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          rounded-[12px]
 
-            {/* Main Modal */}
-            <div className="bg-white w-full max-w-6xl rounded-3xl border-2 border-blue-500 p-6 max-h-[90vh] overflow-y-auto">
+          border
+          border-blue-500
 
-                {/* Header */}
-                <div className="flex items-center mb-8">
+          pt-[21px]
+          pr-[16px]
+          pb-[21px]
+          pl-[16px]
 
-                    <div className="flex items-center gap-3">
+          flex
+          flex-col
 
-                        <Mic className="text-blue-700 w-10 h-10" />
+          gap-[10px]
 
-                        <h1 className="text-4xl font-bold text-blue-700">
-                            Meet transcript
-                        </h1>
+          shadow-2xl
 
-                    </div>
+          overflow-hidden
+        "
+      >
+        {/* Header */}
+        <div className="flex items-center mb-4">
+          <div className="flex items-center gap-3">
+          <img
+              src="/mic-icon.svg"
+              alt="Mic"
+              className="w-[24px] h-[24px] pl-2"
+            />
 
-                    {/* Close Button */}
-                    <button
-                        onClick={closeTranscript}
-                        className="ml-auto border-2 border-gray-500 rounded-xl p-2 hover:bg-gray-100"
-                    >
-                        <X className="w-6 h-6" />
-                    </button>
+            <h1 className="text-[20px] font-bold text-[#0046BB]">
+              Meet transcript
+            </h1>
+          </div>
 
-                </div>
+          {/* Close Button */}
+          <button
+            onClick={closeTranscript}
+            className="
+              ml-auto
 
-                {/* Transcript List */}
-                <div className="space-y-8">
+              w-[24px]
+              h-[24px]
 
-                    {transcripts.map((item, index) => (
+              border-2
+              border-gray-500
 
-                        <div key={index} className="flex gap-5">
+              rounded-[5px]
 
-                            {/* Avatar */}
-                            <img
-                                src="https://i.pravatar.cc/100"
-                                alt="avatar"
-                                className="w-14 h-14 rounded-lg"
-                            />
+              hover:bg-gray-100
 
-                            {/* Message Section */}
-                            <div className="flex-1">
-
-                                <h2 className="text-2xl font-semibold text-gray-600 mb-3">
-                                    {item.name}
-                                </h2>
-
-                                <div className="bg-gray-100 rounded-3xl p-6">
-
-                                    <p className="text-2xl text-gray-700 leading-relaxed">
-                                        {item.message}
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    ))}
-
-                </div>
-
-            </div>
-
+              flex
+              items-center
+              justify-center
+            "
+          >
+            <X className="w-[20px] h-[20px]" />
+          </button>
         </div>
-    );
+
+        {/* Transcript List */}
+        <div
+          className="
+            flex-1
+            overflow-y-auto
+
+            space-y-10
+
+            pr-2
+            -mt-4
+            
+          "
+        >
+          {transcripts.map((item, index) => (
+            <div key={index} className="flex gap-4 w-[600px] h-[98px] ">
+              {/* Avatar */}
+              <img
+                src="https://i.pravatar.cc/100"
+                alt="avatar"
+                className="w-[32px] h-[36px] rounded-lg shrink-0"
+              />
+
+              {/* Message Section */}
+              <div className="flex-1 w-[552px] h-[98px]  ">
+                <h2 className="text-[16px] font-semibold text-gray-500 mb-1">
+                  {item.name}
+                </h2>
+
+                <div className="bg-gray-100 rounded-2xl p-2 ">
+                  <p className="text-normal text-[#434655] leading-relaxed w-[540px] h-[78px]">
+                    {item.message}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
