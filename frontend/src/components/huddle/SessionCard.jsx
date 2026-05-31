@@ -74,12 +74,13 @@ export default function SessionCard({ session }) {
 
 <div
   className="
-    p-[2px]
-    rounded-[16px]
+  border-
+    p-[1px]
+    rounded-[13px]
 
     bg-[linear-gradient(90deg,#ff7a18,#ff4fd8,#3b82f6,#1d4ed8)]
 
-    shadow-[0_8px_25px_rgba(29,78,216,0.25)]
+    
   "
 >
   <button
@@ -95,7 +96,7 @@ export default function SessionCard({ session }) {
 
       bg-white
 
-      text-[#0b43b8]
+      text-[#0046BB]
 
       text-[15px]
       font-semibold
@@ -131,10 +132,10 @@ export default function SessionCard({ session }) {
 
     bg-white
 
-    border-2
-    border-[#261e92]
+    border-1
+    border-[#002266]
 
-    text-[#261e92]
+    text-[#002266]
 
     text-[15px]
     font-semibold
@@ -174,10 +175,10 @@ export default function SessionCard({ session }) {
 
     bg-white
 
-    border-2
-    border-[#261e92]
+    border-1
+    border-[#002266]
 
-    text-[#261e92]
+    text-[#002266]
 
     text-[15px]
     font-semibold
