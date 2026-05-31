@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 URL configuration for backend project.
 
@@ -15,6 +16,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+<<<<<<<< HEAD:backend/backend/urls.py
 from django.urls import path,include
 
 urlpatterns = [
@@ -22,3 +24,20 @@ urlpatterns = [
     path('api/users/',include('apps.users.urls')),
     path("api/meetings/", include("apps.meetings.urls")),
 ]
+========
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('meetings.urls')),
+]
+>>>>>>>> Team-B:meeting_service/config/urls.py
+=======
+from django.urls import path, include
+from django.contrib import admin  
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('apps.meetings.urls')),   # include your app urls
+]
+>>>>>>> Team-B

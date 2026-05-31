@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+<<<<<<< HEAD
 *.py[cod]
 *$py.class
 *.so
@@ -51,3 +52,27 @@ dmypy.json
 
 # Jupyter
 .ipynb_checkpoints
+=======
+*.pyc
+
+# Virtual environment
+venv/
+env/
+
+# Environment variables
+.env
+
+# Database
+db.sqlite3
+
+# Static/media
+staticfiles/
+media/
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+*.log
+>>>>>>> Team-B

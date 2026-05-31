@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
 
 /* Optional clean reset (safe) */
 html,
@@ -13,5 +12,5 @@ body {
 
 /* optional: remove default font issues */
 body {
-  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  font-family: 'DM Sans', system-ui, "Segoe UI", Roboto, sans-serif;
 }

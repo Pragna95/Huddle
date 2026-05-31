@@ -1,4 +1,5 @@
 from django.urls import path
+<<<<<<< HEAD
 
 from .views import (
     toggle_mic,
@@ -16,4 +17,12 @@ urlpatterns = [
     path("start-screen-share/", start_screen_share),
     path("stop-screen-share/", stop_screen_share),
     path("current-screen-sharer/<str:meeting_link>/", current_screen_sharer),
+=======
+# pyrefly: ignore [missing-import]
+from . import views   
+
+urlpatterns = [
+    path("create/", views.create_meeting),
+    path("schedule-meeting/", views.schedule_meeting),
+>>>>>>> Team-B
 ]

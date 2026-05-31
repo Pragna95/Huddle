@@ -1,8 +1,25 @@
 import { useState } from "react";
 import axios from "axios";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import "./App.css";
+import "./Admin.css";
 import Meeting from "./pages/Meeting";
+import Sidebar from "@/components/layout/Sidebar";
+import TopBar from "@/components/layout/TopBar";
+import HuddlePage from "@/components/huddle/HuddlePage";
+
+function DashboardUI() {
+  return (
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
+      <Sidebar />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <TopBar />
+        <div className="flex flex-1 overflow-hidden">
+          <HuddlePage />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function App() {
 
@@ -135,9 +152,12 @@ function App() {
             </div>
           )
         } />
+        <Route path="/dashboard-ui" element={<DashboardUI />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
+
+

@@ -1,5 +1,9 @@
 """
+<<<<<<< HEAD
 WSGI config for backend project.
+=======
+WSGI config for config project.
+>>>>>>> Team-B
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
