@@ -1,30 +1,68 @@
 services:
+
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: docker/django/Dockerfile
+
     container_name: gadigital-backend
+
     env_file:
-      - .env
+      - ./.env
+
     ports:
       - "8000:8000"
+
     depends_on:
       - postgres-db
       - redis-cache
+
     command: gunicorn backend.wsgi:application --bind 0.0.0.0:8000
+
+
+  meeting-service:
+    build:
+      context: ./config
+
+    container_name: meeting-service
+
+    env_file:
+      - ./.env
+
+    restart: always
+
+    ports:
+      - "9000:9000"
+
+    depends_on:
+      - postgres-db
+
+    command: >
+      sh -c "
+      sleep 10 &&
+      python manage.py migrate &&
+      gunicorn config.wsgi:application --bind 0.0.0.0:9000
+      "
+
 
   postgres-db:
     image: postgres:16-alpine
+
     container_name: postgres-db
+
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: backend
+
     ports:
       - "5432:5432"
 
+
   redis-cache:
     image: redis:7-alpine
+
     container_name: redis-cache
+
     ports:
       - "6379:6379"
