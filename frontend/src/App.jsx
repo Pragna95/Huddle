@@ -1,7 +1,7 @@
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import HuddlePage from "@/components/huddle/HuddlePage";
-import AISummaryCard from "./components/AISummaryCard";
+import AISummaryCard from "@/components/chat/AISummaryCard";
 
 export default function App() {
   return (
