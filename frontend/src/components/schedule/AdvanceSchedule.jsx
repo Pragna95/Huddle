@@ -24,6 +24,9 @@ export default function AdvanceSchedule({ open, setOpen }) {
   const [startTime, setStartTime] = useState("09:00")
   const [endTime, setEndTime] = useState("10:00")
 
+  const [meetingLink, setMeetingLink] = useState("")
+  const [loading, setLoading] = useState(false)
+
   // ✅ NEW CHECKBOX STATES
   const [allDay, setAllDay] = useState(false)
   const [neverEnds, setNeverEnds] = useState(true)
@@ -55,6 +58,56 @@ export default function AdvanceSchedule({ open, setOpen }) {
         ? prev.filter((d) => d !== index)
         : [...prev, index]
     )
+  }
+
+  const handleScheduleMeeting = async () => {
+
+    try {
+
+      setLoading(true)
+
+      const response = await fetch(
+        "http://localhost:8000/schedule-meeting/",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            title,
+            description,
+            startDate,
+            startTime,
+            endTime,
+            allDay,
+            neverEnds,
+            selectedDays,
+            attendees,
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      console.log(data)
+
+      setMeetingLink(data.meeting_link)
+
+      alert("Meeting Scheduled Successfully")
+
+    } catch (error) {
+
+      console.error(error)
+
+      alert("Failed to schedule meeting")
+
+    } finally {
+
+      setLoading(false)
+
+    }
   }
 
   return (
@@ -453,7 +506,7 @@ export default function AdvanceSchedule({ open, setOpen }) {
 
               </div>
 
-              {/* ✅ ALL DAY CHECKBOX */}
+              {/* ALL DAY CHECKBOX */}
 
               <div className="flex items-center gap-3">
 
@@ -588,7 +641,7 @@ export default function AdvanceSchedule({ open, setOpen }) {
 
               </div>
 
-              {/* ✅ NEVER CHECKBOX */}
+              {/* NEVER CHECKBOX */}
 
               <div className="flex items-center gap-3">
 
@@ -645,6 +698,10 @@ export default function AdvanceSchedule({ open, setOpen }) {
                 </Button>
 
                 <Button
+                  onClick={handleScheduleMeeting}
+
+                  disabled={loading}
+
                   className="
                     bg-[#0b2a7a]
                     hover:bg-[#09205e]
@@ -661,10 +718,59 @@ export default function AdvanceSchedule({ open, setOpen }) {
                     text-base
                   "
                 >
-                  Schedule Now
+                  {
+                    loading
+                      ? "Scheduling..."
+                      : "Schedule Now"
+                  }
                 </Button>
 
               </div>
+
+              {
+                meetingLink && (
+
+                  <div
+                    className="
+                      mt-6
+
+                      bg-green-50
+
+                      border
+                      border-green-200
+
+                      rounded-2xl
+
+                      p-4
+                    "
+                  >
+
+                    <p
+                      className="
+                        text-sm
+                        text-gray-500
+                      "
+                    >
+                      Meeting Link
+                    </p>
+
+                    <a
+                      href={meetingLink}
+                      target="_blank"
+                      rel="noreferrer"
+
+                      className="
+                        text-[#0b2a7a]
+                        font-semibold
+                        break-all
+                      "
+                    >
+                      {meetingLink}
+                    </a>
+
+                  </div>
+                )
+              }
 
             </div>
 

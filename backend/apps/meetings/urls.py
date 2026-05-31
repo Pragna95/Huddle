@@ -1,6 +1,8 @@
 from django.urls import path
-from .views import create_meeting
+# pyrefly: ignore [missing-import]
+from . import views   
 
 urlpatterns = [
-    path("create/", create_meeting),
+    path("create/", views.create_meeting),
+    path("schedule-meeting/", views.schedule_meeting),
 ]
