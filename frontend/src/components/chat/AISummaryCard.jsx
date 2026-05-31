@@ -30,7 +30,7 @@ export default function AISummaryCard({ closeCard }) {
         "
       >
         {/* Header */}
-        <div className="flex items-center gap-3 mb-2 -ml-2">
+        <div className="flex items-center gap-3 mb-2 -ml-2 -mt-3">
           <div className="p-3 rounded-full">
             <img
               src="/mic-icon.svg"

@@ -18,39 +18,43 @@ export default function ChatList() {
   const [chatSearch, setChatSearch] = useState("");
 
   return (
-    <div className="w-72 flex flex-col bg-white border-r border-gray-100 overflow-y-auto flex-shrink-0">
-      <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100">
-        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-          <Bell className="w-4 h-4 text-gray-600" />
+    <div className="w-[324px] h-[824px] flex flex-col bg-white border-1 rounded-[12px] border-gray-100 overflow-y-auto flex-shrink-0 pt-[16px] pb[16px] gap-[8px]">
+      <div className="flex items-center gap-3 px-4 py-3 bg-gray-100 cursor-pointer border-b border-gray-100 rounded-[6px] w-[300px] h-[48px] ">
+        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center ">
+          <Bell className="w-[16px] h-[20px] text-gray-600" />
         </div>
-        <span className="flex-1 text-sm font-medium text-gray-700">Announcements</span>
-        <span className="w-5 h-5 bg-[#1e2b72] text-white text-xs rounded-full flex items-center justify-center font-bold">
+        <span className="flex-1 text-[14px] font-medium text-gray-700 -ml-2">Announcements</span>
+        <span className="w-[24px] h-[24px] bg-[#0046BB] text-white text-[12px] rounded-full flex items-center justify-center font-bold">
           01
         </span>
       </div>
 
-      <div className="flex items-center gap-3 px-4 py-3 bg-[#1e2b72] cursor-pointer">
-        <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-          <span className="text-white text-sm">🎥</span>
+      <div className="w-[300px] h-[48px] rounded-[6px] bg-[#002266] flex items-center gap-3 px-4 py-3  cursor-pointer rounded-[6px]">
+        <div className="w-8 h-8 rounded-lg  flex items-center justify-center">
+          <span ><img
+  src="mon.svg"
+  alt="Dash"
+  className="w-[20px] h-[20px]"
+/></span>
         </div>
         <span className="flex-1 text-sm font-semibold text-white">Huddles</span>
       </div>
 
-      <div className="px-4 pt-4 pb-2">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Channels</span>
-          <button className="text-gray-400 hover:text-gray-600">
-            <Plus className="w-4 h-4" />
+      <div className="px-4 pt-4 pb-2 h-[304px] w-[324] gap-[8px]">
+        <div className="flex items-center justify-between mb-3 h-[36px] w-[280px]">
+          <span className="text-[12px] font-regular text-[#001744] tracking-wider">Channels</span>
+          <button className="text-[#28303F] hover:text-gray-600 h-[20px] w-[20px]">
+            <Plus className="w-[13.25px] h-[13.25]" />
           </button>
         </div>
 
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+        <div className="relative mb-3 h-[40px] w-[288px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-gray-400 -mt-1" />
           <Input
             value={channelSearch}
             onChange={(e) => setChannelSearch(e.target.value)}
             placeholder="search"
-            className="pl-8 h-8 text-sm border-gray-200 bg-gray-50 rounded-lg"
+            className="pl-8 h-8 text-[12px] border-gray-400 bg-gray- rounded-lg"
           />
         </div>
 
@@ -63,8 +67,8 @@ export default function ChatList() {
                 onClick={() => setActiveChannel(c)}
                 className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors text-left ${
                   activeChannel === c
-                    ? "bg-blue-50 text-[#1e2b72] font-semibold"
-                    : "text-gray-600 hover:bg-gray-50"
+                    ? "bg-blue-50 text-[#38427c] font-semibold"
+                    : "text-[#475569] hover:bg-gray-50"
                 }`}
               >
                 <Hash className="w-3.5 h-3.5" />
