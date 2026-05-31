@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 import {
   Mic,
@@ -55,35 +56,25 @@ const participantMembers = [
 ];
 
 const Meeting = () => {
-  const [showHandRaise, setShowHandRaise] =
-    useState(false);
+  const [showHandRaise, setShowHandRaise] = useState(false);
 
-  const [showParticipants, setShowParticipants] =
-    useState(false);
+  const [showParticipants, setShowParticipants] = useState(false);
 
-  const [showParticipantsGrid, setShowParticipantsGrid] =
-    useState(false);
+  const [showParticipantsGrid, setShowParticipantsGrid] = useState(false);
 
-  const [showMenuPage, setShowMenuPage] =
-    useState(false);
+  const [showMenuPage, setShowMenuPage] = useState(false);
 
-  const [activeMenu, setActiveMenu] =
-    useState("assistance");
+  const [activeMenu, setActiveMenu] = useState("assistance");
 
-  const [transcriptionEnabled, setTranscriptionEnabled] =
-    useState(true);
+  const [transcriptionEnabled, setTranscriptionEnabled] = useState(true);
 
-  const [isRecording, setIsRecording] =
-    useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
-  const [isHandRaised, setIsHandRaised] =
-    useState(false);
+  const [isHandRaised, setIsHandRaised] = useState(false);
 
-  const [recordingTime, setRecordingTime] =
-    useState(0);
+  const [recordingTime, setRecordingTime] = useState(0);
 
-  const [recordingStopped, setRecordingStopped] =
-    useState(false);
+  const [recordingStopped, setRecordingStopped] = useState(false);
 
   const [isMicOn, setIsMicOn] = useState(true);
 
@@ -92,17 +83,16 @@ const Meeting = () => {
   // CHAT
   const [message, setMessage] = useState("");
 
-  const [chatMessages, setChatMessages] =
-    useState([
-      {
-        sender: "Rahul",
-        text: "Can we start the demo?",
-      },
-      {
-        sender: "Anika",
-        text: "Sharing the screen now.",
-      },
-    ]);
+  const [chatMessages, setChatMessages] = useState([
+    {
+      sender: "Rahul",
+      text: "Can we start the demo?",
+    },
+    {
+      sender: "Anika",
+      text: "Sharing the screen now.",
+    },
+  ]);
   useEffect(() => {
     let interval;
 
@@ -115,15 +105,16 @@ const Meeting = () => {
     return () => clearInterval(interval);
   }, [isRecording]);
 
+  useEffect(() => {
+    fetchParticipantState();
+  }, []);
+
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
 
-    return `${minutes}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
-
 
   // SEND MESSAGE
   const handleSendMessage = () => {
@@ -140,21 +131,54 @@ const Meeting = () => {
     setMessage("");
   };
 
+  const userId = 1;
+  const meetingId = "meeting_001";
+  const API_URL = "http://127.0.0.1:8000/api/meetings";
+
+  const fetchParticipantState = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/participant/${meetingId}/${userId}/`,
+      );
+
+      const data = response.data.data;
+
+      setIsMicOn(data.mic_on);
+      setIsVideoOn(data.video_on);
+      setIsHandRaised(data.hand_raised);
+      console.log("Participant Loaded", data);
+    } catch (error) {
+      console.log("Fetch Error:", error);
+    }
+  };
+
+  const updateParticipantState = async (mic, video, hand) => {
+    try {
+      await axios.post(`${API_URL}/participant/update/`, {
+        user_id: userId,
+        meeting_id: meetingId,
+        mic_on: mic,
+        video_on: video,
+        hand_raised: hand,
+      });
+
+      console.log("State Updated");
+      fetchParticipantState();
+    } catch (error) {
+      console.log("Update Error:", error);
+    }
+  };
   return (
     <div className="h-screen w-screen bg-[#f4f4f5] flex flex-col overflow-hidden font-sans">
-
       {/* ================= HEADER ================= */}
       <header className="h-[78px] bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
-
         {/* LEFT */}
         <div className="flex items-center gap-4">
-
           <div className="w-11 h-11 rounded-2xl bg-[#0f172a] text-white flex items-center justify-center shadow-sm">
             <Monitor size={22} fill="white" />
           </div>
 
           <div className="leading-tight">
-
             <h2 className="text-[17px] font-bold text-slate-800">
               Huddle_Name
             </h2>
@@ -162,7 +186,6 @@ const Meeting = () => {
             <p className="text-[12px] text-slate-400 mt-1">
               Tuesday, 07-04-2026
             </p>
-
           </div>
 
           <button
@@ -180,27 +203,19 @@ const Meeting = () => {
                 setIsRecording(true);
               }
             }}
-            className={`ml-5 flex items-center gap-2 px-4 py-2 h-[40px] rounded-[8px] text-[14px] font-semibold border transition-all duration-300 ${isRecording
-              ? "bg-[#D14343] text-white border-[#D14343]"
-              : "bg-white text-[#D14343] border-[#D14343] hover:bg-red-50"
-              }`}
+            className={`ml-5 flex items-center gap-2 px-4 py-2 h-[40px] rounded-[8px] text-[14px] font-semibold border transition-all duration-300 ${
+              isRecording
+                ? "bg-[#D14343] text-white border-[#D14343]"
+                : "bg-white text-[#D14343] border-[#D14343] hover:bg-red-50"
+            }`}
           >
-
             <Circle
               size={10}
               fill={
-                isRecording
-                  ? "white"
-                  : recordingStopped
-                    ? "#ef4444"
-                    : "#D14343"
+                isRecording ? "white" : recordingStopped ? "#ef4444" : "#D14343"
               }
               color={
-                isRecording
-                  ? "white"
-                  : recordingStopped
-                    ? "#ef4444"
-                    : "#D14343"
+                isRecording ? "white" : recordingStopped ? "#ef4444" : "#D14343"
               }
               className={isRecording ? "animate-pulse" : ""}
             />
@@ -211,105 +226,75 @@ const Meeting = () => {
                 ? "Stop Recording"
                 : "Start Recording"}
           </button>
-
         </div>
 
         {/* RIGHT */}
         <button className="bg-[#D14343] hover:bg-[#a51f1f] transition text-white px-4 h-[40px] rounded-[8px] flex items-center gap-2 text-[16px] font-bold shadow-sm">
-
           Leave Huddle
-
           <PhoneOff size={18} />
-
         </button>
       </header>
 
       {/* ================= BODY ================= */}
       <main className="flex-1 p-4 flex gap-4 min-h-0 overflow-hidden">
-
         {/* ================= MAIN AREA ================= */}
         <div
-          className={`relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full transition-all duration-300 ${showParticipantsGrid
-            ? "w-full"
-            : showHandRaise ||
-              showParticipants ||
-              showMenuPage
-              ? "w-[80%]"
-              : "w-full"
-            }`}
+          className={`relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full transition-all duration-300 ${
+            showParticipantsGrid
+              ? "w-full"
+              : showHandRaise || showParticipants || showMenuPage
+                ? "w-[80%]"
+                : "w-full"
+          }`}
         >
-
           {/* ================= PARTICIPANTS GRID ================= */}
           {showParticipantsGrid ? (
-
             <div className="w-full h-full bg-[#0f172a] p-6 overflow-y-auto">
-
               {/* TOP BAR */}
               <div className="flex items-center justify-between mb-6">
-
                 <h2 className="text-white text-2xl font-bold">
                   All Participants
                 </h2>
 
                 <button
-                  onClick={() =>
-                    setShowParticipantsGrid(false)
-                  }
+                  onClick={() => setShowParticipantsGrid(false)}
                   className="bg-white text-slate-700 px-5 py-2 rounded-2xl text-sm font-semibold hover:bg-slate-100 transition"
                 >
                   Back to Meeting
                 </button>
-
               </div>
 
               {/* GRID */}
               <div className="grid grid-cols-4 gap-5">
+                {participantMembers.map((member, index) => (
+                  <div
+                    key={index}
+                    className="relative h-[240px] rounded-[28px] overflow-hidden border border-slate-700 bg-slate-900"
+                  >
+                    <img
+                      src={`https://randomuser.me/api/portraits/${
+                        index % 2 === 0 ? "men" : "women"
+                      }/${index + 20}.jpg`}
+                      alt={member}
+                      className="w-full h-full object-cover"
+                    />
 
-                {participantMembers.map(
-                  (member, index) => (
+                    <div className="absolute inset-0 bg-black/20"></div>
 
-                    <div
-                      key={index}
-                      className="relative h-[240px] rounded-[28px] overflow-hidden border border-slate-700 bg-slate-900"
-                    >
-
-                      <img
-                        src={`https://randomuser.me/api/portraits/${index % 2 === 0
-                          ? "men"
-                          : "women"
-                          }/${index + 20}.jpg`}
-                        alt={member}
-                        className="w-full h-full object-cover"
-                      />
-
-                      <div className="absolute inset-0 bg-black/20"></div>
-
-                      <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-
-                        <div className="bg-black/40 backdrop-blur-xl px-3 py-1 rounded-xl text-white text-sm font-medium">
-                          {member}
-                        </div>
-
-                        <div className="bg-black/40 p-2 rounded-full">
-                          <MicOff
-                            size={15}
-                            className="text-white"
-                          />
-                        </div>
-
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                      <div className="bg-black/40 backdrop-blur-xl px-3 py-1 rounded-xl text-white text-sm font-medium">
+                        {member}
                       </div>
 
+                      <div className="bg-black/40 p-2 rounded-full">
+                        <MicOff size={15} className="text-white" />
+                      </div>
                     </div>
-
-                  )
-                )}
-
+                  </div>
+                ))}
               </div>
-
             </div>
-
           ) : (
-
             <>
               {/* IMAGE */}
               <img
@@ -322,7 +307,6 @@ const Meeting = () => {
 
               {/* ================= TOP RIGHT OVERLAYS ================= */}
               <div className="absolute top-5 right-5 flex flex-col items-end gap-4 z-40">
-
                 {/* PARTICIPANTS OVERLAY */}
                 <button
                   onClick={() => {
@@ -332,7 +316,6 @@ const Meeting = () => {
                   }}
                   className="relative w-[96px] h-[40px]"
                 >
-
                   {/* Avatar 1 */}
                   <img
                     src="https://randomuser.me/api/portraits/women/65.jpg"
@@ -349,18 +332,14 @@ const Meeting = () => {
 
                   {/* +3 */}
                   <div className="absolute left-[56px] top-0 w-10 h-10 rounded-[12px] border-2 border-white bg-[#ACBFFF] flex items-center justify-center shadow-md">
-
                     <span className="text-[12px] font-semibold text-[#394C84]">
                       +3
                     </span>
-
                   </div>
-
                 </button>
 
                 {/* HAND RAISE OVERLAY */}
                 <div className="flex items-end gap-3">
-
                   {/* HAND RAISE COUNT */}
                   <button
                     onClick={() => {
@@ -370,16 +349,13 @@ const Meeting = () => {
                     }}
                     className="bg-white h-[38px] px-4 rounded-[22px] flex items-center justify-center shadow-lg"
                   >
-
                     <span className="text-[22px] font-semibold leading-none text-black">
                       ✋ 12
                     </span>
-
                   </button>
 
                   {/* AVATAR STACK */}
                   <div className="relative w-[96px] h-[40px]">
-
                     {/* Avatar 1 */}
                     <img
                       src="https://randomuser.me/api/portraits/women/33.jpg"
@@ -396,17 +372,12 @@ const Meeting = () => {
 
                     {/* +3 */}
                     <div className="absolute left-[56px] top-0 w-10 h-10 rounded-[12px] border-2 border-white bg-[#ACBFFF] flex items-center justify-center shadow-md">
-
                       <span className="text-[12px] font-semibold text-[#394C84]">
                         +3
                       </span>
-
                     </div>
-
                   </div>
-
                 </div>
-
               </div>
               {/* NAME */}
               <h1 className="absolute bottom-7 left-7 text-white text-[38px] font-bold drop-shadow-lg z-20">
@@ -415,9 +386,7 @@ const Meeting = () => {
 
               {/* SMALL VIDEO */}
               <div className="absolute bottom-5 right-5 w-[220px] h-[140px] rounded-[40px] bg-[#1f1f24] backdrop-blur-2xl border border-white/10 flex items-center justify-center z-20 shadow-2xl">
-
                 <div className="text-center">
-
                   <div className="w-16 h-16 rounded-full bg-blue-900 text-white flex items-center justify-center mx-auto font-bold text-lg border border-blue-500">
                     AD
                   </div>
@@ -425,11 +394,8 @@ const Meeting = () => {
                   <p className="text-white text-sm font-semibold mt-3">
                     Andaya
                   </p>
-
                 </div>
-
               </div>
-
             </>
           )}
         </div>
@@ -438,16 +404,11 @@ const Meeting = () => {
         {(showHandRaise || showParticipants) &&
           !showParticipantsGrid &&
           !showMenuPage && (
-
             <div className="w-[20%] bg-white rounded-[24px] border border-slate-200 p-4 flex flex-col h-full">
-
               {/* TOP */}
               <div className="flex items-center justify-between mb-4">
-
                 <h2 className="text-[17px] font-semibold text-slate-700">
-                  {showHandRaise
-                    ? "Hand Raise"
-                    : "Participants"}
+                  {showHandRaise ? "Hand Raise" : "Participants"}
                 </h2>
 
                 <button
@@ -459,12 +420,10 @@ const Meeting = () => {
                 >
                   ×
                 </button>
-
               </div>
 
               {/* SEARCH */}
               <div className="relative mb-4">
-
                 <Search
                   size={15}
                   className="absolute left-3 top-3 text-slate-400"
@@ -475,80 +434,57 @@ const Meeting = () => {
                   placeholder="search"
                   className="w-full border border-slate-300 rounded-lg py-2 pl-9 pr-3 text-sm outline-none"
                 />
-
               </div>
 
               {/* COUNT */}
               <p className="text-sm text-slate-500 mb-4">
-                {showHandRaise
-                  ? "12 Members"
-                  : "40 Participants"}
+                {showHandRaise ? "12 Members" : "40 Participants"}
               </p>
 
               {/* MEMBERS */}
               <div className="space-y-3 overflow-y-auto flex-1">
-
                 {(showHandRaise
                   ? handRaiseMembers
                   : participantMembers.slice(0, 8)
                 ).map((member, index) => (
-
                   <div
                     key={index}
                     className="border border-slate-300 rounded-xl px-3 py-2 flex items-center justify-between hover:bg-slate-50 transition"
                   >
-
                     <div className="flex items-center gap-3">
-
                       <img
-                        src={`https://randomuser.me/api/portraits/${index % 2 === 0
-                          ? "men"
-                          : "women"
-                          }/${index + 20}.jpg`}
+                        src={`https://randomuser.me/api/portraits/${
+                          index % 2 === 0 ? "men" : "women"
+                        }/${index + 20}.jpg`}
                         className="w-10 h-10 rounded-full object-cover"
                       />
 
                       <span className="text-sm font-medium text-slate-700">
                         {member}
                       </span>
-
                     </div>
-
                   </div>
-
                 ))}
-
               </div>
 
               {/* VIEW ALL PARTICIPANTS */}
               {!showHandRaise && (
-
                 <button
-                  onClick={() =>
-                    setShowParticipantsGrid(true)
-                  }
+                  onClick={() => setShowParticipantsGrid(true)}
                   className="mt-5 bg-[#0f172a] text-white py-3 rounded-2xl text-sm font-semibold hover:bg-slate-800 transition"
                 >
                   View All Participants
                 </button>
-
               )}
-
             </div>
-
           )}
 
         {/* ================= MENU PAGE ================= */}
         {showMenuPage && (
-
           <div className="w-[20%] bg-white rounded-[24px] border border-slate-200 p-4 h-full flex flex-col">
-
             {/* HEADER */}
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-
-              <h2 className="text-[18px] font-semibold text-slate-700">
-                Menu
-              </h2>
+              <h2 className="text-[18px] font-semibold text-slate-700">Menu</h2>
 
               <button
                 onClick={() => setShowMenuPage(false)}
@@ -556,98 +492,80 @@ const Meeting = () => {
               >
                 <X size={16} />
               </button>
-
             </div>
 
             {/* TABS */}
             <div className="mt-5 bg-[#f3f4f6] rounded-full p-1 flex items-center">
-
               <button
                 onClick={() => setActiveMenu("chat")}
-                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${activeMenu === "chat"
-                  ? "bg-[#0f2a78] text-white"
-                  : "text-slate-500"
-                  }`}
+                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                  activeMenu === "chat"
+                    ? "bg-[#0f2a78] text-white"
+                    : "text-slate-500"
+                }`}
               >
                 Chat
               </button>
 
               <button
                 onClick={() => setActiveMenu("notes")}
-                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${activeMenu === "notes"
-                  ? "bg-[#0f2a78] text-white"
-                  : "text-slate-500"
-                  }`}
+                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                  activeMenu === "notes"
+                    ? "bg-[#0f2a78] text-white"
+                    : "text-slate-500"
+                }`}
               >
                 Notes
               </button>
 
               <button
-                onClick={() =>
-                  setActiveMenu("assistance")
-                }
-                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${activeMenu === "assistance"
-                  ? "bg-[#0f2a78] text-white"
-                  : "text-slate-500"
-                  }`}
+                onClick={() => setActiveMenu("assistance")}
+                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                  activeMenu === "assistance"
+                    ? "bg-[#0f2a78] text-white"
+                    : "text-slate-500"
+                }`}
               >
                 AI
               </button>
-
             </div>
 
             {/* CONTENT */}
             <div className="mt-5 flex-1 overflow-hidden flex flex-col">
-
               {/* CHAT */}
               {activeMenu === "chat" && (
-
                 <div className="flex flex-col h-full">
-
                   <div className="flex-1 overflow-y-auto space-y-4">
-
                     {chatMessages.map((msg, index) => (
-
                       <div
                         key={index}
-                        className={`flex ${msg.sender === "You"
-                          ? "justify-end"
-                          : "justify-start"
-                          }`}
+                        className={`flex ${
+                          msg.sender === "You" ? "justify-end" : "justify-start"
+                        }`}
                       >
-
                         <div
-                          className={`max-w-[85%] px-4 py-3 rounded-2xl ${msg.sender === "You"
-                            ? "bg-[#0f2a78] text-white"
-                            : "bg-slate-100 text-slate-700"
-                            }`}
+                          className={`max-w-[85%] px-4 py-3 rounded-2xl ${
+                            msg.sender === "You"
+                              ? "bg-[#0f2a78] text-white"
+                              : "bg-slate-100 text-slate-700"
+                          }`}
                         >
-
                           <p className="text-xs font-semibold mb-1">
                             {msg.sender}
                           </p>
 
-                          <p className="text-sm">
-                            {msg.text}
-                          </p>
-
+                          <p className="text-sm">{msg.text}</p>
                         </div>
-
                       </div>
-
                     ))}
-
                   </div>
 
                   {/* INPUT */}
                   <div className="mt-4 flex items-center gap-2">
-
                     <input
                       type="text"
                       value={message}
-                      onChange={(e) =>
-                        setMessage(e.target.value)
-                      }
+                      onChange={(e) => setMessage(e.target.value)}
                       placeholder="Type a message..."
                       className="flex-1 border border-slate-300 rounded-2xl px-4 py-3 text-sm outline-none"
                     />
@@ -658,30 +576,22 @@ const Meeting = () => {
                     >
                       <SendHorizontal size={18} />
                     </button>
-
                   </div>
-
                 </div>
-
               )}
 
               {/* NOTES */}
               {activeMenu === "notes" && (
-
                 <textarea
                   placeholder="Write meeting notes..."
                   className="w-full h-full border border-slate-300 rounded-2xl p-4 outline-none resize-none"
                 ></textarea>
-
               )}
 
               {/* AI */}
               {activeMenu === "assistance" && (
-
                 <div className="flex flex-col gap-4">
-
                   <div className="bg-slate-100 rounded-2xl p-4 flex items-center justify-between">
-
                     <div>
                       <p className="font-semibold text-slate-700">
                         AI Transcription
@@ -694,32 +604,23 @@ const Meeting = () => {
 
                     <button
                       onClick={() =>
-                        setTranscriptionEnabled(
-                          !transcriptionEnabled
-                        )
+                        setTranscriptionEnabled(!transcriptionEnabled)
                       }
-                      className={`w-14 h-7 rounded-full flex items-center px-1 transition ${transcriptionEnabled
-                        ? "bg-[#0f2a78]"
-                        : "bg-slate-300"
-                        }`}
+                      className={`w-14 h-7 rounded-full flex items-center px-1 transition ${
+                        transcriptionEnabled ? "bg-[#0f2a78]" : "bg-slate-300"
+                      }`}
                     >
-
                       <div
-                        className={`w-5 h-5 rounded-full bg-white transition ${transcriptionEnabled
-                          ? "translate-x-7"
-                          : ""
-                          }`}
+                        className={`w-5 h-5 rounded-full bg-white transition ${
+                          transcriptionEnabled ? "translate-x-7" : ""
+                        }`}
                       ></div>
-
                     </button>
-
                   </div>
 
                   {/* LIVE TRANSCRIPTION */}
                   {transcriptionEnabled && (
-
                     <div className="space-y-3">
-
                       <div className="bg-slate-100 rounded-2xl p-4">
                         <p className="text-xs font-semibold text-blue-700 mb-1">
                           LIVE
@@ -739,97 +640,71 @@ const Meeting = () => {
                           Anika: Sharing the analytics dashboard now.
                         </p>
                       </div>
-
                     </div>
-
                   )}
-
                 </div>
-
               )}
-
             </div>
-
           </div>
-
         )}
-
       </main>
 
       {/* ================= FOOTER ================= */}
       <footer className="h-[95px] bg-[#f8fafc] border-t border-slate-200 flex items-center justify-between px-6 shrink-0">
-
         {/* LEFT */}
         <div className="flex items-center gap-3">
-
           <span className="text-[11px] uppercase tracking-wide font-semibold text-slate-400">
             Meet ID
           </span>
 
           <div className="bg-slate-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-medium shadow-sm">
-
             NFT-rdtve9
-
             <Copy size={14} />
-
           </div>
-
         </div>
 
         {/* CENTER */}
         <div className="bg-white px-5 py-3 rounded-[24px] shadow-md flex items-center gap-3 border border-slate-100">
-
-
           {/* MIC */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
-
             <button
-              onClick={() => setIsMicOn(!isMicOn)}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${isMicOn
-                ? "text-slate-600 hover:bg-slate-400"
-                : "bg-red-500 text-white"
-                }`}
+              onClick={() => {
+                const newMicState = !isMicOn;
+                setIsMicOn(newMicState);
+
+                updateParticipantState(newMicState, isVideoOn, isHandRaised);
+              }}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
+                isMicOn
+                  ? "text-slate-600 hover:bg-slate-400"
+                  : "bg-red-500 text-white"
+              }`}
             >
-
-              {isMicOn ? (
-                <Mic size={18} />
-              ) : (
-                <MicOff size={18} />
-              )}
-
+              {isMicOn ? <Mic size={18} /> : <MicOff size={18} />}
             </button>
 
-            <ChevronDown
-              size={15}
-              className="text-slate-400 mr-2"
-            />
-
+            <ChevronDown size={15} className="text-slate-400 mr-2" />
           </div>
 
           {/* VIDEO */}
           <div className="flex items-center bg-slate-50 rounded-xl px-1">
-
             <button
-              onClick={() => setIsVideoOn(!isVideoOn)}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${isVideoOn
-                ? "text-slate-600 hover:bg-slate-400"
-                : "bg-red-500 text-white"
-                }`}
+              onClick={() => {
+                const newVideoState = !isVideoOn;
+                setIsVideoOn(newVideoState);
+
+                updateParticipantState(isMicOn, newVideoState, isHandRaised);
+              }}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
+                isVideoOn
+                  ? "text-slate-600 hover:bg-slate-400"
+                  : "bg-red-500 text-white"
+              }`}
             >
-
-              {isVideoOn ? (
-                <Video size={18} />
-              ) : (
-                <VideoOff size={18} />
-              )}
-
+              {isVideoOn ? <Video size={18} /> : <VideoOff size={18} />}
             </button>
 
-            <ChevronDown
-              size={15}
-              className="text-slate-400 mr-2"
-            />
-
+            <ChevronDown size={15} className="text-slate-400 mr-2" />
           </div>
 
           {/* SHARE */}
@@ -841,11 +716,15 @@ const Meeting = () => {
 
           {/* HAND */}
           <button
+            onClick={() => {
+              const newHand = !isHandRaised;
+              setIsHandRaised(newHand);
+
+              updateParticipantState(isMicOn, isVideoOn, newHand);
+            }}
             className="w-11 h-11 rounded-xl flex items-center justify-center bg-white hover:bg-yellow-300"
           >
-            <span className="text-[20px]">
-              🤚
-            </span>
+            <span className="text-[20px]">🤚</span>
           </button>
 
           {/* USER PLUS */}
@@ -857,12 +736,10 @@ const Meeting = () => {
           <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
             <MoreVertical size={18} />
           </button>
-
         </div>
 
         {/* RIGHT */}
         <div className="flex items-center gap-3">
-
           <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
             <FilePenLine size={18} />
           </button>
@@ -878,11 +755,8 @@ const Meeting = () => {
           >
             <LayoutGrid size={18} />
           </button>
-
         </div>
-
       </footer>
-
     </div>
   );
 };
