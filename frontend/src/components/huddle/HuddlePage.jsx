@@ -56,14 +56,14 @@ export default function HuddlePage() {
   const filteredSessions = sessions.filter((s) => s.status === activeTab);
 
   return (
-    <div className="flex w-[1329px] h-[824px] bg-gray-50 overflow-y-auto mx-auto gap-[24px]">
+    <div className="flex w-[1329px] h-[824px] bg-gray-50 overflow-hidden mx-auto gap-[24px]">
       
       {/* Left Sidebar */}
         <ChatList />
      
 
       {/* Middle Section */}
-      <main className="flex-1 h-[478px] bg-white p-6 overflow-y-auto">
+      <main className="flex-1 h-[478px] bg-white p-6 overflow-hidden">
         {/* Header */}
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Huddle</h1>
         <p className="text-gray-500 text-sm mb-5">
@@ -123,7 +123,7 @@ export default function HuddlePage() {
       </main>
 
       {/* Right Sidebar */}
-      <aside className="w-[478.5px] h-[553px] bg-gray-50 border-l border-gray-100 p-5 flex flex-col gap-5 overflow-y-auto">
+      <aside className="w-[478.5px] h-[553px] bg-gray-50 border-l border-gray-100 p-5 flex flex-col gap-5 overflow-hidden">
         <CreateHuddle />
         <MiniCalendar />
       </aside>

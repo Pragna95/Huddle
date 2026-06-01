@@ -2,8 +2,11 @@ import { Phone, Video, Bold, Italic, Link, List, AtSign, Smile, Plus, SendHorizo
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import OutgoingCallModal from "./OutgoingCallModal";
+import { useState } from "react";
 
 export default function ChatWindow() {
+  const [showVideoModal, setShowVideoModal] = useState(false);
   return (
     <div className="w-[981px] h-[817px] bg-white rounded-2xl border border-gray-100 flex flex-col shadow-sm relative overflow-hidden">
       {/* Header */}
@@ -28,7 +31,14 @@ export default function ChatWindow() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="text-blue-600 bg-blue-50 hover:bg-blue-100"><Phone className="w-4 h-4" /></Button>
-          <Button variant="ghost" size="icon" className="text-blue-600 bg-blue-50 hover:bg-blue-100"><Video className="w-4 h-4" /></Button>
+          <Button
+  variant="ghost"
+  size="icon"
+  onClick={() => setShowVideoModal(true)}
+  className="text-blue-600 bg-blue-50 hover:bg-blue-100"
+>
+  <Video className="w-4 h-4" />
+</Button>
         </div>
       </header>
 
@@ -100,6 +110,12 @@ export default function ChatWindow() {
           </div>
         </div>
       </div>
+      {showVideoModal && (
+  <OutgoingCallModal
+    userName="Jai"
+    closeModal={() => setShowVideoModal(false)}
+  />
+)}
     </div>
   );
 }

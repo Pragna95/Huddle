@@ -9,10 +9,10 @@ import HuddlePage from "@/components/huddle/HuddlePage";
 import ChatWindow from "@/components/chat/ChatWindow";
 import ChatList from "@/components/chat/ChatList";
 import Dashboard from "./pages/Dashboard";
-import OutgoingCallModal from "./components/chat/OutgoingCallModal"; 
+  
 
 function Messaging() {
-  const [showCallModal, setShowCallModal] = useState(true);
+
   return (
     <div className="flex h-screen bg-[#F8F9FB] overflow-hidden">
       <Sidebar />
@@ -22,11 +22,7 @@ function Messaging() {
           <ChatList />
           <ChatWindow />
         </main>
-        {showCallModal && (
-            <OutgoingCallModal
-              closeModal={() => setShowCallModal(false)}
-            />
-          )}
+        
       </div>
     </div>
   );
