@@ -6,7 +6,24 @@ import Meeting from "./pages/Meeting";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import HuddlePage from "@/components/huddle/HuddlePage";
-import Messaging from "@/components/chat/Messaging";
+import ChatWindow from "@/components/chat/ChatWindow";
+import ChatList from "@/components/chat/ChatList";
+import Dashboard from "./pages/Dashboard";
+
+function Messaging() {
+  return (
+    <div className="flex h-screen bg-[#F8F9FB] overflow-hidden">
+      <Sidebar />
+      <div className="flex flex-col flex-1">
+        <TopBar />
+        <main className="flex flex-1 w-[1329px] h-[624px] overflow-hidden p-4 gap-4">
+          <ChatList />
+          <ChatWindow />
+        </main>
+      </div>
+    </div>
+  );
+}
 
 function DashboardUI() {
   return (
@@ -154,8 +171,8 @@ function App() {
           )
         } />
         <Route path="/dashboard-ui" element={<DashboardUI />} />
-        
-        
+        <Route path = "/message" element={<Messaging />} /> 
+        <Route path = "/dash" element={<Dashboard />} />       
       </Routes>
     </Router>
   );
