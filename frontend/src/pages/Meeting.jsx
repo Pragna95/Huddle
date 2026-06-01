@@ -57,32 +57,22 @@ const participantMembers = [
 
 const Meeting = () => {
   const [showHandRaise, setShowHandRaise] = useState(false);
-
   const [showParticipants, setShowParticipants] = useState(false);
-
   const [showParticipantsGrid, setShowParticipantsGrid] = useState(false);
-
   const [showMenuPage, setShowMenuPage] = useState(false);
-
   const [activeMenu, setActiveMenu] = useState("assistance");
-
   const [transcriptionEnabled, setTranscriptionEnabled] = useState(true);
-
   const [isRecording, setIsRecording] = useState(false);
-
   const [isHandRaised, setIsHandRaised] = useState(false);
-
   const [recordingTime, setRecordingTime] = useState(0);
-
   const [recordingStopped, setRecordingStopped] = useState(false);
-
   const [isMicOn, setIsMicOn] = useState(true);
-
   const [isVideoOn, setIsVideoOn] = useState(true);
+  const [participants, setParticipants] = useState({});
+  const [isLoadingState, setIsLoadingState] = useState(true);
 
   // CHAT
   const [message, setMessage] = useState("");
-
   const [chatMessages, setChatMessages] = useState([
     {
       sender: "Rahul",
@@ -93,6 +83,7 @@ const Meeting = () => {
       text: "Sharing the screen now.",
     },
   ]);
+
   useEffect(() => {
     let interval;
 
@@ -105,14 +96,9 @@ const Meeting = () => {
     return () => clearInterval(interval);
   }, [isRecording]);
 
-  useEffect(() => {
-    fetchParticipantState();
-  }, []);
-
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
-
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
@@ -131,9 +117,46 @@ const Meeting = () => {
     setMessage("");
   };
 
+  useEffect(() => {
+  console.log("Creating WebSocket...");
+
+  const socket = new WebSocket(
+    `ws://127.0.0.1:8000/ws/participants/${meetingId}/`
+  );
+
+  socket.onopen = () => {
+    console.log("WebSocket Connected");
+  };
+
+  socket.onmessage = (event) => {
+    console.log("Message:", JSON.parse(event.data));
+  };
+
+  socket.onerror = (error) => {
+    console.log("WebSocket Error:", error);
+  };
+
+  socket.onclose = (event) => {
+    console.log(
+      "WebSocket Closed",
+      event.code,
+      event.reason
+    );
+  };
+
+  return () => {
+    console.log("Cleaning up WebSocket");
+    socket.close();
+  };
+}, []);
+
   const userId = 1;
   const meetingId = "meeting_001";
   const API_URL = "http://127.0.0.1:8000/api/meetings";
+
+  useEffect(() => {
+    fetchParticipantState();
+  }, []);
 
   const fetchParticipantState = async () => {
     try {
@@ -142,32 +165,45 @@ const Meeting = () => {
       );
 
       const data = response.data.data;
-
-      setIsMicOn(data.mic_on);
-      setIsVideoOn(data.video_on);
-      setIsHandRaised(data.hand_raised);
-      console.log("Participant Loaded", data);
+      if (data) {
+        setIsMicOn(data.mic_on);
+        setIsVideoOn(data.video_on);
+        setIsHandRaised(data.hand_raised);
+        console.log("Participant Loaded", data);
+      }
     } catch (error) {
-      console.log("Fetch Error:", error);
+      if (error.response && error.response.status === 404) {
+        console.log(
+          "New participant! Initializing local UI with default states.",
+        );
+
+        // OPTIONAL: Immediately register them in the backend database
+        updateParticipantState(true, true, false);
+      } else {
+        console.error("Failed to fetch participant state:", error);
+      }
+    } finally {
+      setIsLoadingState(false);
     }
   };
 
-  const updateParticipantState = async (mic, video, hand) => {
-    try {
-      await axios.post(`${API_URL}/participant/update/`, {
-        user_id: userId,
-        meeting_id: meetingId,
-        mic_on: mic,
-        video_on: video,
-        hand_raised: hand,
-      });
 
-      console.log("State Updated");
-      fetchParticipantState();
-    } catch (error) {
-      console.log("Update Error:", error);
-    }
-  };
+const updateParticipantState = async (mic, video, hand) => {
+  try {
+    // Crucial: Must be axios.post, NOT axios.get
+    await axios.post(`${API_URL}/participant/update/`, {
+      user_id: userId,
+      meeting_id: meetingId,
+      mic_on: mic,
+      video_on: video,
+      hand_raised: hand,
+    });
+    console.log("Database State Updated successfully.");
+  } catch (error) {
+    console.error("Update Error:", error);
+  }
+};
+
   return (
     <div className="h-screen w-screen bg-[#f4f4f5] flex flex-col overflow-hidden font-sans">
       {/* ================= HEADER ================= */}
@@ -182,7 +218,6 @@ const Meeting = () => {
             <h2 className="text-[17px] font-bold text-slate-800">
               Huddle_Name
             </h2>
-
             <p className="text-[12px] text-slate-400 mt-1">
               Tuesday, 07-04-2026
             </p>
@@ -457,6 +492,7 @@ const Meeting = () => {
                           index % 2 === 0 ? "men" : "women"
                         }/${index + 20}.jpg`}
                         className="w-10 h-10 rounded-full object-cover"
+                        alt=""
                       />
 
                       <span className="text-sm font-medium text-slate-700">
@@ -553,7 +589,6 @@ const Meeting = () => {
                           <p className="text-xs font-semibold mb-1">
                             {msg.sender}
                           </p>
-
                           <p className="text-sm">{msg.text}</p>
                         </div>
                       </div>
@@ -596,7 +631,6 @@ const Meeting = () => {
                       <p className="font-semibold text-slate-700">
                         AI Transcription
                       </p>
-
                       <p className="text-sm text-slate-500 mt-1">
                         Live captions enabled
                       </p>
@@ -625,7 +659,6 @@ const Meeting = () => {
                         <p className="text-xs font-semibold text-blue-700 mb-1">
                           LIVE
                         </p>
-
                         <p className="text-sm text-slate-700">
                           Rahul: Let's begin the sprint review meeting.
                         </p>
@@ -635,7 +668,6 @@ const Meeting = () => {
                         <p className="text-xs font-semibold text-blue-700 mb-1">
                           LIVE
                         </p>
-
                         <p className="text-sm text-slate-700">
                           Anika: Sharing the analytics dashboard now.
                         </p>
@@ -671,12 +703,11 @@ const Meeting = () => {
               onClick={() => {
                 const newMicState = !isMicOn;
                 setIsMicOn(newMicState);
-
                 updateParticipantState(newMicState, isVideoOn, isHandRaised);
               }}
               className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
                 isMicOn
-                  ? "text-slate-600 hover:bg-slate-400"
+                  ? "text-slate-600 hover:bg-slate-100"
                   : "bg-red-500 text-white"
               }`}
             >
@@ -692,12 +723,11 @@ const Meeting = () => {
               onClick={() => {
                 const newVideoState = !isVideoOn;
                 setIsVideoOn(newVideoState);
-
                 updateParticipantState(isMicOn, newVideoState, isHandRaised);
               }}
               className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
                 isVideoOn
-                  ? "text-slate-600 hover:bg-slate-400"
+                  ? "text-slate-600 hover:bg-slate-100"
                   : "bg-red-500 text-white"
               }`}
             >
@@ -708,7 +738,7 @@ const Meeting = () => {
           </div>
 
           {/* SHARE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
             <Share size={18} />
           </button>
 
@@ -719,28 +749,31 @@ const Meeting = () => {
             onClick={() => {
               const newHand = !isHandRaised;
               setIsHandRaised(newHand);
-
               updateParticipantState(isMicOn, isVideoOn, newHand);
             }}
-            className="w-11 h-11 rounded-xl flex items-center justify-center bg-white hover:bg-yellow-300"
+            className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
+              isHandRaised
+                ? "bg-yellow-400 text-black hover:bg-yellow-500"
+                : "bg-white hover:bg-slate-100"
+            }`}
           >
             <span className="text-[20px]">🤚</span>
           </button>
 
           {/* USER PLUS */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
             <UserPlus size={18} />
           </button>
 
           {/* MORE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-400 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
             <MoreVertical size={18} />
           </button>
         </div>
 
         {/* RIGHT */}
         <div className="flex items-center gap-3">
-          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm">
+          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm">
             <FilePenLine size={18} />
           </button>
 
@@ -751,7 +784,7 @@ const Meeting = () => {
               setShowParticipants(false);
               setShowHandRaise(false);
             }}
-            className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-400 transition shadow-sm"
+            className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm"
           >
             <LayoutGrid size={18} />
           </button>
