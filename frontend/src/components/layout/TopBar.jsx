@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export default function TopBar() {
   return (
-    <header className=" w-[1380px] h-[75.59px]  bg-white border-b border-gray-200 flex items-center justify-end px-6 gap-3 flex-shrink-0">
+    <header className=" w-[1372px] h-[75.59px]  bg-white border-b border-gray-200 flex items-center justify-end px-6 gap-3 flex-shrink-0">
       
       <Button className="bg-[#001744] hover:bg-[#152060] text-white text-[16px] rounded-[8px] pt-[12px] pr[20px] pb-[12px] pl-[20px] gap-[8px] h-[52px] w-[168px]  flex items-center gap-2">
         

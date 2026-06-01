@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ChatWindow() {
   return (
-    <div className="w-[981px] h-[729px] bg-white rounded-2xl border border-gray-100 flex flex-col shadow-sm relative overflow-hidden">
+    <div className="w-[981px] h-[817px] bg-white rounded-2xl border border-gray-100 flex flex-col shadow-sm relative overflow-hidden">
       {/* Header */}
       <header className="p-4 border-b flex items-center justify-between bg-white z-10">
         <div className="flex items-center gap-3">

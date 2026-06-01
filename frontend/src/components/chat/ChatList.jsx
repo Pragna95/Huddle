@@ -58,7 +58,7 @@ export default function ChatList() {
           />
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 ">
           {channels
             .filter((c) => c.toLowerCase().includes(channelSearch.toLowerCase()))
             .map((c, i) => (
@@ -67,7 +67,7 @@ export default function ChatList() {
                 onClick={() => setActiveChannel(c)}
                 className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors text-left w-full ${
                   activeChannel === c
-                    ? "bg-blue-50 text-[#38427c] font-semibold"
+                    ? "bg-blue-100 text-[#1D4ED8] font-semibold"
                     : "text-[#475569] hover:bg-gray-50"
                 }`}
               >
@@ -77,9 +77,11 @@ export default function ChatList() {
             ))}
         </div>
 
-        <button className="text-xs text-gray-400 mt-2 hover:text-gray-600 ml-2">
-          View All
-        </button>
+        <div className="flex justify-end mt-2">
+  <button className="text-[12px] text-[#0C405E] hover:text-gray-600">
+    View All
+  </button>
+</div>
       </div>
 
       {/* Chats */}

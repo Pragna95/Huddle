@@ -9,32 +9,43 @@ import HuddlePage from "@/components/huddle/HuddlePage";
 import ChatWindow from "@/components/chat/ChatWindow";
 import ChatList from "@/components/chat/ChatList";
 import Dashboard from "./pages/Dashboard";
+import OutgoingCallModal from "./components/chat/OutgoingCallModal"; 
 
 function Messaging() {
+  const [showCallModal, setShowCallModal] = useState(true);
   return (
     <div className="flex h-screen bg-[#F8F9FB] overflow-hidden">
       <Sidebar />
       <div className="flex flex-col flex-1">
         <TopBar />
-        <main className="flex flex-1 w-[1329px] h-[624px] overflow-hidden p-4 gap-4">
+        <main className="flex flex-1 w-[1329px] h-[624px] overflow-hidden p-4 gap-6">
           <ChatList />
           <ChatWindow />
         </main>
+        {showCallModal && (
+            <OutgoingCallModal
+              closeModal={() => setShowCallModal(false)}
+            />
+          )}
       </div>
     </div>
   );
 }
 
 function DashboardUI() {
+  
+
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       <Sidebar />
+
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopBar />
-        <div className="flex flex-1 overflow-hidden">
+
+        <div className="flex flex-1 w-[1329px] h-[624px] overflow-hidden p-4 gap-4">
           <HuddlePage />
         </div>
-      </div>
+       </div>
     </div>
   );
 }
@@ -179,5 +190,3 @@ function App() {
 }
 
 export default App;
-
-

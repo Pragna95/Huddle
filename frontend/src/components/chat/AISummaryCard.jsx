@@ -39,7 +39,7 @@ export default function AISummaryCard({ closeCard }) {
             />
           </div>
 
-          <h1 className="text-[25px] font-semibold text-[#0046BB] -ml-3">
+          <h1 className="text-[14px] font-semibold text-[#0046BB] -ml-3">
             AI Summary
           </h1>
 
@@ -76,7 +76,7 @@ export default function AISummaryCard({ closeCard }) {
             -mt-4
           "
         >
-          <p className="text-[17px] font-normal leading-relaxed text-[#000000]">
+          <p className="text-[14px] font-normal leading-relaxed text-[#000000]">
             In a recent meeting, our team discussed the upcoming summer project
             initiatives. We aim to enhance our product offerings and improve
             user engagement through innovative features. Key topics included the

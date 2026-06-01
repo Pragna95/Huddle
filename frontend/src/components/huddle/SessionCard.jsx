@@ -87,8 +87,8 @@ export default function SessionCard({ session }) {
   onClick={() => setShowSummary(true)}
     className="
       
-      h-[42px]
-      min-w-[150px]
+      h-[44px]
+      min-w-[136.17px]
 
       px-5
 
@@ -123,8 +123,8 @@ export default function SessionCard({ session }) {
                 onClick={() => setShowTranscript(true)}
   className="
   shadow-[0_8px_25px_rgba(29,78,216,0.25)]
-    h-[42px]
-    min-w-[150px]
+    h-[44px]
+    min-w-[136.17px]
 
     px-5
 
@@ -166,8 +166,8 @@ export default function SessionCard({ session }) {
                 <button
   className="
   shadow-[0_5px_15px_rgba(29,78,216,0.25)]
-    h-[42px]
-    min-w-[150px]
+    h-[44px]
+    min-w-[136.17px]
 
     px-5
 
@@ -194,6 +194,7 @@ export default function SessionCard({ session }) {
 
     hover:bg-[#0b43b8]
     hover:text-white
+    
   "
 >
   View Recording
