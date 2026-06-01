@@ -70,10 +70,10 @@ export default function TranscriptModal({ closeTranscript }) {
           <img
               src="/mic-icon.svg"
               alt="Mic"
-              className="w-[24px] h-[24px] pl-2"
+              className="w-[28px] h-[28px] pl-2"
             />
 
-            <h1 className="text-[20px] font-bold text-[#0046BB]">
+            <h1 className="text-[14px] font-bold text-[#0046BB]">
               Meet transcript
             </h1>
           </div>
@@ -127,7 +127,7 @@ export default function TranscriptModal({ closeTranscript }) {
 
               {/* Message Section */}
               <div className="flex-1 w-[552px] h-[98px]  ">
-                <h2 className="text-[16px] font-semibold text-gray-500 mb-1">
+                <h2 className="text-[14px] font-semibold text-gray-500 mb-1">
                   {item.name}
                 </h2>
 
