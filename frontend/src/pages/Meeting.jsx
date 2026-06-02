@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 import {
   Mic,
@@ -70,6 +71,7 @@ const Meeting = () => {
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [participants, setParticipants] = useState({});
   const [isLoadingState, setIsLoadingState] = useState(true);
+  const navigate = useNavigate();
 
   // CHAT
   const [message, setMessage] = useState("");
@@ -264,7 +266,9 @@ const updateParticipantState = async (mic, video, hand) => {
         </div>
 
         {/* RIGHT */}
-        <button className="bg-[#D14343] hover:bg-[#a51f1f] transition text-white px-4 h-[40px] rounded-[8px] flex items-center gap-2 text-[16px] font-bold shadow-sm">
+        <button 
+        onClick={() => navigate("/dashboard-ui")}
+        className="bg-[#D14343] hover:bg-[#a51f1f] transition text-white px-4 h-[40px] rounded-[8px] flex items-center gap-2 text-[16px] font-bold shadow-sm">
           Leave Huddle
           <PhoneOff size={18} />
         </button>

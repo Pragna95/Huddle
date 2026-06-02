@@ -95,7 +95,7 @@ export default function SessionCard({ session }) {
         )}
 
         {session.status === "Completed" && (
-          <div className="flex items-center gap-2 mt-3 flex-wrap">
+          <div className="flex items-center gap-3 mt-3 flex-wrap">
             {/* AI SUMMARY */}
             <div
               className="
@@ -121,6 +121,8 @@ export default function SessionCard({ session }) {
     transition-all
     duration-300
     whitespace-nowrap
+    hover:bg-[#152060]
+    hover:text-white
   "
               >
                 AI Summary
@@ -154,7 +156,7 @@ export default function SessionCard({ session }) {
     transition-all
     duration-300
     whitespace-nowrap
-    hover:bg-[#0b43b8]
+    hover:bg-[#152060]
     hover:text-white
   "
             >
@@ -189,7 +191,7 @@ export default function SessionCard({ session }) {
     transition-all
     duration-300
     whitespace-nowrap
-    hover:bg-[#0b43b8]
+    hover:bg-[#152060]
     hover:text-white
   "
             >
