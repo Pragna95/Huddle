@@ -1,4 +1,4 @@
-import { Phone, Video, Bold, Italic, Link, List, AtSign, Smile, Plus, SendHorizonal, FileText } from "lucide-react";
+import { Phone, Video, Bold, Italic, Link, List, AtSign, Smile, Plus, Send, FileText } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -10,19 +10,19 @@ export default function ChatWindow() {
   return (
     <div className="w-[981px] h-[817px] bg-white rounded-2xl border border-gray-100 flex flex-col shadow-sm relative overflow-hidden">
       {/* Header */}
-      <header className="p-4 border-b flex items-center justify-between bg-white z-10">
+      <header className="p-4 border-b border-gray-200 flex items-center justify-between bg-white z-10">
         <div className="flex items-center gap-3">
           <div className="flex -space-x-2">
             {[1, 2].map((i) => (
-              <Avatar key={i} className="border-2 border-white w-8 h-8">
+              <Avatar key={i} className="border-2 border-white w-8 h-8 ">
                 <AvatarImage src={`https://i.pravatar.cc/150?u=${i}`} />
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
             ))}
-            <div className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-blue-600">+3</div>
+            <div className="w-8 h-8 rounded-[12px] bg-blue-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-blue-600">+3</div>
           </div>
           <div>
-            <h2 className="font-bold text-gray-900 leading-tight">Senior Frontend Engineer</h2>
+            <h2 className="font-extrabold text-[20px] text-[#191c1e] leading-tight">Senior Frontend Engineer</h2>
             <div className="flex items-center gap-2 text-xs text-gray-400">
               <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span> ID: 1024</span>
               <span>• Active job post</span>
@@ -45,11 +45,11 @@ export default function ChatWindow() {
       {/* Messages Area */}
       <ScrollArea className="flex-1 bg-[url('/bg-pattern.png')] bg-repeat">
         <div className="p-6 space-y-6">
-          <div className="flex justify-center"><span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-widest">Today, Oct 24</span></div>
+          <div className="flex justify-center"><span className="text-[10px] font-bold text-[#737686] bg-gray-200 px-3 py-1 rounded-[12px] uppercase tracking-widest">Today, Oct 24</span></div>
           
           {/* Incoming Message */}
           <div className="flex gap-3 max-w-[80%]">
-            <Avatar className="w-8 h-8 mt-1"><AvatarImage src="https://i.pravatar.cc/150?u=jane" /></Avatar>
+            <Avatar className="w-[32px] h-[36px] mt-1 "><AvatarImage src="https://i.pravatar.cc/150?u=jane" /></Avatar>
             <div className="space-y-1">
               <p className="text-xs font-semibold text-gray-500">Jane Smith • 10:42 AM</p>
               <div className="bg-[#F1F3F7] p-4 rounded-2xl rounded-tl-none text-sm text-gray-700 leading-relaxed shadow-sm">
@@ -77,7 +77,7 @@ export default function ChatWindow() {
                     <p className="text-[10px] text-gray-400">2.4 MB • Shared just now</p>
                   </div>
                 </div>
-                <Button size="sm" className="bg-[#002B6B] w-full hover:bg-blue-900 font-bold text-xs">VIEW</Button>
+                <Button size="sm" className="bg-[#002B6B] w-full hover:bg-blue-900 font-bold text-xs text-white">VIEW</Button>
              </div>
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function ChatWindow() {
               <Smile className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
               <Plus className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
               <Button size="icon" className="bg-[#002B6B] rounded-xl w-9 h-9">
-                <SendHorizonal className="w-4 h-4" />
+                <Send className="w-4 h-4 text-white" />
               </Button>
             </div>
           </div>
