@@ -22,7 +22,7 @@ export default function CreateHuddle() {
 
   return (
     <>
-      <div className="bg-[#1e2b72] rounded-2xl p-5 text-white shadow-lg">
+      <div className="bg-[#002266] rounded-2xl p-5 text-white shadow-lg">
         {/* Header */}
         <div className="flex items-center gap-2 mb-2">
           <Video className="w-5 h-5 text-blue-300" />

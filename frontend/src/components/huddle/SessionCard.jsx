@@ -82,7 +82,7 @@ export default function SessionCard({ session }) {
         {session.status === "Ongoing" && (
           <button
             onClick={() => navigate("/meeting")}
-            className="bg-[#1e2b72] hover:bg-[#152060] text-white w-full py-1.5 rounded-md text-xs font-medium"
+            className="bg-[#002266] hover:bg-[#152060] text-white w-full py-1.5 rounded-md text-xs font-medium"
           >
             Join Room
           </button>
