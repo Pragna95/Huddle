@@ -38,19 +38,17 @@ export default function CreateHuddle() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="
-                w-full
-                border-white/30
-                text-white
-                bg-white/10
-                hover:bg-white/20
-                backdrop-blur-md
-                rounded-xl
-                font-semibold
-                flex items-center gap-2
-                h-11
-                transition-all
-              "
+className="
+  w-full
+  bg-white
+  text-black
+  border-white
+  hover:bg-gray-100
+  rounded-xl
+  font-semibold
+  flex items-center gap-2
+  h-11
+  transition-all"
             >
               <Plus className="w-4 h-4" />
               CREATE A MEET
@@ -58,86 +56,81 @@ export default function CreateHuddle() {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent
-            align="center"
-            sideOffset={10}
-            className="
-  w-[var(--radix-dropdown-menu-trigger-width)]
-  rounded-3xl
-  border border-slate-200/70
-  bg-white/95
-  backdrop-blur-2xl
-  shadow-[0_20px_60px_rgba(0,0,0,0.18)]
-  p-3
-  animate-in fade-in-0 zoom-in-95"
+  align="center"
+  sideOffset={10}
+  className="
+    w-[var(--radix-dropdown-menu-trigger-width)]
+    rounded-3xl
+    border border-slate-200/70
+    bg-white
+    shadow-[0_20px_60px_rgba(0,0,0,0.18)]
+    p-3
+    animate-in fade-in-0 zoom-in-95
+  "
+>
+  {/* Title */}
+  <div className="px-3 py-2 border-b mb-2">
+    <p className="font-bold text-gray-800 text-sm">
+      Create a new meeting
+    </p>
+    <p className="text-xs text-gray-500">
+      Choose how you want to start
+    </p>
+  </div>
 
-          >
-            {/* Title */}
-            <div className="px-3 py-2 border-b mb-2">
-              <p className="font-bold text-gray-800 text-sm">
-                Create a new meeting
-              </p>
-              <p className="text-xs text-gray-500">
-                Choose how you want to start
-              </p>
-            </div>
+  {/* Instant Meeting */}
+  <DropdownMenuItem
+    onClick={handleInstantMeeting}
+    className="
+      rounded-2xl
+      p-4
+      cursor-pointer
+      hover:bg-[#eef2ff]
+      transition-all
+      flex items-center gap-4
+      mb-2
+    "
+  >
+    <div className="p-3 bg-[#e0e7ff] rounded-2xl shadow-sm">
+      <Zap className="w-5 h-5 text-[#1e2b72]" />
+    </div>
 
-            {/* Instant */}
-            <DropdownMenuItem
-              onClick={handleInstantMeeting}
-              className="
-                rounded-2xl
-                p-4
-                cursor-pointer
-                hover:bg-gradient-to-r
-                hover:from-green-50
-                hover:to-emerald-50
-                transition-all
-                flex items-center gap-4
-                mb-2
-              "
-            >
-              <div className="p-3 bg-green-100 rounded-2xl shadow-sm">
-                <Zap className="w-5 h-5 text-green-600" />
-              </div>
+    <div>
+      <p className="font-semibold text-gray-800">
+        Instant Meeting
+      </p>
+      <p className="text-xs text-gray-500">
+        Start right now with one click
+      </p>
+    </div>
+  </DropdownMenuItem>
 
-              <div>
-                <p className="font-semibold text-gray-800">
-                  Instant Meeting
-                </p>
-                <p className="text-xs text-gray-500">
-                  Start right now with one click
-                </p>
-              </div>
-            </DropdownMenuItem>
+  {/* Scheduled Meeting */}
+  <DropdownMenuItem
+    onClick={() => setOpenSchedule(true)}
+    className="
+      rounded-2xl
+      p-4
+      cursor-pointer
+      hover:bg-[#eef2ff]
+      transition-all
+      flex items-center gap-4
+    "
+  >
+    <div className="p-3 bg-[#e0e7ff] rounded-2xl shadow-sm">
+      <Calendar className="w-5 h-5 text-[#1e2b72]" />
+    </div>
 
-            {/* Scheduled */}
-            <DropdownMenuItem
-              onClick={() => setOpenSchedule(true)}
-              className="
-                rounded-2xl
-                p-4
-                cursor-pointer
-                hover:bg-gradient-to-r
-                hover:from-indigo-50
-                hover:to-blue-50
-                transition-all
-                flex items-center gap-4
-              "
-            >
-              <div className="p-3 bg-indigo-100 rounded-2xl shadow-sm">
-                <Calendar className="w-5 h-5 text-indigo-600" />
-              </div>
-
-              <div>
-                <p className="font-semibold text-gray-800">
-                  Scheduled Meeting
-                </p>
-                <p className="text-xs text-gray-500">
-                  Plan and invite attendees
-                </p>
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
+    <div>
+      <p className="font-semibold text-gray-800">
+        Scheduled Meeting
+      </p>
+      <p className="text-xs text-gray-500">
+        Plan and invite attendees
+      </p>
+    </div>
+  </DropdownMenuItem>
+</DropdownMenuContent>
         </DropdownMenu>
       </div>
 

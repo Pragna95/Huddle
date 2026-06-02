@@ -14,7 +14,7 @@ export default function Sidebar() {
   const [active, setActive] = useState("Messages");
 
   return (
-    <aside className="w-16 bg-[#1a1f3c] flex flex-col items-center py-4 gap-6 z-10">
+    <aside className="min-w-[68px] max-w-[68px] h-[941px] bg-[#1a1f3c] flex flex-col items-center py-4 gap-6 z-10">
       
       {/* Top Button */}
       <div className="w-[44px] h-[44px] rounded-full bg-white flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors">

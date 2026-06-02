@@ -56,21 +56,23 @@ export default function HuddlePage() {
   const filteredSessions = sessions.filter((s) => s.status === activeTab);
 
   return (
-    <div className="flex w-[1329px] h-[824px] bg-gray-50 overflow-hidden mx-auto gap-[24px]">
-      
-      {/* Left Sidebar */}
-        <ChatList />
-     
+  <div className="flex w-[1329px] h-[824px] bg-gray-50 mx-auto gap-6 overflow-hidden">
+    
+    {/* Left Sidebar */}
+    <ChatList />
 
+    {/* Middle + Right Area */}
+    <div className="flex flex-1 h-[732px] gap-6 overflow-hidden">
+      
       {/* Middle Section */}
-      <main className="flex-1 h-[478px] bg-white p-6 overflow-hidden">
+      <main className="flex-1 bg-white p-6 overflow-hidden rounded-lg">
         {/* Header */}
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Huddle</h1>
         <p className="text-gray-500 text-sm mb-5">
           Manage your workspace and upcoming sessions.
         </p>
 
-        {/* Meeting ID input */}
+        {/* Meeting ID Input */}
         <div className="flex gap-3 mb-6">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -91,7 +93,7 @@ export default function HuddlePage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center justify-between mb-4 border-b border-gray-100">
+        <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-2">
           <div className="flex gap-6">
             {TABS.map((tab) => (
               <button
@@ -105,7 +107,7 @@ export default function HuddlePage() {
               >
                 {tab}
                 {activeTab === tab && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1e2b72]" />
+                  <span className="absolute -bottom-2 left-0 right-0 h-0.5 bg-[#1e2b72]" />
                 )}
               </button>
             ))}
@@ -123,10 +125,12 @@ export default function HuddlePage() {
       </main>
 
       {/* Right Sidebar */}
-      <aside className="w-[478.5px] h-[553px] bg-gray-50 border-l border-gray-100 p-5 flex flex-col gap-5 overflow-hidden">
+      <aside className="flex-1 bg-gray-50 border-l border-gray-100 p-5 flex flex-col gap-5 overflow-hidden rounded-lg">
         <CreateHuddle />
         <MiniCalendar />
       </aside>
+
     </div>
-  );
+  </div>
+);
 }
