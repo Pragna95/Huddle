@@ -122,8 +122,7 @@ export default function SessionCard({ session }) {
     duration-300
     whitespace-nowrap
     hover:bg-[#152060]
-    hover:text-white
-  "
+    hover:text-white"
               >
                 AI Summary
               </button>

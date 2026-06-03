@@ -38,9 +38,9 @@ function DashboardUI() {
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopBar />
 
-        <div className="flex flex-1 w-[1329px] h-[624px] overflow-hidden p-4 gap-4">
-          <HuddlePage />
-        </div>
+        <div className="flex-1 overflow-hidden">
+  <HuddlePage />
+</div>
        </div>
     </div>
   );

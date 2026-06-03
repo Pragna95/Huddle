@@ -206,6 +206,12 @@ const updateParticipantState = async (mic, video, hand) => {
   }
 };
 
+const handleLeaveHuddle = () => {
+  navigate("/dashboard-ui", {
+    state: { showThankYouDialog: true },
+  });
+};
+
   return (
     <div className="h-screen w-screen bg-[#f4f4f5] flex flex-col overflow-hidden font-sans">
       {/* ================= HEADER ================= */}
@@ -267,7 +273,7 @@ const updateParticipantState = async (mic, video, hand) => {
 
         {/* RIGHT */}
         <button 
-        onClick={() => navigate("/dashboard-ui")}
+        onClick={() => navigate("/dashboard-ui", { state: { showThankYouDialog: true } })}
         className="bg-[#D14343] hover:bg-[#a51f1f] transition text-white px-4 h-[40px] rounded-[8px] flex items-center gap-2 text-[16px] font-bold shadow-sm">
           Leave Huddle
           <PhoneOff size={18} />
