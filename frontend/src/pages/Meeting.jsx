@@ -118,37 +118,33 @@ const Meeting = () => {
   };
 
   useEffect(() => {
-  console.log("Creating WebSocket...");
+    console.log("Creating WebSocket...");
 
-  const socket = new WebSocket(
-    `ws://127.0.0.1:8000/ws/participants/${meetingId}/`
-  );
-
-  socket.onopen = () => {
-    console.log("WebSocket Connected");
-  };
-
-  socket.onmessage = (event) => {
-    console.log("Message:", JSON.parse(event.data));
-  };
-
-  socket.onerror = (error) => {
-    console.log("WebSocket Error:", error);
-  };
-
-  socket.onclose = (event) => {
-    console.log(
-      "WebSocket Closed",
-      event.code,
-      event.reason
+    const socket = new WebSocket(
+      `ws://127.0.0.1:8000/ws/participants/${meetingId}/`,
     );
-  };
 
-  return () => {
-    console.log("Cleaning up WebSocket");
-    socket.close();
-  };
-}, []);
+    socket.onopen = () => {
+      console.log("WebSocket Connected");
+    };
+
+    socket.onmessage = (event) => {
+      console.log("Message:", JSON.parse(event.data));
+    };
+
+    socket.onerror = (error) => {
+      console.log("WebSocket Error:", error);
+    };
+
+    socket.onclose = (event) => {
+      console.log("WebSocket Closed", event.code, event.reason);
+    };
+
+    return () => {
+      console.log("Cleaning up WebSocket");
+      socket.close();
+    };
+  }, []);
 
   const userId = 1;
   const meetingId = "meeting_001";
@@ -187,22 +183,21 @@ const Meeting = () => {
     }
   };
 
-
-const updateParticipantState = async (mic, video, hand) => {
-  try {
-    // Crucial: Must be axios.post, NOT axios.get
-    await axios.post(`${API_URL}/participant/update/`, {
-      user_id: userId,
-      meeting_id: meetingId,
-      mic_on: mic,
-      video_on: video,
-      hand_raised: hand,
-    });
-    console.log("Database State Updated successfully.");
-  } catch (error) {
-    console.error("Update Error:", error);
-  }
-};
+  const updateParticipantState = async (mic, video, hand) => {
+    try {
+      // Crucial: Must be axios.post, NOT axios.get
+      await axios.post(`${API_URL}/participant/update/`, {
+        user_id: userId,
+        meeting_id: meetingId,
+        mic_on: mic,
+        video_on: video,
+        hand_raised: hand,
+      });
+      console.log("Database State Updated successfully.");
+    } catch (error) {
+      console.error("Update Error:", error);
+    }
+  };
 
   return (
     <div className="h-screen w-screen bg-[#f4f4f5] flex flex-col overflow-hidden font-sans">
@@ -708,7 +703,7 @@ const updateParticipantState = async (mic, video, hand) => {
               className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
                 isMicOn
                   ? "text-slate-600 hover:bg-slate-100"
-                  : "bg-red-500 text-white"
+                  : "text-red-500 hover:bg-slate-100"
               }`}
             >
               {isMicOn ? <Mic size={18} /> : <MicOff size={18} />}
@@ -728,7 +723,7 @@ const updateParticipantState = async (mic, video, hand) => {
               className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
                 isVideoOn
                   ? "text-slate-600 hover:bg-slate-100"
-                  : "bg-red-500 text-white"
+                  : "text-red-500 hover:bg-slate-100"
               }`}
             >
               {isVideoOn ? <Video size={18} /> : <VideoOff size={18} />}
