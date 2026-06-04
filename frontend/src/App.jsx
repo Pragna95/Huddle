@@ -9,7 +9,22 @@ import HuddlePage from "@/components/huddle/HuddlePage";
 import ChatWindow from "@/components/chat/ChatWindow";
 import ChatList from "@/components/chat/ChatList";
 import Dashboard from "./pages/Dashboard";
-  
+import LoginAuth from "./pages/LoginAuth";
+import SignupAuth from "./pages/SignupAuth";
+import DashboardAuth from "./pages/DashboardAuth";
+
+// Placeholders to prevent build crashes
+function Profile() {
+  return <div className="p-8">Profile Page (Placeholder)</div>;
+}
+
+function Settings() {
+  return <div className="p-8">Settings Page (Placeholder)</div>;
+}
+
+function NotFound() {
+  return <div className="p-8 text-center mt-20 text-xl font-semibold">404 - Page Not Found</div>;
+}
 
 function Messaging() {
 
@@ -26,6 +41,12 @@ function Messaging() {
       </div>
     </div>
   );
+}
+
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem("token");
+
+  return token ? children : <Navigate to="/login" />;
 }
 
 function DashboardUI() {
@@ -50,12 +71,12 @@ function App() {
 
   // LOGIN STATES
 
-  const [email, setEmail] = useState("");
+  {/*const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [loggedIn, setLoggedIn] = useState(false);
 
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");*/}
 
   const [adminApiKey, setAdminApiKey] = useState("");
   const [createdHost, setCreatedHost] = useState(null);
@@ -115,9 +136,9 @@ function App() {
       <Routes>
         {/* NEW MEETING INTERFACE */}
         <Route path="/meeting" element={<Meeting />} />
-
+        <Route path="/" element={<Navigate to="/login" replace />} /> 
         {/* DEFAULT LOGIN/DASHBOARD LOGIC */}
-        <Route path="/" element={
+        {/*<Route path="/" element={
           !loggedIn ? (
             <div className="main">
               <div className="card">
@@ -176,10 +197,16 @@ function App() {
               </div>
             </div>
           )
-        } />
-        <Route path="/dashboard-ui" element={<DashboardUI />} />
+        } /> */}
+        <Route path="/dashboard-ui" element={<ProtectedRoute ><DashboardUI /></ProtectedRoute>} />
         <Route path = "/message" element={<Messaging />} /> 
-        <Route path = "/dash" element={<Dashboard />} />       
+        <Route path = "/dash" element={<Dashboard />} />  
+        <Route path="/login" element={<LoginAuth />} />
+        <Route path="/signup" element={<SignupAuth />} />
+        <Route path="/dashboard" element={<DashboardAuth />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="*" element = {<NotFound />} />     
       </Routes>
     </Router>
   );

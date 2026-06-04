@@ -65,3 +65,26 @@ services:
 
     ports:
       - "6379:6379"
+
+
+  auth-service:
+    build:
+      context: ./Auth_Services
+      dockerfile: Dockerfile
+
+    container_name: auth-service
+
+    env_file:
+      - ./.env
+
+    ports:
+      - "8002:8002"
+
+    depends_on:
+      - postgres-db
+
+    command: >
+      sh -c "
+      python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:8002
+      "
