@@ -18,7 +18,7 @@ function Messaging() {
       <Sidebar />
       <div className="flex flex-col flex-1">
         <TopBar />
-        <main className="flex flex-1 w-[1329px] h-[624px] overflow-hidden p-4 gap-6">
+        <main className="flex flex-1 w-full max-w-[1329px] h-full max-h-[824px] overflow-hidden p-4 gap-6 mx-auto animate-scale-in">
           <ChatList />
           <ChatWindow />
         </main>

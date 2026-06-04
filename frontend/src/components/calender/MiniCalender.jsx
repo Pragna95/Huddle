@@ -82,14 +82,14 @@ export default function MiniCalendar() {
             key={i}
             onClick={() => day && setSelected(day)}
             disabled={!day}
-            className={`h-8 w-8 mx-auto rounded-full text-sm flex items-center justify-center transition-all ${
+            className={`h-8 w-8 mx-auto rounded-full text-sm flex items-center justify-center transition-all duration-200 cursor-pointer ${
               !day
                 ? "invisible"
                 : isToday(day)
-                ? "bg-[#1e2b72] text-white font-bold"
+                ? "bg-[#1e2b72] text-white font-bold shadow-[0_2px_8px_rgba(30,43,114,0.3)] hover:scale-105"
                 : day === selected && !isToday(day)
-                ? "bg-blue-100 text-[#1e2b72] font-semibold"
-                : "hover:bg-gray-100 text-gray-700"
+                ? "bg-blue-100 text-[#1e2b72] font-semibold hover:scale-105"
+                : "hover:bg-gray-100 hover:scale-110 active:scale-95 text-gray-700"
             }`}
           >
             {day}
@@ -98,16 +98,16 @@ export default function MiniCalendar() {
       </div>
 
       <div className="mt-4">
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">
           Today's Highlights
         </p>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5">
           {highlights.map((h) => (
-            <div key={h.label} className="flex items-start gap-2">
-              <div className={`w-1 rounded-full ${h.color} mt-1 self-stretch min-h-[2rem]`} />
+            <div key={h.label} className="flex items-start gap-3 p-2 rounded-xl border border-transparent hover:border-gray-100 hover:bg-gray-50/50 hover:translate-x-1 hover:shadow-[0_2px_8px_rgba(0,0,0,0.01)] transition-all duration-300 cursor-pointer group">
+              <div className={`w-1 rounded-full ${h.color} mt-0.5 self-stretch min-h-[2rem] transition-all duration-300 group-hover:scale-y-105`} />
               <div>
-                <p className="text-sm font-semibold text-gray-800">{h.label}</p>
-                <p className="text-xs text-gray-400">{h.time}</p>
+                <p className="text-sm font-semibold text-gray-800 transition-colors duration-200 group-hover:text-blue-700">{h.label}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{h.time}</p>
               </div>
             </div>
           ))}

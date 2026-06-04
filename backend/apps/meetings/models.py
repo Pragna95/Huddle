@@ -1,54 +1,15 @@
-<<<<<<< HEAD
-from django.db import models
-
-# Create your models here.
-class ParticipantState(models.Model):
-    username = models.CharField(max_length=100)
-    
-    mic_on = models.BooleanField(default=True)
-    camera_on = models.BooleanField(default=True)
-
-class Recording(models.Model):
-
-    meeting_link = models.URLField()
-
-    recording_type = models.CharField(
-        max_length=20,
-        default="VIDEO"
-    )
-
-    storage_provider = models.CharField(
-        max_length=20,
-        default="LOCAL"
-    )
-
-    processing_status = models.CharField(
-        max_length=20,
-        default="STARTED"
-    )
-
-    started_by = models.CharField(
-        max_length=100
-    )
-
-    started_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    ended_at = models.DateTimeField(
-        null=True,
-        blank=True
-    )
-
-    duration_seconds = models.IntegerField(
-        default=0
-    )
-
-       
-=======
 import uuid
 from django.db import models
 from apps.users.models import User, Product
+
+class ParticipantState(models.Model):
+    username = models.CharField(max_length=100)
+    mic_on = models.BooleanField(default=True)
+    camera_on = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.username
+
 
 class Meeting(models.Model):
     id                      = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -73,6 +34,10 @@ class Meeting(models.Model):
     class Meta:
         db_table = "meetings"
 
+    def __str__(self):
+        return self.title
+
+
 class MeetingParticipant(models.Model):
     id                = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     meeting           = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name="participants")
@@ -86,6 +51,7 @@ class MeetingParticipant(models.Model):
     class Meta:
         db_table = "meeting_participants"
 
+
 class RecurrenceRule(models.Model):
     id              = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     meeting         = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name="recurrence_rules")
@@ -97,6 +63,7 @@ class RecurrenceRule(models.Model):
 
     class Meta:
         db_table = "recurrence_rules"
+
 
 class MeetingSession(models.Model):
     id                     = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -115,6 +82,7 @@ class MeetingSession(models.Model):
     class Meta:
         db_table = "meeting_sessions"
 
+
 class ParticipantSession(models.Model):
     id                            = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     meeting_session               = models.ForeignKey(MeetingSession, on_delete=models.CASCADE, related_name="participant_sessions")
@@ -131,20 +99,27 @@ class ParticipantSession(models.Model):
     class Meta:
         db_table = "participant_sessions"
 
+
 class Recording(models.Model):
+    # Unified model supporting HEAD & Team-B fields
     id                = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    meeting_session   = models.ForeignKey(MeetingSession, on_delete=models.CASCADE, related_name="recordings")
-    recording_type    = models.CharField(max_length=50, blank=True, null=True)
-    storage_provider  = models.CharField(max_length=100, blank=True, null=True)
+    meeting_session   = models.ForeignKey(MeetingSession, on_delete=models.CASCADE, related_name="recordings", null=True, blank=True)
+    meeting_link      = models.URLField(null=True, blank=True)
+    recording_type    = models.CharField(max_length=50, default="VIDEO")
+    storage_provider  = models.CharField(max_length=100, default="LOCAL")
     file_path         = models.TextField(blank=True, null=True)
     file_size_bytes   = models.BigIntegerField(blank=True, null=True)
-    duration_seconds  = models.IntegerField(blank=True, null=True)
+    duration_seconds  = models.IntegerField(default=0)
     mime_type         = models.CharField(max_length=100, blank=True, null=True)
-    processing_status = models.CharField(max_length=50, blank=True, null=True)
+    processing_status = models.CharField(max_length=50, default="STARTED")
+    started_by        = models.CharField(max_length=100, blank=True, null=True)
+    started_at        = models.DateTimeField(auto_now_add=True)
+    ended_at          = models.DateTimeField(null=True, blank=True)
     created_at        = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "recordings"
+
 
 class Transcript(models.Model):
     id                = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -160,4 +135,3 @@ class Transcript(models.Model):
 
     class Meta:
         db_table = "transcripts"
->>>>>>> Team-B

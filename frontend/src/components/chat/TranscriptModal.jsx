@@ -54,8 +54,10 @@ export default function TranscriptModal({ closeTranscript }) {
       <div
         className="
           bg-white
-          w-[650px]
+          w-full
+          max-w-[650px]
           h-[714px]
+          max-h-[90vh]
           rounded-[12px]
           border border-blue-500
           pt-[21px] pr-[16px] pb-[21px] pl-[16px]
@@ -108,23 +110,23 @@ export default function TranscriptModal({ closeTranscript }) {
           "
         >
           {transcripts.map((item, index) => (
-            <div key={index} className="flex gap-4 w-[600px] h-[98px]">
+            <div key={index} className="flex gap-4 w-full">
 
               {/* Avatar */}
               <img
-                src="https://i.pravatar.cc/100"
+                src={`https://i.pravatar.cc/100?u=${index}`}
                 alt="avatar"
-                className="w-[32px] h-[36px] rounded-lg shrink-0"
+                className="w-[32px] h-[36px] rounded-lg shrink-0 object-cover border border-gray-100"
               />
 
               {/* Message */}
-              <div className="flex-1 w-[552px] h-[98px]">
+              <div className="flex-1 min-w-0">
                 <h2 className="text-[14px] font-semibold text-gray-500 mb-1">
                   {item.name}
                 </h2>
 
-                <div className="bg-gray-100 rounded-2xl p-2">
-                  <p className="text-[#434655] leading-relaxed w-[540px] h-[78px]">
+                <div className="bg-gray-100 rounded-2xl p-3 shadow-sm">
+                  <p className="text-[#434655] leading-relaxed text-sm whitespace-normal break-words">
                     {item.message}
                   </p>
                 </div>

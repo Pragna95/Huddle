@@ -22,58 +22,65 @@ export default function SessionCard({ session }) {
 
   return (
     <div
-      className={`rounded-lg border ${["Ongoing", "Scheduled", "Completed"].includes(session.status)
-        ? "border-[#1e2b72]"
-        : "border-gray-200"
-        } bg-white p-3 shadow-sm`}
+      className={`rounded-xl border ${["Ongoing", "Scheduled", "Completed"].includes(session.status)
+        ? "border-[#1e2b72]/30 hover:border-[#1e2b72]"
+        : "border-gray-200 hover:border-gray-300"
+        } bg-white p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300`}
     >
       {/* Header */}
-      <div className="flex justify-between items-center mb-0.5">
-        <p className="text-[11px] font-semibold text-[#1e2b72] uppercase tracking-wide">
+      <div className="flex justify-between items-center mb-1.5">
+        <p className="text-[11px] font-bold text-[#1e2b72] uppercase tracking-wider">
           {session.project}
         </p>
 
         {session.status === "Ongoing" && (
-          <span className="text-[11px] font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">
-            ● LIVE
+          <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm border border-red-100">
+            <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse-red" />
+            LIVE
           </span>
         )}
       </div>
 
       {/* Title & Description */}
-      <h2 className="text-sm font-bold text-gray-900 mb-0.5">
+      <h2 className="text-sm font-bold text-gray-900 mb-1">
         {session.title}
       </h2>
 
-      <p className="text-xs text-gray-600 mb-2">
+      <p className="text-xs text-gray-500 leading-relaxed mb-3">
         {session.description}
       </p>
 
       {/* Participants & Time */}
-      <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
         <div className="flex items-center gap-1.5">
           <img
             src="/avatars/avatar1.png"
             alt="participant"
-            className="w-5 h-5 rounded-full"
+            className="w-5 h-5 rounded-full border border-white shadow-sm"
+            onError={(e) => {
+              e.target.src = "https://i.pravatar.cc/50?u=1";
+            }}
           />
           <img
             src="/avatars/avatar2.png"
             alt="participant"
-            className="w-5 h-5 rounded-full"
+            className="w-5 h-5 rounded-full border border-white shadow-sm"
+            onError={(e) => {
+              e.target.src = "https://i.pravatar.cc/50?u=2";
+            }}
           />
 
-          <span className="bg-gray-200 text-gray-700 text-[10px] px-1.5 py-0.5 rounded-full">
+          <span className="bg-gray-100 text-gray-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">
             +{session.participants}
           </span>
 
-          <span className="ml-1">{session.time}</span>
+          <span className="ml-1.5 font-medium text-gray-400">{session.time}</span>
         </div>
 
         {(session.status === "Scheduled" ||
           session.status === "Completed") &&
           session.date && (
-            <span className="text-gray-400">{session.date}</span>
+            <span className="text-gray-400 font-medium">{session.date}</span>
           )}
       </div>
 
@@ -82,14 +89,14 @@ export default function SessionCard({ session }) {
         {session.status === "Ongoing" && (
           <button
             onClick={() => navigate("/meeting")}
-            className="bg-[#002266] hover:bg-[#152060] text-white w-full py-1.5 rounded-md text-xs font-medium"
+            className="bg-gradient-to-r from-[#002266] to-[#0c3aa3] hover:from-[#001744] hover:to-[#0a318a] hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 text-white w-full py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer"
           >
             Join Room
           </button>
         )}
 
         {session.status === "Scheduled" && session.date && (
-          <p className="text-gray-500 italic text-xs">
+          <p className="text-gray-400 italic text-xs">
             Scheduled for {session.date}
           </p>
         )}
@@ -102,6 +109,11 @@ export default function SessionCard({ session }) {
                                 p-[1px]
                                 rounded-[13px]
                                 bg-[linear-gradient(90deg,#ff7a18,#ff4fd8,#3b82f6,#1d4ed8)]
+                                hover:shadow-md
+                                transition-all
+                                duration-300
+                                hover:-translate-y-0.5
+                                active:translate-y-0
                             "
             >
               <button
@@ -121,8 +133,9 @@ export default function SessionCard({ session }) {
     transition-all
     duration-300
     whitespace-nowrap
-    hover:bg-[#152060]
-    hover:text-white"
+    hover:bg-[#002266]
+    hover:text-white
+    cursor-pointer"
               >
                 AI Summary
               </button>
@@ -138,7 +151,7 @@ export default function SessionCard({ session }) {
             <button
               onClick={() => setShowTranscript(true)}
               className="
-    shadow-[0_8px_25px_rgba(29,78,216,0.25)]
+    shadow-[0_4px_12px_rgba(0,34,102,0.08)]
     h-[36px]
     min-w-[110px]
     px-3
@@ -155,8 +168,12 @@ export default function SessionCard({ session }) {
     transition-all
     duration-300
     whitespace-nowrap
-    hover:bg-[#152060]
+    hover:bg-[#002266]
     hover:text-white
+    hover:-translate-y-0.5
+    active:translate-y-0
+    hover:shadow-md
+    cursor-pointer
   "
             >
               View Transcript
@@ -173,7 +190,7 @@ export default function SessionCard({ session }) {
             {/* VIEW RECORDING */}
             <button
               className="
-    shadow-[0_5px_15px_rgba(29,78,216,0.25)]
+    shadow-[0_4px_12px_rgba(0,34,102,0.08)]
     h-[36px]
     min-w-[110px]
     px-3
@@ -190,8 +207,12 @@ export default function SessionCard({ session }) {
     transition-all
     duration-300
     whitespace-nowrap
-    hover:bg-[#152060]
+    hover:bg-[#002266]
     hover:text-white
+    hover:-translate-y-0.5
+    active:translate-y-0
+    hover:shadow-md
+    cursor-pointer
   "
             >
               View Recording

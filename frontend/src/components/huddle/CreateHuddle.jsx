@@ -9,7 +9,7 @@ import {
 import { Video, Plus, Calendar, Zap } from "lucide-react";
 import AdvanceSchedule from "@/components/schedule/AdvanceSchedule";
 
-export default function CreateHuddle() {
+export default function CreateHuddle({ onAddSession, onCancelSession }) {
   const [openSchedule, setOpenSchedule] = useState(false);
 
   const handleInstantMeeting = () => {
@@ -22,10 +22,10 @@ export default function CreateHuddle() {
 
   return (
     <>
-      <div className="bg-[#002266] rounded-2xl p-5 text-white shadow-lg">
+      <div className="bg-gradient-to-br from-[#002266] via-[#002266] to-[#0a1e4d] rounded-2xl p-5 text-white shadow-[0_10px_30px_rgba(0,34,102,0.12)] hover:shadow-[0_12px_40px_rgba(0,34,102,0.22)] transition-all duration-300">
         {/* Header */}
         <div className="flex items-center gap-2 mb-2">
-          <Video className="w-5 h-5 text-blue-300" />
+          <Video className="w-5 h-5 text-blue-300 animate-bounce-subtle" />
           <h2 className="font-bold text-lg">Create a Huddle</h2>
         </div>
 
@@ -38,19 +38,9 @@ export default function CreateHuddle() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-className="
-  w-full
-  bg-white
-  text-black
-  border-white
-  hover:bg-gray-100
-  rounded-xl
-  font-semibold
-  flex items-center gap-2
-  h-11
-  transition-all"
+              className="w-full bg-white text-black border-white hover:bg-gray-50 hover:-translate-y-0.5 active:translate-y-0 hover:shadow-md rounded-xl font-bold flex items-center justify-center gap-2 h-11 transition-all duration-200 cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-black" />
               CREATE A MEET
             </Button>
           </DropdownMenuTrigger>
@@ -138,6 +128,8 @@ className="
       <AdvanceSchedule
         open={openSchedule}
         setOpen={setOpenSchedule}
+        onAddSession={onAddSession}
+        onCancelSession={onCancelSession}
       />
     </>
   );

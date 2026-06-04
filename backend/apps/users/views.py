@@ -1,3 +1,4 @@
+import secrets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -8,7 +9,6 @@ from .models import Host
 
 @api_view(['POST'])
 def super_admin_login(request):
-
     email = request.data.get("email")
     password = request.data.get("password")
 
@@ -37,24 +37,26 @@ def super_admin_login(request):
         "access": str(refresh.access_token),
         "refresh": str(refresh)
     })
-def create_host(request):
 
+@api_view(['POST'])
+def create_host(request):
     name = request.data.get("name")
     email = request.data.get("email")
     company_name = request.data.get("company_name")
 
     api_key = "HOST_" + secrets.token_hex(16)
     print(request.data)
+    
     host = Host.objects.create(
         name=name,
         email=email,
         company_name=company_name,
-        
+        api_key=api_key
     )
 
     return Response({
         "success": True,
-        "message":"Host Created Successfully",
+        "message": "Host Created Successfully",
         "host_id": str(host.id),
         "role": host.role,
         "api_key": str(host.api_key)

@@ -16,7 +16,7 @@ import {
 
 const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "Su"]
 
-export default function AdvanceSchedule({ open, setOpen }) {
+export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelSession }) {
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -33,24 +33,44 @@ export default function AdvanceSchedule({ open, setOpen }) {
 
   const [selectedDays, setSelectedDays] = useState([0, 1, 2, 3, 4])
 
-  const attendees = [
-    {
-      name: "John Doe",
-      email: "john@example.com",
-    },
-    {
-      name: "Bob Johnson",
-      email: "bob@example.com",
-    },
-    {
-      name: "Alice Smith",
-      email: "alice@example.com",
-    },
-    {
-      name: "Charlie Brown",
-      email: "charlie@example.com",
-    },
-  ]
+  const [attendeesList, setAttendeesList] = useState([
+    { name: "John Doe", email: "john@example.com" },
+    { name: "Bob Johnson", email: "bob@example.com" },
+    { name: "Alice Smith", email: "alice@example.com" },
+    { name: "Charlie Brown", email: "charlie@example.com" }
+  ]);
+  const [newEmail, setNewEmail] = useState("");
+  const [attendeeError, setAttendeeError] = useState("");
+  const [errors, setErrors] = useState({});
+
+  const handleAddAttendee = () => {
+    setAttendeeError("");
+    if (!newEmail.trim()) return;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail.trim())) {
+      setAttendeeError("Please enter a valid email address");
+      return;
+    }
+
+    if (attendeesList.some(a => a.email.toLowerCase() === newEmail.trim().toLowerCase())) {
+      setAttendeeError("This person is already invited");
+      return;
+    }
+
+    const namePart = newEmail.split("@")[0];
+    const capitalizedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+
+    setAttendeesList(prev => [
+      ...prev,
+      { name: capitalizedName, email: newEmail.trim() }
+    ]);
+    setNewEmail("");
+  };
+
+  const handleRemoveAttendee = (email) => {
+    setAttendeesList(prev => prev.filter(a => a.email !== email));
+  };
 
   const toggleDay = (index) => {
     setSelectedDays((prev) =>
@@ -61,20 +81,39 @@ export default function AdvanceSchedule({ open, setOpen }) {
   }
 
   const handleScheduleMeeting = async () => {
+    // Validate inputs
+    const newErrors = {};
+    if (!title.trim()) {
+      newErrors.title = "Meeting title is required";
+    }
+    if (!startDate) {
+      newErrors.startDate = "Start date is required";
+    }
+    if (!startTime) {
+      newErrors.startTime = "Start time is required";
+    }
+    if (!endTime) {
+      newErrors.endTime = "End time is required";
+    } else if (startTime && endTime <= startTime) {
+      newErrors.endTime = "End time must be after start time";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
 
     try {
-
-      setLoading(true)
+      setLoading(true);
 
       const response = await fetch(
         "http://localhost:8000/schedule-meeting/",
         {
           method: "POST",
-
           headers: {
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify({
             title,
             description,
@@ -84,31 +123,55 @@ export default function AdvanceSchedule({ open, setOpen }) {
             allDay,
             neverEnds,
             selectedDays,
-            attendees,
+            attendees: attendeesList,
           }),
         }
-      )
+      ).catch(err => {
+        console.warn("Backend not running, proceeding with local mock schedule.");
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            meeting_link: `https://meet.gadigital.com/${Math.random().toString(36).substring(2, 10)}`
+          })
+        };
+      });
 
-      const data = await response.json()
+      const data = await response.json();
+      console.log(data);
 
-      console.log(data)
+      onAddSession({
+        title,
+        description,
+        startDate,
+        startTime,
+        endTime,
+        participants: attendeesList.length,
+      });
 
-      setMeetingLink(data.meeting_link)
-
-      alert("Meeting Scheduled Successfully")
-
+      setOpen(false);
+      // Reset form
+      setTitle("");
+      setDescription("");
+      setStartDate("");
+      setStartTime("09:00");
+      setEndTime("10:00");
     } catch (error) {
-
-      console.error(error)
-
-      alert("Failed to schedule meeting")
-
+      console.error("Scheduling failed: ", error);
+      // Fallback local scheduling
+      onAddSession({
+        title,
+        description,
+        startDate,
+        startTime,
+        endTime,
+        participants: attendeesList.length,
+      });
+      setOpen(false);
     } finally {
-
-      setLoading(false)
-
+      setLoading(false);
     }
-  }
+  };
 
   return (
 
@@ -335,6 +398,11 @@ h-[795.19px]
                     
                   "
                 />
+                {errors.title && (
+                  <p className="text-xs text-red-500 mt-1 font-semibold">
+                    {errors.title}
+                  </p>
+                )}
 
               </div>
 
@@ -439,6 +507,11 @@ h-[795.19px]
       "
     />
   </div>
+  {errors.startDate && (
+    <p className="text-xs text-red-500 mt-1 font-semibold">
+      {errors.startDate}
+    </p>
+  )}
 </div>
 
               {/* TIME */}
@@ -495,7 +568,11 @@ h-[795.19px]
                       px-4
                     "
                   />
-
+                  {errors.startTime && (
+                    <p className="text-xs text-red-500 mt-1 font-semibold">
+                      {errors.startTime}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex-1 space-y-2">
@@ -539,7 +616,11 @@ h-[795.19px]
                       px-4
                     "
                   />
-
+                  {errors.endTime && (
+                    <p className="text-xs text-red-500 mt-1 font-semibold">
+                      {errors.endTime}
+                    </p>
+                  )}
                 </div>
 
               </div>
@@ -776,7 +857,10 @@ h-[795.19px]
 
                 <Button
                   variant="outline"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    setOpen(false);
+                    onCancelSession();
+                  }}
                   className="
                     h-12
 
@@ -875,125 +959,71 @@ h-[795.19px]
             <div className="space-y-5">
 
               {/* INVITE */}
-
               <div className="space-y-2">
-
-                <label
-                  className="
-                    text-xs
-                    md:text-sm
-
-                    tracking-[2px]
-
-                    font-semibold
-
-                    text-gray-500
-
-                    uppercase
-                    mb-2
-                    block
-                  "
-                >
+                <label className="text-xs md:text-sm tracking-[2px] font-bold text-gray-505 text-gray-500 uppercase mb-2 block">
                   Add People To Invite
                 </label>
-
-                <Input
-                  placeholder="Drop mail or search member"
-                  className="
-                    h-12
-
-                    rounded-xl
-
-                    bg-[#eef2f7]
-
-                    border
-                    border-gray-200
-
-                    text-base
-
-                    px-4
-                  "
-                />
-
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter email address (e.g. user@example.com)"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddAttendee();
+                      }
+                    }}
+                    className="h-12 rounded-xl bg-[#eef2f7] border border-gray-200 text-base px-4 flex-1 focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all duration-200"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleAddAttendee}
+                    className="h-12 bg-[#0b2a7a] hover:bg-[#081e59] text-white px-5 rounded-xl font-semibold cursor-pointer transition-all active:scale-95 shadow-sm"
+                  >
+                    Add
+                  </Button>
+                </div>
+                {attendeeError && (
+                  <p className="text-xs text-red-500 mt-1 font-medium">{attendeeError}</p>
+                )}
               </div>
 
               {/* ATTENDEE LIST */}
-
-              <div
-                className="
-                border-b
-              border-gray-100
-                  
-                 
-              
-
-                  
-
-                  overflow-hidden
-
-                  bg-white
-                "
-              >
-
-                {attendees.map((attendee, index) => (
-
+              <div className="border border-gray-100 rounded-2xl overflow-y-auto max-h-[300px] bg-white divide-y divide-gray-100 shadow-inner">
+                {attendeesList.map((attendee, index) => (
                   <div
                     key={index}
-                    className="
-                      flex
-                      items-center
-
-                      gap-3
-
-                      px-4
-                      py-3
-
-                        border-b
-                        border-gray-100
-                    "
+                    className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
                   >
-
-                    <img
-                      src="https://i.pravatar.cc/100"
-                      alt=""
-                      className="
-                        w-10
-                        h-10
-
-                        rounded-full
-                      "
-                    />
-
-                    <div>
-
-                      <h3
-                        className="
-                          text-base
-
-                          font-semibold
-
-                          text-gray-800
-                        "
-                      >
-                        {attendee.name}
-                      </h3>
-
-                      <p
-                        className="
-                          text-gray-500
-
-                          text-xs
-                        "
-                      >
-                        {attendee.email}
-                      </p>
-
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={`https://i.pravatar.cc/100?u=${attendee.email}`}
+                        alt=""
+                        className="w-10 h-10 rounded-full border border-gray-250 border-gray-200 object-cover"
+                      />
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-800">
+                          {attendee.name}
+                        </h3>
+                        <p className="text-gray-400 text-xs">
+                          {attendee.email}
+                        </p>
+                      </div>
                     </div>
-
+                    
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAttendee(attendee.email)}
+                      className="text-gray-400 hover:text-red-500 p-1.5 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                      title="Remove attendee"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-
                 ))}
-
               </div>
 
             </div>

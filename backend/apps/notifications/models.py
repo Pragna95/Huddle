@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-from django.db import models
-
-# Create your models here.
-=======
 import uuid
 from django.db import models
 from apps.users.models import User, Product
@@ -20,4 +15,3 @@ class AuditLog(models.Model):
     class Meta:
         db_table  = "audit_logs"
         ordering  = ["-created_at"]
->>>>>>> Team-B

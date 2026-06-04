@@ -246,14 +246,14 @@ const handleLeaveHuddle = () => {
                 setIsRecording(true);
               }
             }}
-            className={`ml-5 flex items-center gap-2 px-4 py-2 h-[40px] rounded-[8px] text-[14px] font-semibold border transition-all duration-300 ${
+            className={`ml-5 flex items-center gap-2 px-4 py-2 h-[40px] rounded-lg text-[14px] font-bold border transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer hover:shadow-sm ${
               isRecording
-                ? "bg-[#D14343] text-white border-[#D14343]"
-                : "bg-white text-[#D14343] border-[#D14343] hover:bg-red-50"
+                ? "bg-[#D14343] text-white border-[#D14343] shadow-[0_2px_8px_rgba(209,67,67,0.3)] animate-pulse-red"
+                : "bg-white text-[#D14343] border-[#D14343]/30 hover:bg-red-50"
             }`}
           >
             <Circle
-              size={10}
+              size={8}
               fill={
                 isRecording ? "white" : recordingStopped ? "#ef4444" : "#D14343"
               }
@@ -273,10 +273,11 @@ const handleLeaveHuddle = () => {
 
         {/* RIGHT */}
         <button 
-        onClick={() => navigate("/dashboard-ui", { state: { showThankYouDialog: true } })}
-        className="bg-[#D14343] hover:bg-[#a51f1f] transition text-white px-4 h-[40px] rounded-[8px] flex items-center gap-2 text-[16px] font-bold shadow-sm">
+          onClick={() => navigate("/dashboard-ui", { state: { showThankYouDialog: true } })}
+          className="bg-[#D14343] hover:bg-[#b93232] hover:shadow-[0_4px_12px_rgba(209,67,67,0.3)] hover:-translate-y-0.5 active:translate-y-0 text-white px-4 h-[40px] rounded-lg flex items-center gap-2 text-[15px] font-bold shadow-sm transition-all duration-300 cursor-pointer"
+        >
           Leave Huddle
-          <PhoneOff size={18} />
+          <PhoneOff size={16} />
         </button>
       </header>
 
@@ -284,7 +285,7 @@ const handleLeaveHuddle = () => {
       <main className="flex-1 p-4 flex gap-4 min-h-0 overflow-hidden">
         {/* ================= MAIN AREA ================= */}
         <div
-          className={`relative rounded-[28px] overflow-hidden bg-black shadow-sm h-full transition-all duration-300 ${
+          className={`relative rounded-[28px] overflow-hidden bg-slate-900 border border-slate-850 shadow-[0_12px_40px_rgba(0,0,0,0.25)] h-full transition-all duration-300 ${
             showParticipantsGrid
               ? "w-full"
               : showHandRaise || showParticipants || showMenuPage
@@ -294,16 +295,16 @@ const handleLeaveHuddle = () => {
         >
           {/* ================= PARTICIPANTS GRID ================= */}
           {showParticipantsGrid ? (
-            <div className="w-full h-full bg-[#0f172a] p-6 overflow-y-auto">
+            <div className="w-full h-full bg-[#0f172a] p-6 overflow-y-auto animate-fade-in">
               {/* TOP BAR */}
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-white text-2xl font-bold">
+                <h2 className="text-white text-2xl font-bold tracking-tight">
                   All Participants
                 </h2>
 
                 <button
                   onClick={() => setShowParticipantsGrid(false)}
-                  className="bg-white text-slate-700 px-5 py-2 rounded-2xl text-sm font-semibold hover:bg-slate-100 transition"
+                  className="bg-white text-slate-700 px-5 py-2 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 shadow-sm cursor-pointer"
                 >
                   Back to Meeting
                 </button>
@@ -314,25 +315,25 @@ const handleLeaveHuddle = () => {
                 {participantMembers.map((member, index) => (
                   <div
                     key={index}
-                    className="relative h-[240px] rounded-[28px] overflow-hidden border border-slate-700 bg-slate-900"
+                    className="relative h-[240px] rounded-[24px] overflow-hidden border border-slate-800 bg-slate-900 hover:border-blue-500 hover:scale-[1.02] hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer group"
                   >
                     <img
                       src={`https://randomuser.me/api/portraits/${
                         index % 2 === 0 ? "men" : "women"
                       }/${index + 20}.jpg`}
                       alt={member}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
-                    <div className="absolute inset-0 bg-black/20"></div>
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors duration-300"></div>
 
                     <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                      <div className="bg-black/40 backdrop-blur-xl px-3 py-1 rounded-xl text-white text-sm font-medium">
+                      <div className="bg-black/50 backdrop-blur-xl px-3 py-1 rounded-xl text-white text-sm font-semibold border border-white/5 shadow-md">
                         {member}
                       </div>
 
-                      <div className="bg-black/40 p-2 rounded-full">
-                        <MicOff size={15} className="text-white" />
+                      <div className="bg-black/50 backdrop-blur-xl p-2 rounded-full border border-white/5 shadow-md">
+                        <MicOff size={15} className="text-white/80" />
                       </div>
                     </div>
                   </div>
@@ -359,24 +360,24 @@ const handleLeaveHuddle = () => {
                     setShowHandRaise(false);
                     setShowMenuPage(false);
                   }}
-                  className="relative w-[96px] h-[40px]"
+                  className="relative w-[96px] h-[40px] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer group"
                 >
                   {/* Avatar 1 */}
                   <img
                     src="https://randomuser.me/api/portraits/women/65.jpg"
                     alt=""
-                    className="absolute left-0 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md"
+                    className="absolute left-0 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md group-hover:-translate-x-1 transition-transform duration-300"
                   />
 
                   {/* Avatar 2 */}
                   <img
                     src="https://randomuser.me/api/portraits/men/60.jpg"
                     alt=""
-                    className="absolute left-7 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md"
+                    className="absolute left-7 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md transition-transform duration-300"
                   />
 
                   {/* +3 */}
-                  <div className="absolute left-[56px] top-0 w-10 h-10 rounded-[12px] border-2 border-white bg-[#ACBFFF] flex items-center justify-center shadow-md">
+                  <div className="absolute left-[56px] top-0 w-10 h-10 rounded-[12px] border-2 border-white bg-[#ACBFFF] flex items-center justify-center shadow-md group-hover:translate-x-1 transition-transform duration-300">
                     <span className="text-[12px] font-semibold text-[#394C84]">
                       +3
                     </span>
@@ -392,31 +393,31 @@ const handleLeaveHuddle = () => {
                       setShowParticipants(false);
                       setShowMenuPage(false);
                     }}
-                    className="bg-white h-[38px] px-4 rounded-[22px] flex items-center justify-center shadow-lg"
+                    className="bg-white hover:bg-gray-50 h-[38px] px-4 rounded-[22px] flex items-center justify-center shadow-lg border border-gray-100 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
                   >
-                    <span className="text-[22px] font-semibold leading-none text-black">
+                    <span className="text-[18px] font-bold leading-none text-black">
                       ✋ 12
                     </span>
                   </button>
 
                   {/* AVATAR STACK */}
-                  <div className="relative w-[96px] h-[40px]">
+                  <div className="relative w-[96px] h-[40px] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer group">
                     {/* Avatar 1 */}
                     <img
                       src="https://randomuser.me/api/portraits/women/33.jpg"
                       alt=""
-                      className="absolute left-0 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md"
+                      className="absolute left-0 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md group-hover:-translate-x-1 transition-transform duration-300"
                     />
 
                     {/* Avatar 2 */}
                     <img
                       src="https://randomuser.me/api/portraits/men/33.jpg"
                       alt=""
-                      className="absolute left-7 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md"
+                      className="absolute left-7 top-0 w-10 h-10 rounded-[12px] border-2 border-white object-cover shadow-md transition-transform duration-300"
                     />
 
                     {/* +3 */}
-                    <div className="absolute left-[56px] top-0 w-10 h-10 rounded-[12px] border-2 border-white bg-[#ACBFFF] flex items-center justify-center shadow-md">
+                    <div className="absolute left-[56px] top-0 w-10 h-10 rounded-[12px] border-2 border-white bg-[#ACBFFF] flex items-center justify-center shadow-md group-hover:translate-x-1 transition-transform duration-300">
                       <span className="text-[12px] font-semibold text-[#394C84]">
                         +3
                       </span>
@@ -425,14 +426,14 @@ const handleLeaveHuddle = () => {
                 </div>
               </div>
               {/* NAME */}
-              <h1 className="absolute bottom-7 left-7 text-white text-[38px] font-bold drop-shadow-lg z-20">
+              <h1 className="absolute bottom-7 left-7 text-white text-[38px] font-extrabold tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-20">
                 Andaya
               </h1>
 
               {/* SMALL VIDEO */}
-              <div className="absolute bottom-5 right-5 w-[220px] h-[140px] rounded-[40px] bg-[#1f1f24] backdrop-blur-2xl border border-white/10 flex items-center justify-center z-20 shadow-2xl">
+              <div className="absolute bottom-5 right-5 w-[220px] h-[140px] rounded-[24px] bg-[#121215]/80 backdrop-blur-xl border border-white/10 flex items-center justify-center z-20 shadow-2xl hover:scale-105 hover:border-white/20 transition-all duration-300">
                 <div className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-blue-900 text-white flex items-center justify-center mx-auto font-bold text-lg border border-blue-500">
+                  <div className="w-16 h-16 rounded-full bg-[#002B6B] text-white flex items-center justify-center mx-auto font-bold text-lg border border-blue-400 shadow-inner">
                     AD
                   </div>
 
@@ -449,10 +450,10 @@ const handleLeaveHuddle = () => {
         {(showHandRaise || showParticipants) &&
           !showParticipantsGrid &&
           !showMenuPage && (
-            <div className="w-[20%] bg-white rounded-[24px] border border-slate-200 p-4 flex flex-col h-full">
+            <div className="w-[20%] bg-white rounded-[24px] border border-slate-200/80 p-4 flex flex-col h-full shadow-[0_4px_20px_rgba(0,0,0,0.02)] animate-slide-in-right">
               {/* TOP */}
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-[17px] font-semibold text-slate-700">
+                <h2 className="text-[17px] font-bold text-slate-800">
                   {showHandRaise ? "Hand Raise" : "Participants"}
                 </h2>
 
@@ -461,7 +462,7 @@ const handleLeaveHuddle = () => {
                     setShowHandRaise(false);
                     setShowParticipants(false);
                   }}
-                  className="w-6 h-6 border border-slate-300 rounded flex items-center justify-center text-slate-500"
+                  className="w-6 h-6 border border-slate-350 hover:border-slate-500 rounded flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
                 >
                   ×
                 </button>
@@ -477,35 +478,35 @@ const handleLeaveHuddle = () => {
                 <input
                   type="text"
                   placeholder="search"
-                  className="w-full border border-slate-300 rounded-lg py-2 pl-9 pr-3 text-sm outline-none"
+                  className="w-full border border-slate-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 rounded-xl py-2 pl-9 pr-3 text-sm outline-none transition-all duration-200"
                 />
               </div>
 
               {/* COUNT */}
-              <p className="text-sm text-slate-500 mb-4">
+              <p className="text-sm font-semibold text-slate-500 mb-4">
                 {showHandRaise ? "12 Members" : "40 Participants"}
               </p>
 
               {/* MEMBERS */}
-              <div className="space-y-3 overflow-y-auto flex-1">
+              <div className="space-y-3 overflow-y-auto flex-1 dark-scroll">
                 {(showHandRaise
                   ? handRaiseMembers
                   : participantMembers.slice(0, 8)
                 ).map((member, index) => (
                   <div
                     key={index}
-                    className="border border-slate-300 rounded-xl px-3 py-2 flex items-center justify-between hover:bg-slate-50 transition"
+                    className="border border-slate-100 rounded-xl px-3 py-2 flex items-center justify-between hover:bg-slate-50/80 hover:border-slate-200 hover:shadow-sm transition-all duration-200 cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
                       <img
                         src={`https://randomuser.me/api/portraits/${
                           index % 2 === 0 ? "men" : "women"
                         }/${index + 20}.jpg`}
-                        className="w-10 h-10 rounded-full object-cover"
+                        className="w-10 h-10 rounded-full object-cover shadow-sm"
                         alt=""
                       />
 
-                      <span className="text-sm font-medium text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         {member}
                       </span>
                     </div>
@@ -517,7 +518,7 @@ const handleLeaveHuddle = () => {
               {!showHandRaise && (
                 <button
                   onClick={() => setShowParticipantsGrid(true)}
-                  className="mt-5 bg-[#0f172a] text-white py-3 rounded-2xl text-sm font-semibold hover:bg-slate-800 transition"
+                  className="mt-5 bg-[#0f172a] hover:bg-[#1e293b] active:scale-[0.98] text-white py-3 rounded-2xl text-sm font-bold shadow-sm transition-all duration-200 cursor-pointer"
                 >
                   View All Participants
                 </button>
@@ -527,27 +528,27 @@ const handleLeaveHuddle = () => {
 
         {/* ================= MENU PAGE ================= */}
         {showMenuPage && (
-          <div className="w-[20%] bg-white rounded-[24px] border border-slate-200 p-4 h-full flex flex-col">
+          <div className="w-[20%] bg-white rounded-[24px] border border-slate-200/80 p-4 h-full flex flex-col shadow-[0_4px_20px_rgba(0,0,0,0.02)] animate-slide-in-right">
             {/* HEADER */}
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h2 className="text-[18px] font-semibold text-slate-700">Menu</h2>
+            <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+              <h2 className="text-[18px] font-bold text-slate-800">Menu</h2>
 
               <button
                 onClick={() => setShowMenuPage(false)}
-                className="w-7 h-7 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-100"
+                className="w-7 h-7 rounded-lg border border-slate-350 hover:border-slate-500 flex items-center justify-center hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all cursor-pointer"
               >
                 <X size={16} />
               </button>
             </div>
 
             {/* TABS */}
-            <div className="mt-5 bg-[#f3f4f6] rounded-full p-1 flex items-center">
+            <div className="mt-5 bg-slate-100 rounded-full p-1 flex items-center shadow-inner">
               <button
                 onClick={() => setActiveMenu("chat")}
-                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                className={`flex-1 py-2 rounded-full text-sm font-bold transition-all duration-200 cursor-pointer ${
                   activeMenu === "chat"
-                    ? "bg-[#0f2a78] text-white"
-                    : "text-slate-500"
+                    ? "bg-[#0f2a78] text-white shadow-md"
+                    : "text-slate-500 hover:text-slate-850"
                 }`}
               >
                 Chat
@@ -555,10 +556,10 @@ const handleLeaveHuddle = () => {
 
               <button
                 onClick={() => setActiveMenu("notes")}
-                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                className={`flex-1 py-2 rounded-full text-sm font-bold transition-all duration-200 cursor-pointer ${
                   activeMenu === "notes"
-                    ? "bg-[#0f2a78] text-white"
-                    : "text-slate-500"
+                    ? "bg-[#0f2a78] text-white shadow-md"
+                    : "text-slate-500 hover:text-slate-850"
                 }`}
               >
                 Notes
@@ -566,10 +567,10 @@ const handleLeaveHuddle = () => {
 
               <button
                 onClick={() => setActiveMenu("assistance")}
-                className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                className={`flex-1 py-2 rounded-full text-sm font-bold transition-all duration-200 cursor-pointer ${
                   activeMenu === "assistance"
-                    ? "bg-[#0f2a78] text-white"
-                    : "text-slate-500"
+                    ? "bg-[#0f2a78] text-white shadow-md"
+                    : "text-slate-500 hover:text-slate-850"
                 }`}
               >
                 AI
@@ -580,8 +581,8 @@ const handleLeaveHuddle = () => {
             <div className="mt-5 flex-1 overflow-hidden flex flex-col">
               {/* CHAT */}
               {activeMenu === "chat" && (
-                <div className="flex flex-col h-full">
-                  <div className="flex-1 overflow-y-auto space-y-4">
+                <div className="flex flex-col h-full animate-fade-in">
+                  <div className="flex-1 overflow-y-auto space-y-4 pr-1 dark-scroll">
                     {chatMessages.map((msg, index) => (
                       <div
                         key={index}
@@ -590,16 +591,16 @@ const handleLeaveHuddle = () => {
                         }`}
                       >
                         <div
-                          className={`max-w-[85%] px-4 py-3 rounded-2xl ${
+                          className={`max-w-[85%] px-4 py-2.5 rounded-2xl shadow-sm ${
                             msg.sender === "You"
-                              ? "bg-[#0f2a78] text-white"
-                              : "bg-slate-100 text-slate-700"
+                              ? "bg-[#0f2a78] text-white rounded-tr-none"
+                              : "bg-slate-100 text-slate-700 rounded-tl-none"
                           }`}
                         >
-                          <p className="text-xs font-semibold mb-1">
+                          <p className="text-[10px] font-bold mb-0.5 opacity-80">
                             {msg.sender}
                           </p>
-                          <p className="text-sm">{msg.text}</p>
+                          <p className="text-sm leading-relaxed">{msg.text}</p>
                         </div>
                       </div>
                     ))}
@@ -612,12 +613,12 @@ const handleLeaveHuddle = () => {
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Type a message..."
-                      className="flex-1 border border-slate-300 rounded-2xl px-4 py-3 text-sm outline-none"
+                      className="flex-1 border border-slate-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 rounded-2xl px-4 py-3 text-sm outline-none transition-all duration-200"
                     />
 
                     <button
                       onClick={handleSendMessage}
-                      className="w-12 h-12 rounded-2xl bg-[#0f2a78] text-white flex items-center justify-center"
+                      className="w-12 h-12 rounded-2xl bg-[#0f2a78] hover:bg-[#153eac] hover:scale-105 active:scale-95 text-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-md"
                     >
                       <SendHorizontal size={18} />
                     </button>
@@ -629,19 +630,19 @@ const handleLeaveHuddle = () => {
               {activeMenu === "notes" && (
                 <textarea
                   placeholder="Write meeting notes..."
-                  className="w-full h-full border border-slate-300 rounded-2xl p-4 outline-none resize-none"
+                  className="w-full h-full border border-slate-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 rounded-2xl p-4 outline-none resize-none transition-all duration-205 animate-fade-in"
                 ></textarea>
               )}
 
               {/* AI */}
               {activeMenu === "assistance" && (
-                <div className="flex flex-col gap-4">
-                  <div className="bg-slate-100 rounded-2xl p-4 flex items-center justify-between">
+                <div className="flex flex-col gap-4 animate-fade-in">
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
                     <div>
-                      <p className="font-semibold text-slate-700">
+                      <p className="font-bold text-slate-750">
                         AI Transcription
                       </p>
-                      <p className="text-sm text-slate-500 mt-1">
+                      <p className="text-xs text-slate-400 mt-0.5">
                         Live captions enabled
                       </p>
                     </div>
@@ -650,12 +651,12 @@ const handleLeaveHuddle = () => {
                       onClick={() =>
                         setTranscriptionEnabled(!transcriptionEnabled)
                       }
-                      className={`w-14 h-7 rounded-full flex items-center px-1 transition ${
+                      className={`w-14 h-7 rounded-full flex items-center px-1 transition-colors duration-300 cursor-pointer ${
                         transcriptionEnabled ? "bg-[#0f2a78]" : "bg-slate-300"
                       }`}
                     >
                       <div
-                        className={`w-5 h-5 rounded-full bg-white transition ${
+                        className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${
                           transcriptionEnabled ? "translate-x-7" : ""
                         }`}
                       ></div>
@@ -664,22 +665,24 @@ const handleLeaveHuddle = () => {
 
                   {/* LIVE TRANSCRIPTION */}
                   {transcriptionEnabled && (
-                    <div className="space-y-3">
-                      <div className="bg-slate-100 rounded-2xl p-4">
-                        <p className="text-xs font-semibold text-blue-700 mb-1">
+                    <div className="space-y-3 overflow-y-auto max-h-[300px] pr-1 dark-scroll">
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <p className="text-[10px] font-bold text-blue-700 mb-1 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse" />
                           LIVE
                         </p>
-                        <p className="text-sm text-slate-700">
-                          Rahul: Let's begin the sprint review meeting.
+                        <p className="text-sm text-slate-700 leading-relaxed">
+                          <span className="font-semibold">Rahul:</span> Let's begin the sprint review meeting.
                         </p>
                       </div>
 
-                      <div className="bg-slate-100 rounded-2xl p-4">
-                        <p className="text-xs font-semibold text-blue-700 mb-1">
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <p className="text-[10px] font-bold text-blue-700 mb-1 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse" />
                           LIVE
                         </p>
-                        <p className="text-sm text-slate-700">
-                          Anika: Sharing the analytics dashboard now.
+                        <p className="text-sm text-slate-700 leading-relaxed">
+                          <span className="font-semibold">Anika:</span> Sharing the analytics dashboard now.
                         </p>
                       </div>
                     </div>
@@ -692,63 +695,63 @@ const handleLeaveHuddle = () => {
       </main>
 
       {/* ================= FOOTER ================= */}
-      <footer className="h-[95px] bg-[#f8fafc] border-t border-slate-200 flex items-center justify-between px-6 shrink-0">
+      <footer className="h-[95px] bg-[#f8fafc] border-t border-slate-100 flex items-center justify-between px-6 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.015)]">
         {/* LEFT */}
         <div className="flex items-center gap-3">
-          <span className="text-[11px] uppercase tracking-wide font-semibold text-slate-400">
+          <span className="text-[11px] uppercase tracking-wide font-bold text-slate-400">
             Meet ID
           </span>
 
-          <div className="bg-slate-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-medium shadow-sm">
+          <div className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-semibold shadow-sm transition-all duration-200 cursor-pointer active:scale-95 hover:shadow-md">
             NFT-rdtve9
             <Copy size={14} />
           </div>
         </div>
 
         {/* CENTER */}
-        <div className="bg-white px-5 py-3 rounded-[24px] shadow-md flex items-center gap-3 border border-slate-100">
+        <div className="bg-white px-5 py-3 rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.05)] flex items-center gap-3 border border-slate-100 animate-slide-up">
           {/* MIC */}
-          <div className="flex items-center bg-slate-50 rounded-xl px-1">
+          <div className="flex items-center bg-slate-50 hover:bg-slate-100/60 rounded-xl px-1 transition-colors duration-200">
             <button
               onClick={() => {
                 const newMicState = !isMicOn;
                 setIsMicOn(newMicState);
                 updateParticipantState(newMicState, isVideoOn, isHandRaised);
               }}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
                 isMicOn
                   ? "text-slate-600 hover:bg-slate-100"
-                  : "bg-red-500 text-white"
+                  : "bg-red-500 text-white shadow-[0_2px_8px_rgba(239,68,68,0.25)] hover:bg-red-600"
               }`}
             >
               {isMicOn ? <Mic size={18} /> : <MicOff size={18} />}
             </button>
 
-            <ChevronDown size={15} className="text-slate-400 mr-2" />
+            <ChevronDown size={15} className="text-slate-400 hover:text-slate-650 cursor-pointer transition-all duration-200 mr-2 hover:scale-110" />
           </div>
 
           {/* VIDEO */}
-          <div className="flex items-center bg-slate-50 rounded-xl px-1">
+          <div className="flex items-center bg-slate-50 hover:bg-slate-100/60 rounded-xl px-1 transition-colors duration-200">
             <button
               onClick={() => {
                 const newVideoState = !isVideoOn;
                 setIsVideoOn(newVideoState);
                 updateParticipantState(isMicOn, newVideoState, isHandRaised);
               }}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
                 isVideoOn
                   ? "text-slate-600 hover:bg-slate-100"
-                  : "bg-red-500 text-white"
+                  : "bg-red-500 text-white shadow-[0_2px_8px_rgba(239,68,68,0.25)] hover:bg-red-600"
               }`}
             >
               {isVideoOn ? <Video size={18} /> : <VideoOff size={18} />}
             </button>
 
-            <ChevronDown size={15} className="text-slate-400 mr-2" />
+            <ChevronDown size={15} className="text-slate-400 hover:text-slate-650 cursor-pointer transition-all duration-200 mr-2 hover:scale-110" />
           </div>
 
           {/* SHARE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 hover:scale-110 active:scale-95 transition-all duration-205 cursor-pointer hover:shadow-sm border border-transparent hover:border-slate-100">
             <Share size={18} />
           </button>
 
@@ -761,29 +764,29 @@ const handleLeaveHuddle = () => {
               setIsHandRaised(newHand);
               updateParticipantState(isMicOn, isVideoOn, newHand);
             }}
-            className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
+            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer ${
               isHandRaised
-                ? "bg-yellow-400 text-black hover:bg-yellow-500"
-                : "bg-white hover:bg-slate-100"
+                ? "bg-yellow-400 text-black hover:bg-yellow-500 shadow-[0_2px_8px_rgba(250,204,21,0.3)]"
+                : "bg-white hover:bg-slate-100 border border-slate-100 hover:shadow-sm"
             }`}
           >
             <span className="text-[20px]">🤚</span>
           </button>
 
           {/* USER PLUS */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 hover:scale-110 active:scale-95 transition-all duration-205 cursor-pointer hover:shadow-sm border border-transparent hover:border-slate-100">
             <UserPlus size={18} />
           </button>
 
           {/* MORE */}
-          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+          <button className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 hover:scale-110 active:scale-95 transition-all duration-205 cursor-pointer hover:shadow-sm border border-transparent hover:border-slate-100">
             <MoreVertical size={18} />
           </button>
         </div>
 
         {/* RIGHT */}
         <div className="flex items-center gap-3">
-          <button className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm">
+          <button className="w-11 h-11 rounded-xl border border-slate-250 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:border-blue-450 hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm cursor-pointer hover:shadow-md">
             <FilePenLine size={18} />
           </button>
 
@@ -794,7 +797,7 @@ const handleLeaveHuddle = () => {
               setShowParticipants(false);
               setShowHandRaise(false);
             }}
-            className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shadow-sm"
+            className="w-11 h-11 rounded-xl border border-slate-250 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:border-blue-450 hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm cursor-pointer hover:shadow-md"
           >
             <LayoutGrid size={18} />
           </button>

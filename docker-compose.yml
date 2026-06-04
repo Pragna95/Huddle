@@ -21,7 +21,7 @@ services:
 
   meeting-service:
     build:
-      context: ./config
+      context: ./meeting_service
 
     container_name: meeting-service
 
