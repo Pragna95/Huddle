@@ -1,19 +1,14 @@
 from django.urls import path
-
-from .views import (
-    toggle_mic,
-    start_recording,
-    stop_recording,
-    start_screen_share,
-    stop_screen_share,
-    current_screen_sharer,
-)
+from . import views
 
 urlpatterns = [
-    path("toggle-mic/", toggle_mic),
-    path("start-recording/", start_recording),
-    path("stop-recording/", stop_recording),
-    path("start-screen-share/", start_screen_share),
-    path("stop-screen-share/", stop_screen_share),
-    path("current-screen-sharer/<str:meeting_link>/", current_screen_sharer),
+    path("toggle-mic/", views.toggle_mic),
+    path("start-recording/", views.start_recording),
+    path("stop-recording/", views.stop_recording),
+    path("start-screen-share/", views.start_screen_share),
+    path("stop-screen-share/", views.stop_screen_share),
+    path("current-screen-sharer/<str:meeting_link>/", views.current_screen_sharer),
+    path("participant/<str:meeting_id>/<int:user_id>/", views.get_participant),
+    path("participant/update/", views.update_participant),
+    path("participants/<str:meeting_id>/", views.get_all_participants),
 ]
