@@ -3,12 +3,32 @@ export default function ParticipantSelector({
   setParticipants,
 }) {
   const addEmail = (email) => {
-    if (!email) return;
+    const trimmed =
+      email.trim();
+
+    if (!trimmed) return;
+
+    if (
+      participants.includes(
+        trimmed
+      )
+    )
+      return;
 
     setParticipants([
       ...participants,
-      email,
+      trimmed,
     ]);
+  };
+
+  const removeEmail = (
+    email
+  ) => {
+    setParticipants(
+      participants.filter(
+        (p) => p !== email
+      )
+    );
   };
 
   return (
@@ -21,22 +41,49 @@ export default function ParticipantSelector({
         placeholder="Enter email and press Enter"
         className="w-full border p-3 rounded"
         onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            addEmail(e.target.value);
-            e.target.value = "";
+          if (
+            e.key === "Enter"
+          ) {
+            addEmail(
+              e.target.value
+            );
+
+            e.target.value =
+              "";
           }
         }}
       />
 
       <div className="mt-4 space-y-2">
-        {participants.map((p, i) => (
-          <div
-            key={i}
-            className="p-2 border rounded"
-          >
-            {p}
-          </div>
-        ))}
+        {participants.map(
+          (email, index) => (
+            <div
+              key={index}
+              className="
+                flex
+                justify-between
+                items-center
+                border
+                p-2
+                rounded
+              "
+            >
+              <span>
+                {email}
+              </span>
+
+              <button
+                onClick={() =>
+                  removeEmail(
+                    email
+                  )
+                }
+              >
+                ✕
+              </button>
+            </div>
+          )
+        )}
       </div>
     </div>
   );

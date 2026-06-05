@@ -1,903 +1,600 @@
-import { useState } from "react"
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { createMeeting } from "@/services/meetingService";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { fetchUsers } from "@/services/UserService";
+import { Calendar, ChevronDown } from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog"
-
-import { Button } from "@/components/ui/button"
-
-import { Input } from "@/components/ui/input"
-
-import {
-  Calendar,
-  ChevronDown,
-} from "lucide-react"
-
-const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "Su"]
+const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "Su"];
 
 export default function AdvanceSchedule({ open, setOpen }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("10:00");
 
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [startDate, setStartDate] = useState("")
-  const [startTime, setStartTime] = useState("09:00")
-  const [endTime, setEndTime] = useState("10:00")
+  const [allDay, setAllDay] = useState(false);
+  const [selectedDays, setSelectedDays] = useState([0, 1, 2, 3, 4]);
 
-  // ✅ NEW CHECKBOX STATES
-  const [allDay, setAllDay] = useState(false)
-  const [neverEnds, setNeverEnds] = useState(true)
+  const [participants, setParticipants] = useState([]);
+  const [search, setSearch] = useState("");
 
-  const [selectedDays, setSelectedDays] = useState([0, 1, 2, 3, 4])
+  const [meetingLink, setMeetingLink] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const attendees = [
-    {
-      name: "John Doe",
-      email: "john@example.com",
-    },
-    {
-      name: "Bob Johnson",
-      email: "bob@example.com",
-    },
-    {
-      name: "Alice Smith",
-      email: "alice@example.com",
-    },
-    {
-      name: "Charlie Brown",
-      email: "charlie@example.com",
-    },
-  ]
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      const users = (await fetchUsers()) || [];
+
+      const formatted = users.map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar_url: user.avatar_url,
+        selected: false,
+      }));
+
+      setParticipants(formatted);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const filteredParticipants = participants.filter((p) => {
+    const q = search.toLowerCase();
+
+    return (
+      p.name?.toLowerCase().includes(q) ||
+      p.email?.toLowerCase().includes(q)
+    );
+  });
 
   const toggleDay = (index) => {
     setSelectedDays((prev) =>
       prev.includes(index)
         ? prev.filter((d) => d !== index)
         : [...prev, index]
-    )
-  }
+    );
+  };
+
+  const toggleParticipant = (id) => {
+    setParticipants((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, selected: !p.selected } : p
+      )
+    );
+  };
+
+  const handleSchedule = async () => {
+    try {
+      if (!title.trim()) {
+        alert("Please enter a meeting title");
+        return;
+      }
+
+      const selectedUsers = participants.filter((p) => p.selected);
+
+      if (selectedUsers.length === 0) {
+        alert("Please select at least one participant");
+        return;
+      }
+
+      setLoading(true);
+
+      // const payload = {
+      //   title,
+      //   description,
+      //   attendees: selectedUsers.map((p) => ({
+      //     email: p.email,
+      //   })),
+      // };
+      const payload = {
+        title,
+        description,
+
+        start_date: startDate,
+        start_time: startTime,
+        end_time: endTime,
+
+        all_day: allDay,
+
+        recurrence_type: "weekly",
+
+        weekdays: selectedDays,
+
+        attendees: selectedUsers.map((p) => ({
+          email: p.email,
+        })),
+      };
+
+      const result = await createMeeting(payload);
+
+      setMeetingLink(result.meeting_link);
+
+      alert("Meeting created successfully!");
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Failed to create meeting");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-
     <Dialog open={open} onOpenChange={setOpen}>
-
       <DialogContent
-  className="
-   
-    w-[981px]
-    max-w-[95vw]
-
-    h-[953.19px]
-    max-h-[90vh]
-
-    rounded-[20px]
-
-    border
-    border-gray-200
-    
-
-    pt-[32px]
-    pr-[32px]
-    pb-[48px]
-    pl-[32px]
-
-    gap-[32px]
-
-    bg-[#f7f7f7]
-
-    opacity-100
-
-    overflow-hidden
-
-    shadow-2xl
-
+        className="
+    w-full
+    h-full
+    pt-8
+    pr-8
+    pb-12
+    pl-8
     flex
     flex-col
-
-    [&>button]:top-6
-    [&>button]:right-6
-    [&>button]:w-[24px]
-    [&>button]:h-[24px]
-    [&>button]:rounded-5px]
-    [&>button]:border
-    [&>button]:border-gray-400
-    [&>button]:text-gray-700
+    gap-8
   "
->
+      >
         {/* HEADER */}
-
-        <div
-  className="
+        <div className="
     w-[915px]
     h-[44px]
-
     flex
     items-center
-    justify-space-between
+    justify-between
+    shrink-0
+  ">
+          <div className="flex items-center gap-4">
+            <div className="
+    w-12
+    h-12
+    rounded-xl
+    bg-[#EEF4FF]
+    flex
+    items-center
+    justify-center
+  ">
+              <Calendar className="w-6 h-6 text-[#032B7A]" />
+            </div>
 
-    opacity-100
-    rotate-0
+            <div>
+              <h1 className="text-[18px] font-semibold text-[#111827]">
+                Schedule Advanced Session
+              </h1>
 
-    mx-auto
-  "
->
-
-          <div
-            className="
-              bg-blue-100
-              p-3
-              rounded-2xl
-              shrink-0
-            "
-          >
-
-            <Calendar
-              className="
-                w-[24px]
-                h-[24px]
-
-                text-[#0b2a7a]
-              "
-            />
-
+              <p className="text-sm text-[#6B7280]">
+                Set up complex recurring meetings
+              </p>
+            </div>
           </div>
-
-          <div
-  className="
-    w-fit
-    h-[44px]
-
-    opacity-100
-    rotate-0
-  "
->
-
-  <h1
-    className="
-      text-[20px]
-      w-[272.7px]
-      h-[28px]
-
-      font-bold
-
-      text-[#0f172a]
-
-      whitespace-nowrap
-
-      leading-[44px]
-      pl-2
-      -mt-2
-    "
-  >
-    Schedule Advanced Session
-  </h1>
-
-  <p
-    className="
-      text-[12px]
-      w-[272.7px]
-      h-[16px]
-
-      text-gray-500
-
-      mt-1
-      pl-3
-      
-    "
-  >
-    Set up complex recurring meetings
-  </p>
-
-</div>
         </div>
 
         {/* BODY */}
-
-        <div
-  className="
+        <div className="
     w-[915px]
-max-w-full
-
-h-[795.19px]
-
-    gap-[24px]
-
-    opacity-100
-    rotate-0
-
-    overflow-y-auto
-
-    mx-auto
-
+    h-[795px]
+    grid
+    grid-cols-2
+    gap-6
+    overflow-hidden
+  ">
+          {/* LEFT SECTION */}
+          <div className="
     flex
     flex-col
-
-    px-5
-    md:px-3
-    pt-0
-    pb-0  
-    
+    overflow-hidden
+  ">
+            {/* Meeting Title */}
+            <div className="space-y-2">
+              <label
+                className="
+    text-[14px]
+    font-semibold
+    uppercase
+    tracking-[2px]
+    text-[#64748B]
   "
->
-          <div
-            className="
-              grid
-
-              grid-cols-1
-              lg:grid-cols-2
-
-              gap-8
-            "
-          >
-
-            {/* LEFT SECTION */}
-
-            <div className="space-y-5">
-
-              {/* TITLE */}
-
-              <div className="space-y-2 ">
-
-                <label
-                  className="
-                    text-[12px]
-                    md:text-sm
-
-                    tracking-[2px]
-
-                    font-semibold
-
-                    text-gray-500
-
-                    uppercase
-                    mb-2
-                    block
-                    
-                    
-                    
-                  "
-                >
-                  Meeting Title
-                </label>
-
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Design Sync"
-                  className="
-                    h-12
-
-                    rounded-xl
-
-                    bg-[#eef2f7]
-
-                    border
-                    border-gray-200
-
-                    text-base
-
-                    px-4
-                    
-                    
-                    
-                  "
-                />
-
-              </div>
-
-              {/* DESCRIPTION */}
-
-              <div className="space-y-2">
-
-                <label
-                  className="
-                    text-xs
-                    md:text-sm
-
-                    tracking-[2px]
-
-                    font-semibold
-
-                    text-gray-500
-
-                    uppercase
-                    mb-2
-                    block
-                  "
-                >
-                  Description
-                </label>
-
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter meeting description"
-                  className="
-                    w-full
-
-                    rounded-xl
-
-                    bg-[#eef2f7]
-
-                    border
-                    border-gray-200
-
-                    px-4
-                    py-3
-
-                    text-base
-
-                    resize-none
-
-                    h-[120px]
-                  "
-                />
-
-              </div>
-
-              {/* START DATE */}
-
-              <div className="space-y-2">
-  <label
-    className="
-      text-xs
-      md:text-sm
-      tracking-[2px]
-      font-semibold
-      text-gray-500
-      uppercase
-      mb-2
-      block
-    "
-  >
-    Start Date
-  </label>
-
-  <div className="relative">
-    <Input
-      type="date"
-      value={startDate}
-      onChange={(e) => setStartDate(e.target.value)}
-      className="
-        h-12
-        rounded-xl
-        bg-[#eef2f7]
-        border
-        border-gray-200
-        text-base
-
-        px-4
-        pr-12
-        [&::-webkit-calendar-picker-indicator]:opacity-0
-        
-      "
-    />
-
-    <Calendar
-      className="
-        absolute
-        right-4
-        top-1/2
-        -translate-y-1/2
-        w-5
-        h-5
-        text-[#0b2a7a]
-        pointer-events-none
-      "
-    />
-  </div>
-</div>
-
-              {/* TIME */}
-
-              <div
-                className="
-                  flex
-
-                  flex-col
-                  sm:flex-row
-
-                  gap-4
-                "
               >
-
-                <div className="flex-1 space-y-2">
-
-                  <label
-                    className="
-                      text-xs
-                      md:text-sm
-
-                      tracking-[2px]
-
-                      font-semibold
-
-                      text-gray-500
-
-                      uppercase
-                      mb-2
-                    block
-                    "
-                  >
-                    Start Time
-                  </label>
-
-                  <Input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    disabled={allDay}
-                    className="
-                      h-12
-
-                      rounded-xl
-
-                      bg-[#eef2f7]
-
-                      border
-                      border-gray-200
-
-                      text-base
-
-                      px-4
-                    "
-                  />
-
-                </div>
-
-                <div className="flex-1 space-y-2">
-
-                  <label
-                    className="
-                      text-xs
-                      md:text-sm
-
-                      tracking-[2px]
-
-                      font-semibold
-
-                      text-gray-500
-
-                      uppercase
-                      mb-2
-                    block
-                    "
-                  >
-                    End Time
-                  </label>
-
-                  <Input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    disabled={allDay}
-                    className="
-                      h-12
-
-                      rounded-xl
-
-                      bg-[#eef2f7]
-
-                      border
-                      border-gray-200
-
-                      text-base
-
-                      px-4
-                    "
-                  />
-
-                </div>
-
-              </div>
-
-              {/* ✅ ALL DAY CHECKBOX */}
-
-              <div className="flex items-center gap-2 -mt-3">
-
-                <input
-                  type="checkbox"
-                  checked={allDay}
-                  onChange={() => setAllDay(!allDay)}
-                  className="
-                   
-                    w-4
-                    h-4
-
-                    accent-[#0b2a7a]
-                  "
-                />
-
-                <label className="text-sm text-gray-700">
-                  All Day
-                </label>
-
-              </div>
-
-              {/* RECURRENCE */}
-
-              <div className="space-y-3">
-
-                <label
-                  className="
-                    text-xs
-                    md:text-sm
-
-                    tracking-[2px]
-
-                    font-semibold
-
-                    text-gray-500
-
-                    uppercase
-                    mb-2
-                    block
-                  "
-                >
-                  Recurrence
-                </label>
-
-                <div
-                  className="
-                    h-12
-
-                    rounded-xl
-
-                    bg-[#eef2f7]
-
-                    border
-                    border-gray-200
-
-                    px-4
-
-                    flex
-                    items-center
-                    justify-between
-
-                    text-base
-                  "
-                >
-
-                  <span>
-                    Every Weekday (Mon-Fri)
-                  </span>
-
-                  <ChevronDown className="w-5 h-5" />
-
-                </div>
-
-              </div>
-
-              {/* DAYS */}
-
-              <div className="space-y-3">
-
-                <label
-                  className="
-                    text-xs
-                    md:text-sm
-
-                    tracking-[2px]
-
-                    font-semibold
-
-                    text-gray-500
-
-                    uppercase
-                    mb-2
-                    block
-                  "
-                >
-                  Repeat On Days
-                </label>
-
-                <div
-                  className="
-                    flex
-                    gap-2
-                    flex-wrap
-                  "
-                >
-
-                  {WEEKDAYS.map((day, i) => (
-
-                    <button
-                      key={i}
-                      onClick={() => toggleDay(i)}
-                      className={`
-                        w-10
-                        h-10
-
-                        rounded-xl
-
-                        text-sm
-                        font-semibold
-
-                        transition-all
-
-                        ${
-                          selectedDays.includes(i)
-                            ? "bg-[#0b2a7a] text-white"
-                            : "bg-white border border-gray-300 text-gray-500"
-                        }
-                      `}
-                    >
-                      {day}
-                    </button>
-
-                  ))}
-
-                </div>
-
-              </div>
-              {/* END RECURRENCE AFTER */}
-<div className="mt-8">
-  <label
-    className="
-      block
-      text-[14px]
-      font-semibold
-      tracking-[2px]
-      uppercase
-      text-[#64748b]
-      mb-2
-    "
-  >
-    End Recurrence After
-  </label>
-
-  <div className="flex items-center gap-3">
-    
-    {/* Number Box */}
-    <input
-      type="number"
-      defaultValue={10}
-      className="
-        w-[96px]
-        h-[42px]
-        rounded-[12px]
-        border
-        border-[#d9e0ea]
-        bg-[#eef2f6]
-        px-4
-        text-[16px]
-        text-[#0f172a]
-        outline-none
-      "
-    />
-
-    {/* Dropdown */}
-    <select
-      className="
-        w-[110px]
-        h-[42px]
-        rounded-[12px]
-        border
-        border-[#d9e0ea]
-        bg-[#eef2f6]
-        px-3
-        text-[16px]
-        text-[#0f172a]
-        outline-none
-        cursor-pointer
-      "
-    >
-      <option>Weeks</option>
-      <option>Days</option>
-      <option>Months</option>
-    </select>
-
-    {/* Text */}
-    <span className="text-[16px] text-[#64748b]">
-      occurrences
-    </span>
-  </div>
-
-  {/* Never Checkbox */}
-  <div className="flex items-center gap-2 mt-3">
-    <input
-      type="checkbox"
-      className="w-5 h-5 rounded border-[#cbd5e1]"
-    />
-
-    <span className="text-[16px] text-[#64748b]">
-      Never
-    </span>
-  </div>
-</div>
-
-              {/* BUTTONS */}
-
-              <div
+                Meeting Title
+              </label>
+
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Design Sync"
                 className="
-                  flex
-
-                  flex-col
-                  sm:flex-row
-
-                  gap-4
-
-                  pt-4
+                  h-[56px]
+                  rounded-[14px]
+                  border-[#E5E7EB]
+                  bg-[#F7F9FC]
                 "
-              >
-
-                <Button
-                  variant="outline"
-                  onClick={() => setOpen(false)}
-                  className="
-                    h-12
-
-                    w-full
-                    sm:w-[150px]
-
-                    rounded-xl
-
-                    text-base
-
-                    bg-white
-                  "
-                >
-                  Cancel
-                </Button>
-
-                <Button
-                  className="
-                    bg-[#0b2a7a]
-                    hover:bg-[#09205e]
-
-                    text-white
-
-                    h-12
-
-                    w-full
-                    sm:w-[190px]
-
-                    rounded-xl
-
-                    text-base
-                  "
-                >
-                  Schedule Now
-                </Button>
-
-              </div>
-
+              />
             </div>
 
-            {/* RIGHT SECTION */}
+            {/* Description */}
+            <div className="space-y-2">
+              <label className="text-[14px] font-semibold uppercase tracking-[2px] text-[#64748B]">
+                Description
+              </label>
 
-            <div className="space-y-5">
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g. Design Sync"
+                className="
+                  w-full
+                  h-[135px]
+                  rounded-[14px]
+                  border
+                  border-[#E5E7EB]
+                  bg-[#F7F9FC]
+                  p-4
+                  resize-none
+                  outline-none
+                "
+              />
+            </div>
 
-              {/* INVITE */}
+            {/* Start Date */}
+            <div className="space-y-2">
+              <label className="text-[14px] font-semibold uppercase tracking-[2px] text-[#64748B]">
+                Start Time
+              </label>
 
-              <div className="space-y-2">
-
-                <label
-                  className="
-                    text-xs
-                    md:text-sm
-
-                    tracking-[2px]
-
-                    font-semibold
-
-                    text-gray-500
-
-                    uppercase
-                    mb-2
-                    block
-                  "
-                >
-                  Add People To Invite
-                </label>
-
+              <div className="relative">
                 <Input
-                  placeholder="Drop mail or search member"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
                   className="
-                    h-12
-
-                    rounded-xl
-
-                    bg-[#eef2f7]
-
-                    border
-                    border-gray-200
-
-                    text-base
-
-                    px-4
+                    h-[56px]
+                    rounded-[14px]
+                    border-[#E5E7EB]
+                    bg-[#F7F9FC]
                   "
                 />
 
+                <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#64748B]" />
+              </div>
+            </div>
+
+            {/* All Day */}
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={allDay}
+                onChange={() => setAllDay(!allDay)}
+                className="w-5 h-5 rounded"
+              />
+
+              <span className="text-[#64748B] text-[15px]">
+                All Day
+              </span>
+            </div>
+
+            {/* Time */}
+            <div className="grid grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="text-[14px] font-semibold uppercase tracking-[2px] text-[#64748B]">
+                  Start Time
+                </label>
+
+                <Input
+                  type="time"
+                  value={startTime}
+                  disabled={allDay}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="
+                    h-[56px]
+                    rounded-[14px]
+                    border-[#E5E7EB]
+                    bg-[#F7F9FC]
+                  "
+                />
               </div>
 
-              {/* ATTENDEE LIST */}
+              <div className="space-y-2">
+                <label className="text-[14px] font-semibold uppercase tracking-[2px] text-[#64748B]">
+                  End Time
+                </label>
 
-              <div
+                <Input
+                  type="time"
+                  value={endTime}
+                  disabled={allDay}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="
+                    h-[56px]
+                    rounded-[14px]
+                    border-[#E5E7EB]
+                    bg-[#F7F9FC]
+                  "
+                />
+              </div>
+            </div>
+
+            {/* Recurrence */}
+            <div className="space-y-2">
+              <label className="text-[14px] font-semibold uppercase tracking-[2px] text-[#64748B]">
+                Recurrence
+              </label>
+
+              <button
                 className="
-                border-b
-              border-gray-100
-                  
-                 
-              
+                  h-[60px]
+                  w-full
+                  rounded-[14px]
+                  border
+                  border-[#E5E7EB]
+                  bg-[#F7F9FC]
+                  px-4
+                  flex
+                  items-center
+                  justify-between
+                "
+              >
+                <span>Every Weekday (Mon-Fri)</span>
+                <ChevronDown size={18} />
+              </button>
+            </div>
 
-                  
+            {/* Repeat Days */}
+            <div className="space-y-4">
+              <label className="text-[14px] font-semibold uppercase tracking-[2px] text-[#64748B]">
+                Repeat On Days
+              </label>
 
-                  overflow-hidden
+              <div className="flex gap-3">
+                {WEEKDAYS.map((day, index) => (
+                  <button
+                    key={index}
+                    onClick={() => toggleDay(index)}
+                    className={`
+                      w-[52px]
+                      h-[52px]
+                      rounded-[14px]
+                      border
+                      font-medium
+                      transition-all
+                      ${selectedDays.includes(index)
+                        ? "bg-[#032B7A] text-white border-[#032B7A]"
+                        : "bg-white border-[#E5E7EB] text-[#64748B]"
+                      }
+                    `}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+            </div>
 
+            {/* End Recurrence */}
+            <div className="space-y-3">
+              <label className="text-[14px] font-semibold uppercase tracking-[2px] text-[#64748B]">
+                End Recurrence After
+              </label>
+
+              <div className="flex items-center gap-4">
+                <Input
+                  value="10"
+                  className="
+                    w-[100px]
+                    h-[48px]
+                    rounded-[14px]
+                    bg-[#F7F9FC]
+                  "
+                />
+
+                <button
+                  className="
+                    h-[48px]
+                    px-5
+                    rounded-[14px]
+                    border
+                    border-[#E5E7EB]
+                    bg-[#F7F9FC]
+                    flex
+                    items-center
+                    gap-2
+                  "
+                >
+                  Weeks
+                  <ChevronDown size={16} />
+                </button>
+
+                <span className="text-[#64748B]">
+                  occurrences
+                </span>
+              </div>
+
+              <label className="flex items-center gap-3">
+                <input type="checkbox" />
+                <span className="text-[#64748B]">Never</span>
+              </label>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-4 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setOpen(false)}
+                className="
+                  w-[208px]
+                  h-[54px]
+                  rounded-[14px]
+                  border-[#DDE3EC]
                   bg-white
                 "
               >
+                Cancel
+              </Button>
 
-                {attendees.map((attendee, index) => (
-
-                  <div
-                    key={index}
-                    className="
-                      flex
-                      items-center
-
-                      gap-3
-
-                      px-4
-                      py-3
-
-                        border-b
-                        border-gray-100
-                    "
-                  >
-
-                    <img
-                      src="https://i.pravatar.cc/100"
-                      alt=""
-                      className="
-                        w-10
-                        h-10
-
-                        rounded-full
-                      "
-                    />
-
-                    <div>
-
-                      <h3
-                        className="
-                          text-base
-
-                          font-semibold
-
-                          text-gray-800
-                        "
-                      >
-                        {attendee.name}
-                      </h3>
-
-                      <p
-                        className="
-                          text-gray-500
-
-                          text-xs
-                        "
-                      >
-                        {attendee.email}
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                ))}
-
-              </div>
-
+              <Button
+                onClick={handleSchedule}
+                disabled={loading}
+                className="
+                  w-[208px]
+                  h-[54px]
+                  rounded-[14px]
+                  bg-[#032B7A]
+                  hover:bg-[#02245F]
+                "
+              >
+                {loading ? "Scheduling..." : "Schedule Now"}
+              </Button>
             </div>
 
+            {meetingLink && (
+              <div className="p-4 rounded-xl bg-green-50 border border-green-200 text-green-700">
+                {meetingLink}
+              </div>
+            )}
           </div>
 
+          {/* RIGHT SECTION */}
+          <div className="flex flex-col h-full">
+            <div className="space-y-2 mb-4">
+              <label className="text-[14px] font-semibold uppercase tracking-[2px] text-[#64748B]">
+                Add People To Invite
+              </label>
+              <p className="text-sm text-[#032B7A] font-semibold">
+                Selected: {
+                  participants.filter(
+                    (p) => p.selected
+                  ).length
+                }
+              </p>
+
+              <Input
+                placeholder="Drop the mail id or search for member"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="
+                  h-[56px]
+                  rounded-[14px]
+                  border-[#E5E7EB]
+                  bg-[#F7F9FC]
+                "
+              />
+            </div>
+
+            <div
+              className="
+                flex-1
+                overflow-y-auto
+                rounded-[14px]
+                border
+                border-[#EEF2F7]
+                bg-white
+              "
+            >
+              {filteredParticipants.map((p) => (
+                <div
+                  key={p.id}
+                  onClick={() => toggleParticipant(p.id)}
+                  className={`
+    flex
+    items-center
+    justify-between
+    px-4
+    py-3
+    cursor-pointer
+    transition-all
+    duration-200
+    border-b
+    border-[#EEF2F7]
+${p.selected
+                      ? `
+      bg-gradient-to-r
+      from-[#032B7A]
+      to-[#0A4BB3]
+      text-white
+      border-l-[6px]
+      border-l-green-500
+      shadow-xl
+      scale-[1.01]
+    `
+                      : `
+      bg-white
+      hover:bg-[#F8FAFC]
+    `
+                    }
+  `}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={
+                          p.avatar_url ||
+                          `https://ui-avatars.com/api/?name=${p.name}`
+                        }
+                        alt={p.name}
+                        className={`
+        w-10
+        h-10
+        rounded-full
+        object-cover
+        border-2
+        ${p.selected
+                            ? "border-green-400"
+                            : "border-gray-200"
+                          }
+      `}
+                      />
+
+                      <div>
+                        <p
+                          className={`font-semibold ${p.selected
+                              ? "text-white"
+                              : "text-[#111827]"
+                            }`}
+                        >
+                          {p.name}
+                        </p>
+
+                        <p
+                          className={`text-sm ${p.selected
+                              ? "text-blue-100"
+                              : "text-[#6B7280]"
+                            }`}
+                        >
+                          {p.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    {p.selected && (
+                      <div
+                        className="
+        w-8
+        h-8
+        rounded-full
+        bg-green-500
+        flex
+        items-center
+        justify-center
+        text-white
+        font-bold
+        shadow-lg
+      "
+                      >
+                        ✓
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+              ))}
+          </div>
         </div>
-
-      </DialogContent>
-
-    </Dialog>
-  )
+      </div>
+    </DialogContent>
+    </Dialog >
+  );
 }

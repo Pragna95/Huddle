@@ -22,3 +22,4 @@ media/
 
 # Docker
 *.log
+.env.local

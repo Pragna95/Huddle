@@ -1,5 +1,9 @@
 from django.urls import path
-
+from .views import (
+    create_meeting,
+    join_meeting,
+    meeting_participants
+)
 #create_meeting → creates meeting
 #join_meeting → verifies and joins meeting
 from .views import (
@@ -26,4 +30,10 @@ urlpatterns = [
         join_meeting,
         name='join_meeting'
     ),
+
+    path(
+    "participants/<str:meeting_code>/",
+     meeting_participants,
+     name="meeting_participants"
+),
 ]

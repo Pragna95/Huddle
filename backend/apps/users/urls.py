@@ -1,6 +1,10 @@
 from django.urls import path
-from .views import create_meeting
+from .views import get_users
 
 urlpatterns = [
-    path("create-meeting/", create_meeting),
+    path(
+        "list/",
+        get_users,
+        name="get_users"
+    ),
 ]
