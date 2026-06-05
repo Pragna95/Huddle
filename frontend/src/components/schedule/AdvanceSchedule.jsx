@@ -32,6 +32,8 @@ export default function AdvanceSchedule({ open, setOpen }) {
     try {
       const users = (await fetchUsers()) || [];
 
+      console.log("Fetched Users:", users);
+
       const formatted = users.map((user) => ({
         id: user.id,
         name: user.name,
@@ -40,12 +42,13 @@ export default function AdvanceSchedule({ open, setOpen }) {
         selected: false,
       }));
 
+      console.log("Formatted Users:", formatted);
+
       setParticipants(formatted);
     } catch (error) {
       console.error(error);
     }
   };
-
   const filteredParticipants = participants.filter((p) => {
     const q = search.toLowerCase();
 
@@ -112,7 +115,7 @@ export default function AdvanceSchedule({ open, setOpen }) {
           email: p.email,
         })),
       };
-
+      console.log(payload);
       const result = await createMeeting(payload);
 
       setMeetingLink(result.meeting_link);
@@ -551,8 +554,8 @@ ${p.selected
                       <div>
                         <p
                           className={`font-semibold ${p.selected
-                              ? "text-white"
-                              : "text-[#111827]"
+                            ? "text-white"
+                            : "text-[#111827]"
                             }`}
                         >
                           {p.name}
@@ -560,8 +563,8 @@ ${p.selected
 
                         <p
                           className={`text-sm ${p.selected
-                              ? "text-blue-100"
-                              : "text-[#6B7280]"
+                            ? "text-blue-100"
+                            : "text-[#6B7280]"
                             }`}
                         >
                           {p.email}
@@ -589,12 +592,12 @@ ${p.selected
                     )}
                   </div>
                 </div>
-                
+
               ))}
+            </div>
           </div>
         </div>
-      </div>
-    </DialogContent>
+      </DialogContent>
     </Dialog >
   );
 }

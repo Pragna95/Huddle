@@ -219,11 +219,14 @@ Title:
 Description:
 {description}
 
-Start:
-{scheduled_start}
+Date:
+{scheduled_start.strftime("%d %B %Y") if scheduled_start else "Not Set"}
 
-End:
-{scheduled_end}
+Start Time:
+{scheduled_start.strftime("%I:%M %p") if scheduled_start else "Not Set"}
+
+End Time:
+{scheduled_end.strftime("%I:%M %p") if scheduled_end else "Not Set"}
 
 Join Meeting:
 {meeting_link}
