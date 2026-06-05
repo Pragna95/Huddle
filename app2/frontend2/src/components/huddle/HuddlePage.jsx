@@ -1,0 +1,338 @@
+import React, { useState } from "react";
+import ChatList from "../chat/ChatList";
+import SessionCard from "./SessionCard";
+import CreateHuddle from "./CreateHuddle";
+import MiniCalendar from "../calender/MiniCalender";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { Search } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
+
+const TABS = ["Ongoing", "Scheduled", "Completed"];
+
+const sessions = [
+  {
+    id: 1,
+    project: "PROJECT STARLIGHT",
+    title: "Architecture Review",
+    description: "Review system design and dependencies.",
+    time: "8:00 AM – 10:00 AM",
+    participants: 4,
+    status: "Ongoing",
+  },
+  {
+    id: 2,
+    project: "PROJECT STARLIGHT",
+    title: "Design Sync",
+    description: "Discuss UI/UX updates for next sprint.",
+    time: "11:00 AM – 12:00 PM",
+    participants: 6,
+    status: "Scheduled",
+    date: "2026-05-18",
+  },
+  {
+    id: 3,
+    project: "PROJECT STARLIGHT",
+    title: "Retrospective",
+    description: "Review sprint outcomes and lessons learned.",
+    time: "Yesterday 4:00 PM – 5:00 PM",
+    participants: 5,
+    status: "Completed",
+    date: "2026-05-16",
+  },
+];
+import { useNavigate } from "react-router-dom";
+
+
+
+
+export default function HuddlePage() {
+  const [sessionsList, setSessionsList] = useState(sessions);
+  const [activeTab, setActiveTab] = useState("Ongoing");
+  const [meetingId, setMeetingId] = useState("");
+  const [pendingSession, setPendingSession] = useState(null);
+  const [statusDialog, setStatusDialog] = useState({
+    isOpen: false,
+    type: "success",
+    message: ""
+  });
+
+  const handleJoinSession = () => {
+    if (!meetingId.trim()) {
+      alert("Please enter a valid Meeting ID.");
+      return;
+    }
+    console.log("Joining meeting:", meetingId);
+  };
+
+  const handleAddSession = (meetingDetails) => {
+    const newSession = {
+      id: Date.now(),
+      project: "PROJECT STARLIGHT",
+      title: meetingDetails.title,
+      description:
+        meetingDetails.description || "No description provided.",
+      time: `${meetingDetails.startTime} – ${meetingDetails.endTime}`,
+      participants: meetingDetails.participants || 4,
+      status: "Scheduled",
+      date: meetingDetails.startDate,
+    };
+
+    setPendingSession(newSession);
+
+    setStatusDialog({
+      isOpen: true,
+      type: "success",
+      message: "Meeting created successfully.",
+    });
+  };
+  const handleCancelSession = () => {
+    if (!pendingSession) return;
+
+    setSessionsList((prev) => prev.filter((s) => s.id !== pendingSession.id));
+    setPendingSession(null);
+
+    setStatusDialog({
+      isOpen: true,
+      type: "cancelled",
+      message: "Your meeting has been cancelled."
+    });
+  };
+
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const filteredSessions = sessionsList.filter((s) => s.status === activeTab);
+
+  const location = useLocation();
+
+  const [showThankYouDialog, setShowThankYouDialog] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.showThankYouDialog) {
+      setShowThankYouDialog(true);
+    }
+  }, [location.state]);
+  const navigate = useNavigate();
+
+
+  return (
+    <div className="flex flex-1 overflow-hidden">
+      {/* Left Sidebar */}
+      <ChatList />
+
+      {/* Middle Section */}
+      <main className="flex flex-col flex-grow bg-white p-6 overflow-y-auto">
+        {/* Header */}
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">Huddle</h1>
+        <p className="text-gray-500 text-sm mb-5">
+          Manage your workspace and upcoming sessions.
+        </p>
+
+        {/* Meeting ID input */}
+        <div className="flex gap-3 mb-6">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              value={meetingId}
+              onChange={(e) => setMeetingId(e.target.value)}
+              placeholder="Enter Meeting ID (e.g. 123-456-7)"
+              className="pl-9 border-gray-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 rounded-lg h-10 text-sm outline-none transition-all duration-200"
+            />
+          </div>
+          <Button
+            onClick={handleJoinSession}
+            className="bg-[#1e2b72] hover:bg-[#152060] hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 text-white rounded-lg px-5 font-medium transition-all duration-200 cursor-pointer"
+          >
+            Join Session
+          </Button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex items-center justify-between mb-4 border-b border-gray-100">
+          <div className="flex gap-6">
+            {TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`text-sm font-semibold pb-2 relative transition-all duration-300 cursor-pointer ${activeTab === tab
+                  ? "text-[#1e2b72] scale-105"
+                  : "text-gray-500 hover:text-[#1e2b72]"
+                  }`}
+              >
+                {tab}
+                {activeTab === tab && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1e2b72] rounded-full animate-fade-in" />
+                )}
+              </button>
+            ))}
+          </div>
+          <button className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 cursor-pointer transition-colors">
+            Filter ⚙
+          </button>
+        </div>
+
+        {/* Session Cards */}
+        <div className="flex flex-col gap-4 animate-fade-in">
+          {filteredSessions.length > 0 ? (
+            filteredSessions.map((s) => <SessionCard key={s.id} session={s} />)
+          ) : (
+            <p className="text-gray-400 text-sm italic">No sessions found.</p>
+          )}
+        </div>
+      </main>
+
+      {/* Right Sidebar */}
+      <aside className="w-full max-w-[480px] md:w-[480px] bg-gray-50 border-l border-gray-100 p-5 flex flex-col gap-5 overflow-y-auto flex-shrink-0 transition-all duration-300">
+        <CreateHuddle onAddSession={handleAddSession} onCancelSession={handleCancelSession} />
+        <MiniCalendar />
+      </aside>
+
+      {/* Reusable Status Dialog (Success / Cancelled) */}
+      <Dialog open={statusDialog.isOpen} onOpenChange={(val) => setStatusDialog(prev => ({ ...prev, isOpen: val }))}>
+        <DialogContent className="w-[450px] p-6 bg-white border border-gray-100 rounded-2xl shadow-xl animate-scale-in max-w-[90vw]">
+          <div className="flex flex-col items-center text-center p-4">
+            {showCancelConfirm ? (
+              <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mb-4 text-amber-500 shadow-sm border border-amber-100">
+                <svg className="w-8 h-8 animate-bounce-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+            ) : statusDialog.type === "success" ? (
+              <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mb-4 text-green-500 shadow-sm border border-green-100">
+                <svg className="w-8 h-8 animate-bounce-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4 text-red-500 shadow-sm border border-red-100">
+                <svg className="w-8 h-8 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            )}
+
+            <h2 className="text-xl font-extrabold text-gray-900 mb-2">
+              {statusDialog.type === "success" ? "Meeting Created!" : "Meeting Cancelled"}
+            </h2>
+
+            <p className="text-sm text-gray-500 mb-6 font-medium">
+              {showCancelConfirm ? "Are you sure you want to cancel this meeting?" : statusDialog.message}
+            </p>
+
+            <div className="w-full">
+              {showCancelConfirm ? (
+                <div className="flex gap-3 w-full">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowCancelConfirm(false)}
+                  >
+                    No, Keep Meeting
+                  </Button>
+
+                  <Button
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                    onClick={() => {
+                      setPendingSession(null);
+                      setShowCancelConfirm(false);
+
+                      setStatusDialog({
+                        isOpen: true,
+                        type: "cancelled",
+                        message: "Your meeting has been cancelled.",
+                      });
+                    }}
+                  >
+                    Yes, Cancel Meeting
+                  </Button>
+                </div>
+              ) : statusDialog.type === "success" ? (
+                <div className="flex gap-3 w-full">
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-red-300 text-red-600 hover:bg-red-50 py-3 rounded-xl font-bold"
+                    onClick={() => setShowCancelConfirm(true)}
+                  >
+                    Cancel Meeting
+                  </Button>
+
+                  <Button
+                    className="flex-1 bg-[#1e2b72] hover:bg-[#152060] text-white py-3 rounded-xl font-bold shadow-md"
+                    onClick={() => {
+                      if (pendingSession) {
+                        setSessionsList((prev) => [...prev, pendingSession]);
+                        setPendingSession(null);
+                      }
+
+                      setStatusDialog((prev) => ({
+                        ...prev,
+                        isOpen: false,
+                      }));
+
+                      setActiveTab("Scheduled");
+                    }}
+                  >
+                    Continue Meeting
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  className="w-full bg-gray-900 hover:bg-black text-white py-3 rounded-xl font-bold shadow-md transition-all duration-200 cursor-pointer active:scale-98"
+                  onClick={() =>
+                    setStatusDialog((prev) => ({
+                      ...prev,
+                      isOpen: false,
+                    }))
+                  }
+                >
+                  Close
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showThankYouDialog} onOpenChange={setShowThankYouDialog}>
+        <DialogContent className="w-[500px] p-0 bg-white border border-gray-200 rounded-xl shadow-md">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              Thank you for joining
+            </h2>
+
+            <p className="text-sm text-gray-500 mb-6">
+              Your huddle has ended successfully. Would you like to join another session?
+            </p>
+
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                className="border-[#002266] text-[#002266] hover:bg-[#002266] hover:text-white cursor-pointer"
+                onClick={() => setShowThankYouDialog(false)}
+              >
+                Leave
+              </Button>
+
+              <Button
+                className="bg-[#1E2B72] hover:bg-[#17215A] text-white cursor-pointer"
+                onClick={() => {
+                  setShowThankYouDialog(false);
+                  navigate("/meeting");
+                }}
+              >
+                Join Again
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

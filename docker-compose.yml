@@ -1,90 +1,133 @@
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: docker/django/Dockerfile
-
-    container_name: gadigital-backend
-
-    env_file:
-      - ./.env
-
-    ports:
-      - "8000:8000"
-
-    depends_on:
-      - postgres-db
-      - redis-cache
-
-    command: gunicorn backend.wsgi:application --bind 0.0.0.0:8000
-
-
-  meeting-service:
-    build:
-      context: ./meeting_service
-
-    container_name: meeting-service
-
-    env_file:
-      - ./.env
-
-    restart: always
-
-    ports:
-      - "9000:9000"
-
-    depends_on:
-      - postgres-db
-
-    command: >
-      sh -c "
-      sleep 10 &&
-      python manage.py migrate &&
-      gunicorn config.wsgi:application --bind 0.0.0.0:9000
-      "
-
-
+  # ----------------------------------------------------
+  # DATABASE (POSTGRESQL)
+  # ----------------------------------------------------
   postgres-db:
     image: postgres:16-alpine
-
     container_name: postgres-db
-
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: backend
-
     ports:
       - "5432:5432"
 
-
+  # ----------------------------------------------------
+  # CACHE (REDIS)
+  # ----------------------------------------------------
   redis-cache:
     image: redis:7-alpine
-
     container_name: redis-cache
-
     ports:
       - "6379:6379"
 
-
-  auth-service:
+  # ----------------------------------------------------
+  # INTERNAL MEETING SERVICE
+  # ----------------------------------------------------
+  meeting-service:
     build:
-      context: ./Auth_Services
-      dockerfile: Dockerfile
-
-    container_name: auth-service
-
+      context: ./meeting_service
+    container_name: meeting-service
     env_file:
-      - ./.env
-
+      - .env
+    restart: always
     ports:
-      - "8002:8002"
-
+      - "9000:9000"
     depends_on:
       - postgres-db
+    command: >
+      sh -c "
+      sleep 5 &&
+      python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:9000
+      "
 
+  # ----------------------------------------------------
+  # SHARED MICROSERVICE (BUSINESS LOGIC & DATA)
+  # ----------------------------------------------------
+  microservice:
+    build:
+      context: ./backend
+      dockerfile: docker/django/Dockerfile
+    container_name: shared-microservice
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres-db
+      - redis-cache
+    command: >
+      sh -c "
+      sleep 10 &&
+      python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:8000
+      "
+
+  # ----------------------------------------------------
+  # BACKEND1 (APP1 AUTHENTICATION SERVICE)
+  # ----------------------------------------------------
+  backend1:
+    build:
+      context: ./Backend1
+      dockerfile: Dockerfile
+    container_name: auth-backend1
+    env_file:
+      - .env
+    ports:
+      - "8002:8002"
+    depends_on:
+      - postgres-db
     command: >
       sh -c "
       python manage.py migrate &&
       python manage.py runserver 0.0.0.0:8002
       "
+
+  # ----------------------------------------------------
+  # BACKEND2 (APP2 AUTHENTICATION SERVICE)
+  # ----------------------------------------------------
+  backend2:
+    build:
+      context: ./Backend2
+      dockerfile: Dockerfile
+    container_name: auth-backend2
+    env_file:
+      - .env
+    ports:
+      - "8003:8003"
+    depends_on:
+      - postgres-db
+    command: >
+      sh -c "
+      python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:8003
+      "
+
+  # ----------------------------------------------------
+  # APP1 (REACT HUDDLE APPLICATION 1)
+  # ----------------------------------------------------
+  app1:
+    build:
+      context: ./App1
+      dockerfile: Dockerfile
+    container_name: react-app1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend1
+      - microservice
+
+  # ----------------------------------------------------
+  # APP2 (REACT HUDDLE APPLICATION 2)
+  # ----------------------------------------------------
+  app2:
+    build:
+      context: ./App2
+      dockerfile: Dockerfile
+    container_name: react-app2
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend2
+      - microservice

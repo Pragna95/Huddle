@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Company Login</title>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body{
+            background: linear-gradient(135deg,#4f46e5,#7c3aed);
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .login-container{
+            background:white;
+            width:400px;
+            padding:35px;
+            border-radius:20px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h2{
+            text-align:center;
+            margin-bottom:25px;
+            color:#222;
+        }
+
+        .input-group{
+            margin-bottom:20px;
+        }
+
+        label{
+            display:block;
+            margin-bottom:8px;
+            font-weight:bold;
+            color:#444;
+        }
+
+        input{
+            width:100%;
+            padding:14px;
+            border:1px solid #ddd;
+            border-radius:12px;
+            outline:none;
+            font-size:15px;
+        }
+
+        input:focus{
+            border-color:#6d28d9;
+        }
+
+        button{
+            width:100%;
+            padding:14px;
+            border:none;
+            background:#6d28d9;
+            color:white;
+            border-radius:12px;
+            cursor:pointer;
+            font-size:16px;
+            font-weight:bold;
+            transition:0.3s;
+        }
+
+        button:hover{
+            background:#5b21b6;
+        }
+
+        /* Modal */
+
+        .modal{
+            display:none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:rgba(0,0,0,0.5);
+            justify-content:center;
+            align-items:center;
+        }
+
+        .modal-content{
+            background:white;
+            padding:30px;
+            width:350px;
+            border-radius:20px;
+            text-align:center;
+            animation: popup 0.3s ease;
+        }
+
+        @keyframes popup{
+            from{
+                transform:scale(0.8);
+                opacity:0;
+            }
+            to{
+                transform:scale(1);
+                opacity:1;
+            }
+        }
+
+        .api-key{
+            background:#f3f4f6;
+            padding:12px;
+            border-radius:10px;
+            margin-top:15px;
+            word-break:break-word;
+            font-weight:bold;
+            color:#4f46e5;
+        }
+
+        .close-btn{
+            margin-top:20px;
+            background:red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Company Login</h2>
+
+    <form id="loginForm">
+        {% csrf_token %}
+
+        <div class="input-group">
+            <label>Company Name</label>
+            <input
+                type="text"
+                id="company_name"
+                placeholder="Enter company name"
+                required
+            >
+        </div>
+
+        <div class="input-group">
+            <label>Email</label>
+            <input
+                type="email"
+                id="email"
+                placeholder="Enter email"
+                required
+            >
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input
+                type="password"
+                id="password"
+                placeholder="Enter password"
+                required
+            >
+        </div>
+
+        <button type="submit">
+            Login
+        </button>
+    </form>
+</div>
+
+<!-- Modal Popup -->
+
+<div class="modal" id="responseModal">
+    <div class="modal-content">
+
+        <h2 id="responseMessage">
+            Response
+        </h2>
+
+        <div class="api-key" id="apiKeyBox">
+            API KEY
+        </div>
+
+        <button
+            class="close-btn"
+            onclick="closeModal()"
+        >
+            Close
+        </button>
+
+    </div>
+</div>
+
+<script>
+
+const form = document.getElementById("loginForm");
+
+form.addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    const company_name =
+        document.getElementById("company_name").value;
+
+    const email =
+        document.getElementById("email").value;
+
+    const password =
+        document.getElementById("password").value;
+
+    try{
+
+        const response = await fetch("/company/login/",{
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+
+            body:JSON.stringify({
+                company_name,
+                email,
+                password
+            })
+        });
+
+        const data = await response.json();
+
+        // Show modal
+        document.getElementById("responseModal")
+            .style.display = "flex";
+
+        if (response.ok) {
+            document.getElementById("responseMessage")
+                .innerText = "Login Successful";
+            document.getElementById("apiKeyBox")
+                .innerText = "API KEY: " + (data.api_key || "Not Found");
+        } else {
+            document.getElementById("responseMessage")
+                .innerText = "Login Failed";
+            document.getElementById("apiKeyBox")
+                .innerText = data.message || "Invalid email or password.";
+        }
+
+    }catch(error){
+        document.getElementById("responseModal")
+            .style.display = "flex";
+
+        document.getElementById("responseMessage")
+            .innerText = "Something went wrong";
+
+        document.getElementById("apiKeyBox")
+            .innerText = error.message;
+    }
+});
+
+function closeModal(){
+    document.getElementById("responseModal")
+        .style.display = "none";
+}
+
+function getCookie(name){
+    let cookieValue = null;
+
+    if(document.cookie &&
+       document.cookie !== ''){
+
+        const cookies =
+            document.cookie.split(';');
+
+        for(let i=0;
+            i<cookies.length;
+            i++){
+
+            const cookie =
+                cookies[i].trim();
+
+            if(cookie.substring(
+                0,
+                name.length + 1
+            ) === (name + '=')){
+
+                cookieValue =
+                    decodeURIComponent(
+                        cookie.substring(
+                            name.length + 1
+                        )
+                    );
+
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+
+</script>
+
+</body>
+</html>

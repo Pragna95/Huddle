@@ -1,0 +1,1 @@
+# Redundant user views cleared. All endpoints reside in apps/meetings/views.py.
