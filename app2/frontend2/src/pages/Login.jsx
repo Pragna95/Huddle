@@ -24,11 +24,15 @@ function Login() {
 
       const data = await response.json();
 
-      if (response.ok && data.api_key) {
-        localStorage.setItem("api_key", data.api_key);
-        localStorage.setItem("admin_api_key", data.api_key); // support both
-        localStorage.setItem("company", data.company || "Huddle");
-        navigate("/dash");
+      if (response.ok && data.token) {
+        localStorage.removeItem("api_key");
+        localStorage.removeItem("user_id");
+        localStorage.removeItem("email");
+        localStorage.removeItem("username");
+        localStorage.removeItem("name");
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("company", data.company.name || "Huddle");
+        navigate("/company/dashboard");
       } else {
         alert(data.message || "Invalid Credentials");
       }

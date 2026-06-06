@@ -17,6 +17,7 @@ axios.interceptors.request.use(
 
       if (isMicroservice) {
         if (apiKey) {
+          config.headers["x-api-key"] = apiKey;
           config.headers["X-API-Key"] = apiKey;
         }
         // Send user_id in the body for POST/PUT requests to microservices
@@ -29,6 +30,7 @@ axios.interceptors.request.use(
         }
       } else if (isAuthBackend) {
         if (apiKey) {
+          config.headers["x-api-key"] = apiKey;
           config.headers["X-API-Key"] = apiKey;
         }
         if (userId) {

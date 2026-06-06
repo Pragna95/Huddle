@@ -1,5 +1,6 @@
 import { useState } from "react"
 import axios from "axios"
+import toast from "react-hot-toast"
 
 import {
   Dialog,
@@ -107,62 +108,54 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
 
     try {
       setLoading(true);
-      const dataURL = import.meta.env.VITE_DATA_URL || "http://localhost:8000";
+      const token = localStorage.getItem("token");
+      const apiKey = localStorage.getItem("api_key");
+      const participant_emails = attendeesList.map(a => a.email);
+      const datetime = `${startDate}T${startTime}`;
 
-      const response = await axios.post(
-        `${dataURL}/schedule-meeting/`,
-        {
+      const response = await fetch('/api/schedule-meeting', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+          'x-api-key': apiKey || ''
+        },
+        body: JSON.stringify({
+          title,
+          datetime,
+          participant_emails
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        alert(`Invites sent! Link: ${data.link}`);
+        toast.success(`Invites sent! Link: ${data.link}`);
+
+        onAddSession({
           title,
           description,
           startDate,
           startTime,
           endTime,
-          allDay,
-          neverEnds,
-          selectedDays,
-          attendees: attendeesList,
-        }
-      ).catch(err => {
-        console.warn("Backend not running, proceeding with local mock schedule.");
-        return {
-          data: {
-            success: true,
-            meeting_link: `https://meet.gadigital.com/${Math.random().toString(36).substring(2, 10)}`
-          }
-        };
-      });
+          participants: attendeesList.length,
+        });
 
-      const data = response.data;
-      console.log(data);
-
-      onAddSession({
-        title,
-        description,
-        startDate,
-        startTime,
-        endTime,
-        participants: attendeesList.length,
-      });
-
-      setOpen(false);
-      // Reset form
-      setTitle("");
-      setDescription("");
-      setStartDate("");
-      setStartTime("09:00");
-      setEndTime("10:00");
+        setOpen(false);
+        // Reset form
+        setTitle("");
+        setDescription("");
+        setStartDate("");
+        setStartTime("09:00");
+        setEndTime("10:00");
+      } else {
+        alert(data.error || "Failed to schedule meeting.");
+        toast.error(data.error || "Failed to schedule meeting.");
+      }
     } catch (error) {
       console.error("Scheduling failed: ", error);
-      // Fallback local scheduling
-      onAddSession({
-        title,
-        description,
-        startDate,
-        startTime,
-        endTime,
-        participants: attendeesList.length,
-      });
-      setOpen(false);
+      toast.error("Scheduling failed. Network error.");
     } finally {
       setLoading(false);
     }

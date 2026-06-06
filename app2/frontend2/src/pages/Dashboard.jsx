@@ -1,57 +1,38 @@
+import React from "react";
+import ApiKeyManager from "../components/ApiKeyManager";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+
 function Dashboard() {
-  const apiKey = localStorage.getItem("api_key") || "No API Key Found";
-  const company = localStorage.getItem("company") || "Huddle";
+  const company = localStorage.getItem("company") || "Company";
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("company");
+    navigate("/company/login");
+  };
 
   return (
-    <div
-      style={{
-        padding: "40px",
-        fontFamily: "Arial, sans-serif",
-        maxWidth: "600px",
-        margin: "50px auto",
-        background: "white",
-        borderRadius: "15px",
-        boxShadow: "0 4px 15px rgba(0,0,0,0.1)"
-      }}
-    >
-      <h1 style={{ color: "#4f46e5", marginBottom: "20px" }}>Host Dashboard</h1>
-      <h2>Welcome, {company}!</h2>
+    <div className="min-h-screen bg-slate-50 py-10 px-4">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+          <div className="text-left">
+            <h1 className="text-2xl font-bold text-slate-900">Host Dashboard</h1>
+            <p className="text-sm text-slate-500">
+              Welcome back, <span className="font-semibold text-indigo-600">{company}</span>
+            </p>
+          </div>
+          <Button 
+            variant="outline"
+            onClick={handleLogout}
+            className="border-slate-200 text-slate-700 hover:bg-slate-50 px-4 h-10 rounded-lg"
+          >
+            Sign Out
+          </Button>
+        </div>
 
-      <div
-        style={{
-          marginTop: "30px",
-          padding: "20px",
-          background: "#f3f4f6",
-          borderRadius: "10px",
-          border: "1px solid #e5e7eb"
-        }}
-      >
-        <h3 style={{ color: "#374151", marginBottom: "10px" }}>Your Host API Key</h3>
-        <p style={{
-          fontFamily: "monospace",
-          background: "#ffffff",
-          padding: "12px",
-          borderRadius: "8px",
-          border: "1px solid #e5e7eb",
-          wordBreak: "break-all",
-          color: "#4f46e5",
-          fontWeight: "bold"
-        }}>{apiKey}</p>
-      </div>
-
-      <div
-        style={{
-          marginTop: "30px",
-          padding: "20px",
-          background: "#ecfdf5",
-          borderRadius: "10px",
-          border: "1px solid #a7f3d0"
-        }}
-      >
-        <h4 style={{ color: "#065f46", marginBottom: "5px" }}>Application Access Granted</h4>
-        <p style={{ color: "#047857", fontSize: "14px" }}>
-          You have successfully logged in statelessly. Use the API Key above in your request headers (`X-API-Key`) to schedule and manage meetings.
-        </p>
+        <ApiKeyManager />
       </div>
     </div>
   );

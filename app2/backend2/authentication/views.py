@@ -11,8 +11,8 @@ from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from authentication.models import ApiKey
-from authentication.serializers import (
+from .models import ApiKey
+from .serializers import (
     UserSerializer,
     RegisterSerializer,
     PasswordResetSerializer,

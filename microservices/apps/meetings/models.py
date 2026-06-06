@@ -2,11 +2,13 @@ import uuid
 from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
 
-class Host(models.Model):
+class Company(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField(unique=True)
-    company_name = models.CharField(max_length=255)
-    password = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)  # Host login email
+    password = models.CharField(max_length=128)  # Hashed
+    api_key = models.CharField(max_length=40, unique=True, null=True, blank=True)
+    api_key_created_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     @property
@@ -31,25 +33,16 @@ class Host(models.Model):
         return self.password == raw_password
 
     def __str__(self):
-        return f"{self.company_name} ({self.email})"
-
-
-class ApiKey(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    key = models.CharField(max_length=255, unique=True)
-    app_name = models.CharField(max_length=100)
-    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="api_keys")
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.app_name} - {self.key}"
+        return f"{self.name} ({self.email})"
 
 
 class Meeting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
-    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="meetings")
+    datetime = models.CharField(max_length=255, null=True, blank=True)
+    meeting_id = models.CharField(max_length=50, null=True, blank=True)
+    link = models.CharField(max_length=255, null=True, blank=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="meetings")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -65,3 +58,4 @@ class Participant(models.Model):
 
     def __str__(self):
         return f"{self.user_email} in {self.meeting.title}"
+

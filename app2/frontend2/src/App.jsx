@@ -1,6 +1,7 @@
-import { useState } from "react";
-import axios from "axios";
-import { BrowserRouter as Router, Routes, Route, Navigate, } from "react-router-dom";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+
 import "./Admin.css";
 import Meeting from "./pages/Meeting";
 import Sidebar from "@/components/layout/Sidebar";
@@ -14,7 +15,6 @@ import LoginAuth from "./pages/LoginAuth";
 import SignupAuth from "./pages/SignupAuth";
 import DashboardAuth from "./pages/DashboardAuth";
 
-// Placeholders to prevent build crashes
 function Profile() {
   return <div className="p-8">Profile Page (Placeholder)</div>;
 }
@@ -28,7 +28,6 @@ function NotFound() {
 }
 
 function Messaging() {
-
   return (
     <div className="flex h-screen bg-[#F8F9FB] overflow-hidden">
       <Sidebar />
@@ -38,184 +37,52 @@ function Messaging() {
           <ChatList />
           <ChatWindow />
         </main>
-        
       </div>
     </div>
   );
 }
 
 function ProtectedRoute({ children }) {
+  const token = localStorage.getItem("token");
   const apiKey = localStorage.getItem("api_key");
-
-  return apiKey ? children : <Navigate to="/login" />;
+  return (token || apiKey) ? children : <Navigate to="/company/login" replace />;
 }
 
 function DashboardUI() {
-  
-
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       <Sidebar />
-
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopBar />
-
         <div className="flex-1 overflow-hidden">
-  <HuddlePage />
-</div>
-       </div>
+          <HuddlePage />
+        </div>
+      </div>
     </div>
   );
 }
 
 function App() {
-
-  // LOGIN STATES
-
-  {/*const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [loggedIn, setLoggedIn] = useState(false);
-
-  const [errorMessage, setErrorMessage] = useState("");*/}
-
-  const [adminApiKey, setAdminApiKey] = useState("");
-  const [createdHost, setCreatedHost] = useState(null);
-
-  const [hostName, setHostName] = useState("");
-  const [hostEmail, setHostEmail] = useState("");
-  const [companyName, setCompanyName] = useState("");
-
-  const [hostApiKey, setHostApiKey] = useState("");
-
-  // LOGIN FUNCTION
-
-  const handleLogin = async () => {
-    setErrorMessage("");
-    try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/auth/login/",
-        {
-          email,
-          password
-        }
-      );
-      if (response.data.success) {
-        setLoggedIn(true);
-        localStorage.setItem("api_key", response.data.api_key);
-        setAdminApiKey(response.data.api_key);
-      }
-    } catch (error) {
-      setErrorMessage("Invalid Email or Password");
-    }
-  };
-
-  // CREATE HOST
-
-  const createHost = async () => {
-    try {
-      const apiKey = localStorage.getItem("api_key");
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/hosts/create/",
-        {
-          name: hostName,
-          email: hostEmail,
-          company_name: companyName
-        },
-        {
-          headers: {
-            "X-API-Key": apiKey
-          }
-        }
-      );
-      alert(`Host created successfully
-  Role :${response.data.role}
-  API Key: ${response.data.api_key}
-`);
-    } catch (error) {
-      alert("Failed To Create Host");
-    }
-  };
-
   return (
-    <Router>
-      <Routes>
-        {/* NEW MEETING INTERFACE */}
-        <Route path="/meeting" element={<Meeting />} />
-        <Route path="/" element={<Navigate to="/login" replace />} /> 
-        {/* DEFAULT LOGIN/DASHBOARD LOGIC */}
-        {/*<Route path="/" element={
-          !loggedIn ? (
-            <div className="main">
-              <div className="card">
-                <h1 className="logo">Admin Login</h1>
-                <input
-                  type="email"
-                  placeholder="Enter Email"
-                  className="input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                <input
-                  type="password"
-                  placeholder="Enter Password"
-                  className="input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                {errorMessage && <p className="error-text">{errorMessage}</p>}
-                <button className="login-btn" onClick={handleLogin}>Login</button>
-              </div>
-            </div>
-          ) : (
-            <div className="dashboard">
-              <div className="content">
-                <div className="topbar">
-                  <h1>Admin Dashboard</h1>
-                </div>
-                <div className="cards-container">
-                  <div className="dashboard-card">
-                    <h3>Create Host</h3>
-                    <input
-                      type="text"
-                      placeholder="Host Name"
-                      className="input"
-                      value={hostName}
-                      onChange={(e) => setHostName(e.target.value)}
-                    />
-                    <input
-                      type="email"
-                      placeholder="Host Email"
-                      className="input"
-                      value={hostEmail}
-                      onChange={(e) => setHostEmail(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Company Name"
-                      className="input"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                    />
-                    <button className="login-btn" onClick={createHost}>Create Host</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )
-        } /> */}
-        <Route path="/dashboard-ui" element={<ProtectedRoute ><DashboardUI /></ProtectedRoute>} />
-        <Route path = "/message" element={<Messaging />} /> 
-        <Route path = "/dash" element={<Dashboard />} />  
-        <Route path="/login" element={<LoginAuth />} />
-        <Route path="/signup" element={<SignupAuth />} />
-        <Route path="/dashboard" element={<DashboardAuth />} />
-        <Route path="/company/login" element={<Login />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="*" element = {<NotFound />} />     
-      </Routes>
-    </Router>
+    <>
+      <Toaster position="top-right" />
+      <Router>
+        <Routes>
+          <Route path="/meeting" element={<Meeting />} />
+          <Route path="/" element={<Navigate to="/company/login" replace />} />
+          <Route path="/dashboard-ui" element={<ProtectedRoute><DashboardUI /></ProtectedRoute>} />
+          <Route path="/message" element={<Messaging />} />
+          <Route path="/company/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/login" element={<LoginAuth />} />
+          <Route path="/signup" element={<SignupAuth />} />
+          <Route path="/dashboard" element={<DashboardAuth />} />
+          <Route path="/company/login" element={<Login />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </>
   );
 }
 

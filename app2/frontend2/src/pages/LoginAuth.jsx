@@ -21,6 +21,8 @@ function LoginAuth() {
       });
 
       if (response.data.api_key) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("company");
         localStorage.setItem("api_key", response.data.api_key);
         localStorage.setItem("user_id", response.data.user_id);
         localStorage.setItem("email", response.data.email);
