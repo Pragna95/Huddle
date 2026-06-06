@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Expired - Huddle</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <!-- Logo / Title -->
+        <div class="flex justify-center">
+            <span class="text-3xl font-extrabold tracking-tight text-red-600">Huddle</span>
+        </div>
+        <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-slate-900">Link Expired</h2>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow-xl shadow-slate-100 border border-slate-100 sm:rounded-2xl sm:px-10">
+            <div class="text-center space-y-6">
+                <!-- Status indicator -->
+                <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto text-red-500 border border-red-100">
+                    <svg class="h-8 w-8 text-red-600 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+
+                <div class="space-y-2">
+                    <h1 className="text-xl font-bold text-slate-900">Invalid or Expired Invitation</h1>
+                    <p className="text-sm text-slate-500 leading-relaxed">
+                        The magic invitation token you used is invalid, has expired, or the meeting has been deactivated by the host.
+                    </p>
+                </div>
+
+                <div class="pt-2">
+                    <a href="/login/" 
+                        class="flex w-full justify-center rounded-lg bg-slate-900 hover:bg-black px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-150 ease-in-out cursor-pointer">
+                        Go to Host Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

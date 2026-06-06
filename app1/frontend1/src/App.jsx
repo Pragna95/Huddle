@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 
 import "./Admin.css";
 import Meeting from "./pages/Meeting";
+import MeetingLobby from "./pages/MeetingLobby";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import HuddlePage from "@/components/huddle/HuddlePage";
@@ -69,6 +70,8 @@ function App() {
       <Router>
         <Routes>
           <Route path="/meeting" element={<Meeting />} />
+          <Route path="/meeting/:company/:letter/:api_key/:meeting_id" element={<MeetingLobby />} />
+          <Route path="/room/:meeting_id" element={<Meeting />} />
           <Route path="/" element={<Navigate to="/company/login" replace />} />
           <Route path="/dashboard-ui" element={<ProtectedRoute><DashboardUI /></ProtectedRoute>} />
           <Route path="/message" element={<Messaging />} />

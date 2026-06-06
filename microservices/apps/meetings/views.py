@@ -2,10 +2,13 @@ import secrets
 import time
 import datetime
 from django.conf import settings
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import now as tz_now
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import get_user_model, authenticate, login as django_login, logout as django_logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
@@ -130,13 +133,20 @@ def company_api_key_generate_view(request):
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([ApiKeyAuthentication])
+@authentication_classes([ApiKeyAuthentication, JWTCompanyAuthentication])
 @permission_classes([IsAuthenticated])
 def meetings_view(request):
     """
     API for managing meetings of the authenticated company.
-    Enforces tenant isolation using request.company.id.
+    Supports ApiKeyAuthentication and JWTCompanyAuthentication.
     """
+    company = getattr(request, 'company', None)
+    if not company and isinstance(request.user, Company):
+        company = request.user
+
+    if not company:
+        return Response({"error": "No company context found."}, status=400)
+
     if request.method == 'POST':
         title = request.data.get('title')
         participants_emails = request.data.get('participants', [])
@@ -147,7 +157,7 @@ def meetings_view(request):
         # Create meeting belonging to company
         meeting = Meeting.objects.create(
             title=title,
-            company=request.company
+            company=company
         )
 
         for email in participants_emails:
@@ -160,20 +170,23 @@ def meetings_view(request):
         return Response({
             "id": str(meeting.id),
             "title": meeting.title,
-            "company": request.company.name,
+            "company": company.name,
             "created_at": meeting.created_at,
             "participants": participants_emails
         }, status=201)
 
     elif request.method == 'GET':
-        meetings = Meeting.objects.filter(company=request.company)
+        meetings = Meeting.objects.filter(company=company)
         meetings_data = []
         for m in meetings:
             meetings_data.append({
                 "id": str(m.id),
                 "title": m.title,
-                "company": request.company.name,
-                "created_at": m.created_at
+                "company": company.name,
+                "created_at": m.created_at,
+                "datetime": m.datetime,
+                "participants": list(m.participants.values_list('user_email', flat=True)),
+                "link": m.link
             })
         return Response(meetings_data)
 
@@ -325,3 +338,229 @@ def schedule_meeting_view(request):
         "meeting_id": meeting_id,
         "link": link
     })
+
+
+# =====================================================================
+# HYBRID AUTHENTICATION & TEMPLATE VIEWS (Huddle app)
+# =====================================================================
+
+def meetings_login_view(request):
+    """
+    Renders host login page and handles authentication.
+    Supports remember_me checkbox setting session expiry.
+    """
+    if request.user.is_authenticated:
+        return redirect('host_dashboard')
+
+    if request.method == 'POST':
+        username_or_email = request.POST.get('username')
+        password = request.POST.get('password')
+        remember_me = request.POST.get('remember_me')
+
+        user_model = get_user_model()
+        user = None
+
+        # Allow email as username login
+        if '@' in username_or_email:
+            try:
+                user_obj = user_model.objects.get(email=username_or_email)
+                username_or_email = user_obj.username
+            except user_model.DoesNotExist:
+                pass
+
+        user = authenticate(request, username=username_or_email, password=password)
+
+        if user is not None:
+            django_login(request, user)
+            if remember_me:
+                # Keep logged in for 2 weeks
+                request.session.set_expiry(1209600)
+            else:
+                # Browser close session expiry
+                request.session.set_expiry(0)
+
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            return redirect('host_dashboard')
+        else:
+            messages.error(request, "Invalid username/email or password.")
+            return render(request, 'meetings/login.html')
+
+    return render(request, 'meetings/login.html')
+
+
+def meetings_logout_view(request):
+    """
+    Logs out host user and redirects to login.
+    """
+    if request.method == 'POST' or request.method == 'GET':
+        django_logout(request)
+        messages.success(request, "You have been successfully signed out.")
+        return redirect('meetings_login')
+    return redirect('meetings_login')
+
+
+def meetings_signup_view(request):
+    """
+    Handles host registration and auto login.
+    """
+    if request.user.is_authenticated:
+        return redirect('host_dashboard')
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+
+        user_model = get_user_model()
+
+        if password != password_confirm:
+            messages.error(request, "Passwords do not match.")
+            return render(request, 'meetings/signup.html')
+
+        if user_model.objects.filter(username=username).exists():
+            messages.error(request, "Username is already taken.")
+            return render(request, 'meetings/signup.html')
+
+        if user_model.objects.filter(email=email).exists():
+            messages.error(request, "Email address is already registered.")
+            return render(request, 'meetings/signup.html')
+
+        # Split full name
+        parts = name.split()
+        first_name = parts[0] if parts else ""
+        last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
+
+        # Create user
+        user = user_model.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+
+        django_login(request, user)
+        return redirect('host_dashboard')
+
+    return render(request, 'meetings/signup.html')
+
+
+@login_required(login_url='/login/')
+def host_dashboard_view(request):
+    """
+    Renders host dashboard listing hosted meetings.
+    """
+    meetings = Meeting.objects.filter(host=request.user).order_by('-created_at')
+    return render(request, 'meetings/dashboard.html', {'meetings': meetings})
+
+
+@login_required(login_url='/login/')
+def create_meeting_view(request):
+    """
+    Handles creating a meeting via standard template form.
+    """
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        start_time_str = request.POST.get('start_time')
+
+        if not title or not start_time_str:
+            messages.error(request, "Title and Start Time are required.")
+            return redirect('host_dashboard')
+
+        from django.utils.dateparse import parse_datetime
+        start_time = parse_datetime(start_time_str)
+
+        import random
+        import string
+        import uuid
+
+        # Maintain backwards compatibility with API formats
+        meeting_id = uuid.uuid4().hex[:8]
+        random_letter = random.choice(string.ascii_lowercase)
+        clean_username = "".join(char for char in request.user.username if char.isalnum())
+        link = f"{clean_username}/{random_letter}/sk_live_hybrid/{meeting_id}"
+
+        Meeting.objects.create(
+            title=title,
+            start_time=start_time,
+            meeting_token=uuid.uuid4(),
+            host=request.user,
+            is_active=True,
+            datetime=start_time_str,
+            meeting_id=meeting_id,
+            link=link
+        )
+        return redirect('host_dashboard')
+
+    return redirect('host_dashboard')
+
+
+def join_meeting_view(request, token):
+    """
+    Validates magic link attendee token and renders lobby.
+    """
+    try:
+        meeting = Meeting.objects.get(meeting_token=token, is_active=True)
+    except (Meeting.DoesNotExist, ValueError):
+        return render(request, 'meetings/link_expired.html', status=403)
+
+    return render(request, 'meetings/lobby.html', {'meeting': meeting})
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@authentication_classes([])
+def validate_meeting_view(request, company, letter, api_key, meeting_id):
+    """
+    Validates a meeting invitation link for System 1 React lobby.
+    URL Format: /api/meeting/validate/<company>/<letter>/<api_key>/<meeting_id>
+    """
+    try:
+        meeting = Meeting.objects.get(meeting_id=meeting_id)
+    except Meeting.DoesNotExist:
+        return Response({"error": "Meeting not found."}, status=404)
+
+    # Validate company / host context
+    if meeting.company:
+        clean_db_company = "".join(c for c in meeting.company.name if c.isalnum()).lower()
+        clean_url_company = "".join(c for c in company if c.isalnum()).lower()
+        if clean_db_company != clean_url_company:
+            return Response({"error": "Company mismatch."}, status=404)
+        
+        # Validate API Key
+        if meeting.company.api_key != api_key:
+            return Response({"error": "Invalid API key."}, status=403)
+            
+        # Ensure the company is active
+        if not meeting.company.is_active:
+            return Response({"error": "Company account is inactive."}, status=403)
+    elif meeting.host:
+        # Hybrid host-created meeting check
+        clean_db_username = "".join(c for c in meeting.host.username if c.isalnum()).lower()
+        clean_url_company = "".join(c for c in company if c.isalnum()).lower()
+        if clean_db_username != clean_url_company:
+            return Response({"error": "Host mismatch."}, status=404)
+            
+        if api_key != "sk_live_hybrid":
+            return Response({"error": "Invalid API key."}, status=403)
+    else:
+        return Response({"error": "Meeting host or company not found."}, status=404)
+
+    # Check active state
+    if not meeting.is_active:
+        return Response({"error": "Meeting is inactive."}, status=403)
+
+    # Retrieve participant emails
+    participants = list(meeting.participants.values_list('user_email', flat=True))
+
+    return Response({
+        "title": meeting.title,
+        "datetime": meeting.datetime or (meeting.start_time.isoformat() if meeting.start_time else ""),
+        "company_name": meeting.company.name if meeting.company else (meeting.host.username if meeting.host else "Huddle"),
+        "participants": participants
+    })
+

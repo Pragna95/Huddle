@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ChatList from "../chat/ChatList";
 import SessionCard from "./SessionCard";
 import CreateHuddle from "./CreateHuddle";
+import ScheduledMeetings from "./ScheduledMeetings";
 import MiniCalendar from "../calender/MiniCalender";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -180,7 +181,9 @@ export default function HuddlePage() {
 
         {/* Session Cards */}
         <div className="flex flex-col gap-4 animate-fade-in">
-          {filteredSessions.length > 0 ? (
+          {activeTab === "Scheduled" ? (
+            <ScheduledMeetings />
+          ) : filteredSessions.length > 0 ? (
             filteredSessions.map((s) => <SessionCard key={s.id} session={s} />)
           ) : (
             <p className="text-gray-400 text-sm italic">No sessions found.</p>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import {
   Mic,
@@ -72,6 +72,20 @@ const Meeting = () => {
   const [participants, setParticipants] = useState({});
   const [isLoadingState, setIsLoadingState] = useState(true);
   const navigate = useNavigate();
+  const { meeting_id } = useParams();
+  const meetingId = meeting_id || "meeting_001";
+  const [searchParams] = useSearchParams();
+  const participantName = searchParams.get("name") || "Andaya";
+
+  const getInitials = (nameStr) => {
+    if (!nameStr) return "AD";
+    const parts = nameStr.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0].substring(0, 2).toUpperCase();
+  };
+  const participantInitials = getInitials(participantName);
 
   // CHAT
   const [message, setMessage] = useState("");
@@ -120,41 +134,42 @@ const Meeting = () => {
   };
 
   useEffect(() => {
-  console.log("Creating WebSocket...");
+    console.log("Creating WebSocket...");
 
-  const socket = new WebSocket(
-    `ws://127.0.0.1:8000/ws/participants/${meetingId}/`
-  );
-
-  socket.onopen = () => {
-    console.log("WebSocket Connected");
-  };
-
-  socket.onmessage = (event) => {
-    console.log("Message:", JSON.parse(event.data));
-  };
-
-  socket.onerror = (error) => {
-    console.log("WebSocket Error:", error);
-  };
-
-  socket.onclose = (event) => {
-    console.log(
-      "WebSocket Closed",
-      event.code,
-      event.reason
+    const socket = new WebSocket(
+      `ws://127.0.0.1:8000/ws/participants/${meetingId}/`
     );
-  };
 
-  return () => {
-    console.log("Cleaning up WebSocket");
-    socket.close();
-  };
-}, []);
+    socket.onopen = () => {
+      console.log("WebSocket Connected");
+    };
+
+    socket.onmessage = (event) => {
+      console.log("Message:", JSON.parse(event.data));
+    };
+
+    socket.onerror = (error) => {
+      console.log("WebSocket Error:", error);
+    };
+
+    socket.onclose = (event) => {
+      console.log(
+        "WebSocket Closed",
+        event.code,
+        event.reason
+      );
+    };
+
+    return () => {
+      console.log("Cleaning up WebSocket");
+      socket.close();
+    };
+  }, [meetingId]);
+
 
   const userId = 1;
-  const meetingId = "meeting_001";
   const API_URL = "http://127.0.0.1:8000/api/meetings";
+
 
   useEffect(() => {
     fetchParticipantState();
@@ -440,21 +455,22 @@ const handleLeaveHuddle = () => {
               </div>
               {/* NAME */}
               <h1 className="absolute bottom-7 left-7 text-white text-[38px] font-extrabold tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-20">
-                Andaya
+                {participantName}
               </h1>
 
               {/* SMALL VIDEO */}
               <div className="absolute bottom-5 right-5 w-[220px] h-[140px] rounded-[24px] bg-[#121215]/80 backdrop-blur-xl border border-white/10 flex items-center justify-center z-20 shadow-2xl hover:scale-105 hover:border-white/20 transition-all duration-300">
                 <div className="text-center">
                   <div className="w-16 h-16 rounded-full bg-[#002B6B] text-white flex items-center justify-center mx-auto font-bold text-lg border border-blue-400 shadow-inner">
-                    AD
+                    {participantInitials}
                   </div>
 
                   <p className="text-white text-sm font-semibold mt-3">
-                    Andaya
+                    {participantName}
                   </p>
                 </div>
               </div>
+
             </>
           )}
         </div>
