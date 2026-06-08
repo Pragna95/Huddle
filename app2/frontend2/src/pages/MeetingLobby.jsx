@@ -26,9 +26,16 @@ export default function MeetingLobby() {
   useEffect(() => {
     const validateMeeting = async () => {
       try {
-        const response = await axios.get(
-          `/api/meeting/validate/${company}/${letter}/${api_key}/${meeting_id}`
-        );
+        let response;
+        if (company) {
+          response = await axios.get(
+            `/api/meeting/validate/${company}/${letter}/${api_key}/${meeting_id}`
+          );
+        } else {
+          response = await axios.get(
+            `/api/meeting/validate-lobby/${meeting_id}`
+          );
+        }
         setMeetingDetails(response.data);
         setIsValid(true);
       } catch (err) {

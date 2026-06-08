@@ -57,12 +57,14 @@ import { useNavigate } from "react-router-dom";
 export default function HuddlePage() {
   const [sessionsList, setSessionsList] = useState(sessions);
   const [activeTab, setActiveTab] = useState("Ongoing");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [meetingId, setMeetingId] = useState("");
   const [pendingSession, setPendingSession] = useState(null);
   const [statusDialog, setStatusDialog] = useState({
     isOpen: false,
     type: "success",
-    message: ""
+    message: "",
+    link: ""
   });
 
   const handleJoinSession = () => {
@@ -87,11 +89,14 @@ export default function HuddlePage() {
     };
 
     setPendingSession(newSession);
+    setRefreshTrigger((prev) => prev + 1);
+    setActiveTab("Scheduled");
 
     setStatusDialog({
       isOpen: true,
       type: "success",
       message: "Meeting created successfully.",
+      link: meetingDetails.link || "",
     });
   };
   const handleCancelSession = () => {
@@ -182,7 +187,7 @@ export default function HuddlePage() {
         {/* Session Cards */}
         <div className="flex flex-col gap-4 animate-fade-in">
           {activeTab === "Scheduled" ? (
-            <ScheduledMeetings />
+            <ScheduledMeetings refreshTrigger={refreshTrigger} />
           ) : filteredSessions.length > 0 ? (
             filteredSessions.map((s) => <SessionCard key={s.id} session={s} />)
           ) : (
@@ -225,7 +230,7 @@ export default function HuddlePage() {
               {statusDialog.type === "success" ? "Meeting Created!" : "Meeting Cancelled"}
             </h2>
 
-            <p className="text-sm text-gray-500 mb-6 font-medium">
+            <p className="text-sm text-gray-500 mb-4 font-medium">
               {showCancelConfirm ? "Are you sure you want to cancel this meeting?" : statusDialog.message}
             </p>
 
@@ -250,6 +255,7 @@ export default function HuddlePage() {
                         isOpen: true,
                         type: "cancelled",
                         message: "Your meeting has been cancelled.",
+                        link: ""
                       });
                     }}
                   >
@@ -257,33 +263,50 @@ export default function HuddlePage() {
                   </Button>
                 </div>
               ) : statusDialog.type === "success" ? (
-                <div className="flex gap-3 w-full">
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-red-300 text-red-600 hover:bg-red-50 py-3 rounded-xl font-bold"
-                    onClick={() => setShowCancelConfirm(true)}
-                  >
-                    Cancel Meeting
-                  </Button>
+                <div className="flex flex-col gap-3 w-full">
+                  {statusDialog.link && (
+                    <div className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-100 mb-1">
+                      <input
+                        type="text"
+                        readOnly
+                        value={statusDialog.link}
+                        className="flex-1 min-w-0 bg-transparent text-xs font-mono text-slate-600 select-all outline-none"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="shrink-0 text-xs px-2.5 h-7 rounded-lg border-slate-200 hover:bg-indigo-50"
+                        onClick={() => navigator.clipboard.writeText(statusDialog.link)}
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                  )}
+                  <div className="flex gap-3 w-full">
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-red-300 text-red-600 hover:bg-red-50 py-3 rounded-xl font-bold"
+                      onClick={() => setShowCancelConfirm(true)}
+                    >
+                      Cancel Meeting
+                    </Button>
 
-                  <Button
-                    className="flex-1 bg-[#1e2b72] hover:bg-[#152060] text-white py-3 rounded-xl font-bold shadow-md"
-                    onClick={() => {
-                      if (pendingSession) {
-                        setSessionsList((prev) => [...prev, pendingSession]);
-                        setPendingSession(null);
-                      }
-
-                      setStatusDialog((prev) => ({
-                        ...prev,
-                        isOpen: false,
-                      }));
-
-                      setActiveTab("Scheduled");
-                    }}
-                  >
-                    Continue Meeting
-                  </Button>
+                    <Button
+                      className="flex-1 bg-[#1e2b72] hover:bg-[#152060] text-white py-3 rounded-xl font-bold shadow-md"
+                      onClick={() => {
+                        if (pendingSession) {
+                          setSessionsList((prev) => [...prev, pendingSession]);
+                          setPendingSession(null);
+                        }
+                        setStatusDialog((prev) => ({
+                          ...prev,
+                          isOpen: false,
+                        }));
+                      }}
+                    >
+                      View Scheduled
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <Button

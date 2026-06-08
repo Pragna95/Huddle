@@ -17,4 +17,6 @@ urlpatterns = [
     # Validation route for System 1 React lobby
     path('api/meeting/validate/<str:company>/<str:letter>/<str:api_key>/<str:meeting_id>', views.validate_meeting_view, name='validate_meeting'),
     path('api/meeting/validate/<str:company>/<str:letter>/<str:api_key>/<str:meeting_id>/', views.validate_meeting_view),
+    path('api/meeting/validate-lobby/<str:meeting_id>', views.validate_meeting_lobby_view, name='validate_meeting_lobby'),
+    path('api/meeting/validate-lobby/<str:meeting_id>/', views.validate_meeting_lobby_view),
 ]

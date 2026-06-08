@@ -7,10 +7,10 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { Copy, Calendar, Users, RefreshCw } from "lucide-react";
 
-export default function ScheduledMeetings() {
+export default function ScheduledMeetings({ refreshTrigger }) {
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -18,14 +18,20 @@ export default function ScheduledMeetings() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const token = localStorage.getItem("token");
+  const apiKey = localStorage.getItem("api_key");
 
   const fetchMeetings = async () => {
     try {
       setLoading(true);
+      const headers = {};
+      if (token && token !== "null" && token !== "undefined") {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      if (apiKey && apiKey !== "null" && apiKey !== "undefined") {
+        headers["x-api-key"] = apiKey;
+      }
       const response = await axios.get("/api/meetings/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
       });
       setMeetings(response.data);
     } catch (err) {
@@ -38,17 +44,25 @@ export default function ScheduledMeetings() {
 
   useEffect(() => {
     fetchMeetings();
-  }, []);
+  }, [refreshTrigger]);
 
   const handleRowClick = (meeting) => {
     setSelectedMeeting(meeting);
     setIsDialogOpen(true);
   };
 
+  const buildFullLink = (linkText) => {
+    if (!linkText) return "";
+    if (linkText.startsWith("/")) {
+      return `${window.location.origin}${linkText}`;
+    }
+    return `${window.location.origin}/${linkText}`;
+  };
+
   const handleCopyLink = async (linkText) => {
     if (!linkText) return;
     try {
-      const fullLink = `${window.location.origin}/meeting/${linkText}`;
+      const fullLink = buildFullLink(linkText);
       await navigator.clipboard.writeText(fullLink);
       toast.success("Copied!", {
         duration: 2000,
@@ -147,7 +161,7 @@ export default function ScheduledMeetings() {
                     <input
                       type="text"
                       readOnly
-                      value={`${window.location.origin}/meeting/${selectedMeeting.link}`}
+                      value={buildFullLink(selectedMeeting.link)}
                       className="flex-1 min-w-0 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-600 select-all outline-none"
                     />
                     <Button

@@ -1,6 +1,7 @@
 import secrets
 import time
 import datetime
+import random
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import now as tz_now
@@ -15,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import AuthenticationFailed
 
-from backend.authentication import ApiKeyAuthentication, JWTCompanyAuthentication
+from backend.authentication import ApiKeyAuthentication, JWTCompanyAuthentication, AppApiKeyAuthentication
 from backend.permissions import IsCompanyUser
 from backend.jwt_utils import encode_jwt
 from .models import Company, Meeting, Participant
@@ -133,7 +134,7 @@ def company_api_key_generate_view(request):
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([ApiKeyAuthentication, JWTCompanyAuthentication])
+@authentication_classes([ApiKeyAuthentication, AppApiKeyAuthentication, JWTCompanyAuthentication])
 @permission_classes([IsAuthenticated])
 def meetings_view(request):
     """
@@ -234,51 +235,41 @@ def participant_update_view(request):
     return Response({"success": True})
 
 
-@api_view(['POST'])
-@authentication_classes([ApiKeyAuthentication, JWTCompanyAuthentication])
-@permission_classes([IsAuthenticated])
+def generate_meeting_link(company_name, api_key, meeting_id):
+    clean_company_name = "".join(char for char in company_name if char.isalnum())
+    random_letter = random.choice('abcdefghijklmnopqrstuvwxyz')
+    return f"{clean_company_name}/{random_letter}/{api_key}/{meeting_id}"
+
+
 def schedule_meeting_view(request):
     """
     POST /api/schedule-meeting endpoint:
-    a. Require user to be authenticated. Get logged-in user from request.user
-    b. Get company_name = request.user.company.name 
-    c. Get api_key = request.user.company.api_key
-    d. Generate meeting_id: 8 chars, alphanumeric or numeric. Use uuid4().hex[:8]
-    e. Generate random letter: random.choice(string.ascii_lowercase)
-    f. Build meeting link exactly: {company_name}/{random_letter}/{api_key}/{meeting_id}
-    g. Save to Meeting model: title, datetime, meeting_id, link, company
-    h. Send email to participant_emails[] using Django send_mail
-    i. Return JSON: {success: true, meeting_id, link}
+    a. Require authenticated company context.
+    b. Use company.name slug and company.api_key.
+    c. Use DB meeting UUID as meeting_id.
+    d. Build meeting link exactly: {company_name}/{letter}/{api_key}/{meeting_id}
+    e. Save meeting link to DB and cache key meeting:{id}.
+    f. Send email to all participants with full join link.
+    g. Return JSON: {success: true, meeting_id, link}
     """
     import uuid
-    import random
-    import string
     from django.core.mail import send_mail
     from django.conf import settings
 
-    print("\n[schedule_meeting_view] Request received!")
-    print(f"[schedule_meeting_view] User: {request.user} (is_authenticated: {request.user.is_authenticated})")
-    print(f"[schedule_meeting_view] Headers: {dict(request.headers)}")
-    print(f"[schedule_meeting_view] META Authorization: {request.META.get('HTTP_AUTHORIZATION')}")
-
     user = request.user
 
-    # Identify the company and extract company details
     if hasattr(user, 'company') and user.company:
         company = user.company
-        company_name = company.name
-        api_key = company.api_key
     elif isinstance(user, Company):
         company = user
-        company_name = user.name
-        api_key = user.api_key
     else:
-        # Fallback to the first active company if not linked directly
         company = Company.objects.filter(is_active=True).first()
         if not company:
             return Response({"error": "No company associated with this user."}, status=400)
-        company_name = company.name
-        api_key = company.api_key
+
+    api_key = company.api_key
+    if not api_key:
+        return Response({"error": "API key is not configured for this company."}, status=400)
 
     title = request.data.get('title')
     datetime_val = request.data.get('datetime')
@@ -289,38 +280,56 @@ def schedule_meeting_view(request):
     if not datetime_val:
         return Response({"error": "Datetime is required."}, status=400)
 
-    # Generate meeting_id (8 chars) and random letter
-    meeting_id = uuid.uuid4().hex[:8]
-    random_letter = random.choice(string.ascii_lowercase)
-
-    # Sanitize company name for clean URL links (remove non-alphanumeric chars)
-    clean_company_name = "".join(char for char in company_name if char.isalnum())
-
-    # Build meeting link
-    link = f"{clean_company_name}/{random_letter}/{api_key}/{meeting_id}"
-
-    # Save to Meeting model
     meeting = Meeting.objects.create(
         title=title,
         datetime=datetime_val,
-        meeting_id=meeting_id,
-        link=link,
         company=company
     )
 
-    # Send email notifications
-    subject = f"Meeting Invite: {title}"
+    meeting_id = str(meeting.id)
+    link = generate_meeting_link(company.name, api_key, meeting_id)
+    meeting.meeting_id = meeting_id
+    meeting.link = link
+    meeting.save(update_fields=['meeting_id', 'link'])
+
+    if participant_emails:
+        if isinstance(participant_emails, str):
+            participant_emails = [participant_emails]
+        for email in participant_emails:
+            if email:
+                Participant.objects.create(
+                    meeting=meeting,
+                    user_email=email,
+                    user_id=""
+                )
+
+    # Store meeting data in Redis cache/ Django cache backend
+    try:
+        cache.set(f"meeting:{meeting.id}", {
+            "meeting_id": meeting_id,
+            "company": "".join(char for char in company.name if char.isalnum()),
+            "api_key": api_key,
+            "link": link,
+            "title": meeting.title,
+            "datetime": meeting.datetime,
+            "participants": [email for email in participant_emails] if participant_emails else [],
+        })
+    except Exception:
+        pass
+
+    origin = request.headers.get('Origin') or request.build_absolute_uri('/').rstrip('/')
+    full_link = f"{origin}/{link}".rstrip('/')
+
+    subject = f"Meeting Invitation: {title}"
     body = (
-        f"Title: {title}\n"
-        f"Company: {company_name}\n"
+        f"Meeting Title: {title}\n"
+        f"Organizer Name: {company.name}\n"
         f"Date & Time: {datetime_val}\n"
-        f"Join Link: http://localhost:5173/meeting/{link}"
+        f"Join Link: {full_link}"
     )
 
     sender_email = getattr(settings, 'EMAIL_HOST_USER', 'webmaster@localhost')
     if participant_emails:
-        if isinstance(participant_emails, str):
-            participant_emails = [participant_emails]
         try:
             send_mail(
                 subject,
@@ -458,44 +467,181 @@ def host_dashboard_view(request):
     return render(request, 'meetings/dashboard.html', {'meetings': meetings})
 
 
-@login_required(login_url='/login/')
+@csrf_exempt
 def create_meeting_view(request):
     """
-    Handles creating a meeting via standard template form.
+    Handles creating a meeting via standard template form or REST API.
     """
     if request.method == 'POST':
-        title = request.POST.get('title')
-        start_time_str = request.POST.get('start_time')
+        from django.http import JsonResponse
+        from backend.jwt_utils import decode_jwt
 
-        if not title or not start_time_str:
-            messages.error(request, "Title and Start Time are required.")
+        # Check if it's an API request (JSON)
+        is_json = request.content_type == 'application/json' or 'application/json' in request.headers.get('Accept', '')
+
+        # Authenticate manually for API requests
+        user = request.user
+        company = None
+        if not user.is_authenticated:
+            # Try API Key authentication
+            api_key = request.META.get('HTTP_X_API_KEY') or request.headers.get('x-api-key')
+            if api_key and api_key.startswith('sk_live_'):
+                try:
+                    company = Company.objects.get(api_key=api_key)
+                    user = company
+                except Company.DoesNotExist:
+                    pass
+            
+            # Try JWT authentication
+            if not company:
+                auth_header = request.META.get('HTTP_AUTHORIZATION')
+                if auth_header:
+                    parts = auth_header.split()
+                    if len(parts) == 2 and parts[0].lower() in ['bearer', 'jwt']:
+                        payload = decode_jwt(parts[1], settings.SECRET_KEY)
+                        if payload:
+                            try:
+                                company = Company.objects.get(id=payload.get("company_id"))
+                                user = company
+                            except Company.DoesNotExist:
+                                pass
+
+        if not user.is_authenticated:
+            if is_json:
+                return JsonResponse({"error": "Authentication credentials were not provided."}, status=401)
+            return redirect('/login/')
+
+        # Extract parameters
+        if is_json:
+            import json
+            try:
+                data = json.loads(request.body)
+            except Exception:
+                data = {}
+            title = data.get('title')
+            start_time_str = data.get('datetime') or data.get('start_time')
+            participant_emails = data.get('participant_emails', [])
+        else:
+            title = request.POST.get('title')
+            start_time_str = request.POST.get('start_time')
+            participant_emails = request.POST.getlist('participant_emails')
+
+        if not title:
+            if is_json:
+                return JsonResponse({"error": "Title is required."}, status=400)
+            messages.error(request, "Title is required.")
+            return redirect('host_dashboard')
+
+        if not start_time_str:
+            if is_json:
+                return JsonResponse({"error": "Datetime/Start Time is required."}, status=400)
+            messages.error(request, "Start Time is required.")
             return redirect('host_dashboard')
 
         from django.utils.dateparse import parse_datetime
         start_time = parse_datetime(start_time_str)
 
+        # Identify company
+        if hasattr(user, 'company') and user.company:
+            company = user.company
+        elif isinstance(user, Company):
+            company = user
+        else:
+            company = Company.objects.filter(is_active=True).first()
+
+        company_name = company.name if company else "Huddle"
+
         import random
-        import string
         import uuid
 
-        # Maintain backwards compatibility with API formats
-        meeting_id = uuid.uuid4().hex[:8]
-        random_letter = random.choice(string.ascii_lowercase)
-        clean_username = "".join(char for char in request.user.username if char.isalnum())
-        link = f"{clean_username}/{random_letter}/sk_live_hybrid/{meeting_id}"
-
-        Meeting.objects.create(
+        # Create meeting first so we can use the DB UUID as meeting_id
+        meeting = Meeting.objects.create(
             title=title,
-            start_time=start_time,
-            meeting_token=uuid.uuid4(),
-            host=request.user,
-            is_active=True,
             datetime=start_time_str,
-            meeting_id=meeting_id,
-            link=link
+            start_time=start_time,
+            company=company,
+            host=user if not isinstance(user, Company) else None,
+            is_active=True,
+            meeting_token=uuid.uuid4()
         )
+
+        meeting_id = str(meeting.id)
+        link = generate_meeting_link(company_name, company.api_key, meeting_id)
+
+        meeting.meeting_id = meeting_id
+        meeting.link = link
+        meeting.save(update_fields=['meeting_id', 'link'])
+
+        # Save participants
+        if participant_emails:
+            if isinstance(participant_emails, str):
+                participant_emails = [participant_emails]
+            for email in participant_emails:
+                if email:
+                    Participant.objects.create(
+                        meeting=meeting,
+                        user_email=email,
+                        user_id=""
+                    )
+
+        # Store meeting data in Redis cache/ Django cache backend for legacy flow as well
+        try:
+            cache.set(f"meeting:{meeting.id}", {
+                "meeting_id": meeting_id,
+                "company": "".join(char for char in company_name if char.isalnum()),
+                "api_key": company.api_key,
+                "link": link,
+                "title": meeting.title,
+                "datetime": meeting.datetime,
+                "participants": [email for email in participant_emails] if participant_emails else [],
+            })
+        except Exception:
+            pass
+
+        # Send email notifications
+        subject = f"Meeting Invitation: {title}"
+        body = (
+            f"Meeting Title: {title}\n"
+            f"Organizer Name: {company_name}\n"
+            f"Date & Time: {start_time_str}\n"
+            f"Join Link: http://localhost:5173/{link}"
+        )
+
+        origin = request.headers.get('Origin') or request.build_absolute_uri('/').rstrip('/')
+        full_link = f"{origin}/{link}".rstrip('/')
+        body = (
+            f"Meeting Title: {title}\n"
+            f"Organizer Name: {company_name}\n"
+            f"Date & Time: {start_time_str}\n"
+            f"Join Link: {full_link}"
+        )
+
+        sender_email = getattr(settings, 'EMAIL_HOST_USER', 'webmaster@localhost')
+        if participant_emails:
+            from django.core.mail import send_mail
+            try:
+                send_mail(
+                    subject,
+                    body,
+                    sender_email,
+                    list(participant_emails),
+                    fail_silently=True
+                )
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Email delivery failed: {e}")
+
+        if is_json:
+            return JsonResponse({
+                "success": True,
+                "meeting_id": meeting_id,
+                "link": link
+            })
+        
         return redirect('host_dashboard')
 
+    if not request.user.is_authenticated:
+        return redirect('/login/')
     return redirect('host_dashboard')
 
 
@@ -555,6 +701,31 @@ def validate_meeting_view(request, company, letter, api_key, meeting_id):
         return Response({"error": "Meeting is inactive."}, status=403)
 
     # Retrieve participant emails
+    participants = list(meeting.participants.values_list('user_email', flat=True))
+
+    return Response({
+        "title": meeting.title,
+        "datetime": meeting.datetime or (meeting.start_time.isoformat() if meeting.start_time else ""),
+        "company_name": meeting.company.name if meeting.company else (meeting.host.username if meeting.host else "Huddle"),
+        "participants": participants
+    })
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@authentication_classes([])
+def validate_meeting_lobby_view(request, meeting_id):
+    """
+    Validates a meeting by meeting_id alone for the lobby redirect.
+    """
+    try:
+        meeting = Meeting.objects.get(meeting_id=meeting_id)
+    except Meeting.DoesNotExist:
+        return Response({"error": "Meeting not found."}, status=404)
+
+    if not meeting.is_active:
+        return Response({"error": "Meeting is inactive."}, status=403)
+
     participants = list(meeting.participants.values_list('user_email', flat=True))
 
     return Response({

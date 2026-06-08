@@ -130,8 +130,13 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
       const data = await response.json();
 
       if (response.ok && data.success) {
-        alert(`Invites sent! Link: ${data.link}`);
-        toast.success(`Invites sent! Link: ${data.link}`);
+        const fullLink = data.link
+          ? `${window.location.origin}/${data.link}`
+          : "";
+        toast.success(`Meeting scheduled! Link copied to clipboard.`);
+        if (fullLink) {
+          try { await navigator.clipboard.writeText(fullLink); } catch (_) {}
+        }
 
         onAddSession({
           title,
@@ -140,6 +145,8 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
           startTime,
           endTime,
           participants: attendeesList.length,
+          link: fullLink,
+          meeting_id: data.meeting_id,
         });
 
         setOpen(false);
@@ -150,7 +157,6 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
         setStartTime("09:00");
         setEndTime("10:00");
       } else {
-        alert(data.error || "Failed to schedule meeting.");
         toast.error(data.error || "Failed to schedule meeting.");
       }
     } catch (error) {

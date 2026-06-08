@@ -39,6 +39,34 @@ class ApiKeyAuthentication(BaseAuthentication):
         return (company, key)
 
 
+class AppApiKeyAuthentication(BaseAuthentication):
+    """
+    Accepts app1_sk_* and app2_sk_* API keys issued to users by the auth service.
+    Maps to the first active Company as the scheduling tenant.
+    """
+    APP_KEY_PREFIXES = ('app1_sk_', 'app2_sk_')
+
+    def authenticate(self, request):
+        key = request.META.get('HTTP_X_API_KEY')
+        if not key:
+            key = request.headers.get('x-api-key')
+        if not key:
+            return None
+
+        # Accept any app-level key (not company sk_live_ keys)
+        if not any(key.startswith(prefix) for prefix in self.APP_KEY_PREFIXES):
+            return None
+
+        # Map to first active company as the scheduling tenant
+        company = Company.objects.filter(is_active=True).first()
+        if not company:
+            raise AuthenticationFailed("No active company found for this API key.")
+
+        request.company = company
+        logger.info(f"App API Key authentication success for company: {company.name}")
+        return (company, key)
+
+
 class JWTCompanyAuthentication(BaseAuthentication):
     """
     Custom DRF Authentication class for company dashboard actions.

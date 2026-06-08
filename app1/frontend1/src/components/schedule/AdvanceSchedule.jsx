@@ -113,6 +113,10 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
       const participant_emails = attendeesList.map(a => a.email);
       const datetime = `${startDate}T${startTime}`;
 
+      console.log("[AdvanceSchedule] Token:", token ? token.substring(0, 30) + "..." : "MISSING");
+      console.log("[AdvanceSchedule] ApiKey:", apiKey || "MISSING");
+      console.log("[AdvanceSchedule] Payload:", { title, datetime, participant_emails });
+
       const response = await fetch('/api/schedule-meeting', {
         method: 'POST',
         headers: {
@@ -127,11 +131,27 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
         })
       });
 
-      const data = await response.json();
+      console.log("[AdvanceSchedule] HTTP Status:", response.status, response.statusText);
+      const rawText = await response.text();
+      console.log("[AdvanceSchedule] Raw Response:", rawText);
+
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch (e) {
+        console.error("[AdvanceSchedule] Response is not JSON:", rawText);
+        toast.error("Server returned an unexpected response. Check console.");
+        return;
+      }
 
       if (response.ok && data.success) {
-        alert(`Invites sent! Link: ${data.link}`);
-        toast.success(`Invites sent! Link: ${data.link}`);
+        const fullLink = data.link
+          ? `${window.location.origin}/${data.link}`
+          : "";
+        toast.success(`Meeting scheduled! Link copied to clipboard.`);
+        if (fullLink) {
+          try { await navigator.clipboard.writeText(fullLink); } catch (_) {}
+        }
 
         onAddSession({
           title,
@@ -140,6 +160,8 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
           startTime,
           endTime,
           participants: attendeesList.length,
+          link: fullLink,
+          meeting_id: data.meeting_id,
         });
 
         setOpen(false);
@@ -150,11 +172,11 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
         setStartTime("09:00");
         setEndTime("10:00");
       } else {
-        alert(data.error || "Failed to schedule meeting.");
-        toast.error(data.error || "Failed to schedule meeting.");
+        console.error("[AdvanceSchedule] API error response:", data);
+        toast.error(data.error || data.detail || "Failed to schedule meeting.");
       }
     } catch (error) {
-      console.error("Scheduling failed: ", error);
+      console.error("[AdvanceSchedule] Network/fetch error:", error);
       toast.error("Scheduling failed. Network error.");
     } finally {
       setLoading(false);

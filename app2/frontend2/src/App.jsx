@@ -71,6 +71,8 @@ function App() {
         <Routes>
           <Route path="/meeting" element={<Meeting />} />
           <Route path="/meeting/:company/:letter/:api_key/:meeting_id" element={<MeetingLobby />} />
+          <Route path="/:company/:letter/:api_key/:meeting_id" element={<MeetingLobby />} />
+          <Route path="/lobby/:meeting_id" element={<MeetingLobby />} />
           <Route path="/room/:meeting_id" element={<Meeting />} />
           <Route path="/" element={<Navigate to="/company/login" replace />} />
           <Route path="/dashboard-ui" element={<ProtectedRoute><DashboardUI /></ProtectedRoute>} />
