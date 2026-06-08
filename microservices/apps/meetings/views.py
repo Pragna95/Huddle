@@ -244,109 +244,146 @@ def generate_meeting_link(company_name, api_key, meeting_id):
 def schedule_meeting_view(request):
     """
     POST /api/schedule-meeting endpoint:
-    a. Require authenticated company context.
-    b. Use company.name slug and company.api_key.
-    c. Use DB meeting UUID as meeting_id.
+    Supports both:
+    - JWT authentication (company logged in via company_login_view)
+    - API_KEY authentication (x-api-key header from app1/app2 backend .env)
+    
+    a. Validate API_KEY or JWT
+    b. Use company.name slug and company.api_key
+    c. Use DB meeting UUID as meeting_id
     d. Build meeting link exactly: {company_name}/{letter}/{api_key}/{meeting_id}
-    e. Save meeting link to DB and cache key meeting:{id}.
-    f. Send email to all participants with full join link.
+    e. Save meeting link to DB and cache key meeting:{id}
+    f. Send email to all participants with full join link via SMTP
     g. Return JSON: {success: true, meeting_id, link}
     """
-    import uuid
     from django.core.mail import send_mail
-    from django.conf import settings
+    from django.http import JsonResponse
 
+    if request.method != 'POST':
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    # Extract API_KEY from header
+    api_key = request.headers.get('x-api-key') or request.META.get('HTTP_X_API_KEY')
+    
+    company = None
     user = request.user
 
-    if hasattr(user, 'company') and user.company:
-        company = user.company
+    # Try API_KEY authentication first
+    if api_key and api_key.startswith('SK_'):
+        try:
+            company = Company.objects.get(api_key=api_key, is_active=True)
+        except Company.DoesNotExist:
+            return JsonResponse({"error": "Invalid API key"}, status=401)
+    # Fall back to JWT/session authentication
     elif isinstance(user, Company):
         company = user
-    else:
-        company = Company.objects.filter(is_active=True).first()
-        if not company:
-            return Response({"error": "No company associated with this user."}, status=400)
+    elif hasattr(user, 'company') and user.company:
+        company = user.company
 
-    api_key = company.api_key
-    if not api_key:
-        return Response({"error": "API key is not configured for this company."}, status=400)
+    if not company:
+        return JsonResponse({"error": "Authentication required. Provide x-api-key header or JWT token."}, status=401)
 
-    title = request.data.get('title')
-    datetime_val = request.data.get('datetime')
-    participant_emails = request.data.get('participant_emails', [])
+    # Extract request data
+    try:
+        if request.content_type == 'application/json':
+            import json
+            data = json.loads(request.body)
+        else:
+            data = request.POST
+    except:
+        data = request.POST
 
+    title = data.get('title', '')
+    datetime_val = data.get('datetime', '')
+    participant_emails = data.get('participant_emails', [])
+
+    # Validate required fields
     if not title:
-        return Response({"error": "Title is required."}, status=400)
+        return JsonResponse({"error": "Title is required."}, status=400)
     if not datetime_val:
-        return Response({"error": "Datetime is required."}, status=400)
+        return JsonResponse({"error": "Datetime is required."}, status=400)
 
+    # Create meeting
     meeting = Meeting.objects.create(
         title=title,
         datetime=datetime_val,
         company=company
     )
 
+    # Generate meeting_id and link
     meeting_id = str(meeting.id)
-    link = generate_meeting_link(company.name, api_key, meeting_id)
+    link = generate_meeting_link(company.name, company.api_key, meeting_id)
+    
     meeting.meeting_id = meeting_id
     meeting.link = link
     meeting.save(update_fields=['meeting_id', 'link'])
 
+    # Create participants
     if participant_emails:
         if isinstance(participant_emails, str):
             participant_emails = [participant_emails]
         for email in participant_emails:
-            if email:
+            if email and email.strip():
                 Participant.objects.create(
                     meeting=meeting,
-                    user_email=email,
+                    user_email=email.strip(),
                     user_id=""
                 )
 
-    # Store meeting data in Redis cache/ Django cache backend
+    # Cache meeting data
     try:
         cache.set(f"meeting:{meeting.id}", {
             "meeting_id": meeting_id,
             "company": "".join(char for char in company.name if char.isalnum()),
-            "api_key": api_key,
+            "api_key": company.api_key,
             "link": link,
             "title": meeting.title,
             "datetime": meeting.datetime,
-            "participants": [email for email in participant_emails] if participant_emails else [],
-        })
-    except Exception:
-        pass
+            "participants": [email.strip() for email in participant_emails if email] if participant_emails else [],
+        }, timeout=86400 * 7)  # Cache for 7 days
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Cache set failed: {e}")
 
+    # Build full link for email
     origin = request.headers.get('Origin') or request.build_absolute_uri('/').rstrip('/')
     full_link = f"{origin}/{link}".rstrip('/')
 
+    # Send email to participants
     subject = f"Meeting Invitation: {title}"
     body = (
         f"Meeting Title: {title}\n"
-        f"Organizer Name: {company.name}\n"
+        f"Organizer: {company.name}\n"
         f"Date & Time: {datetime_val}\n"
-        f"Join Link: {full_link}"
+        f"\nJoin Link: {full_link}\n"
     )
 
-    sender_email = getattr(settings, 'EMAIL_HOST_USER', 'webmaster@localhost')
+    sender_email = getattr(settings, 'EMAIL_HOST_USER', 'noreply@huddle.app')
+    
     if participant_emails:
-        try:
-            send_mail(
-                subject,
-                body,
-                sender_email,
-                list(participant_emails),
-                fail_silently=True
-            )
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).warning(f"Email delivery failed: {e}")
+        cleaned_emails = [email.strip() for email in participant_emails if email and email.strip()]
+        if cleaned_emails:
+            try:
+                send_mail(
+                    subject,
+                    body,
+                    sender_email,
+                    cleaned_emails,
+                    fail_silently=False
+                )
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Email delivery failed for {cleaned_emails}: {str(e)}")
+                # Still return success even if email fails
+                pass
 
-    return Response({
+    return JsonResponse({
         "success": True,
         "meeting_id": meeting_id,
-        "link": link
-    })
+        "link": link,
+        "full_link": full_link
+    }, status=201)
 
 
 # =====================================================================
@@ -733,5 +770,81 @@ def validate_meeting_lobby_view(request, meeting_id):
         "datetime": meeting.datetime or (meeting.start_time.isoformat() if meeting.start_time else ""),
         "company_name": meeting.company.name if meeting.company else (meeting.host.username if meeting.host else "Huddle"),
         "participants": participants
+    })
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+@authentication_classes([])
+def company_signup_view(request):
+    """
+    Host company registration endpoint.
+    GET: Renders signup form
+    POST: Creates company, generates API_KEY, returns it once
+    """
+    if request.method == 'GET':
+        return render(request, 'company/signup.html')
+
+    # POST: Extract data
+    full_name = request.data.get('full_name') or request.POST.get('full_name', '')
+    email = request.data.get('email') or request.POST.get('email', '')
+    password = request.data.get('password') or request.POST.get('password', '')
+    password_confirm = request.data.get('password_confirm') or request.POST.get('password_confirm', '')
+    company_name = request.data.get('company_name') or request.POST.get('company_name', '')
+
+    # Validation
+    if not all([full_name, email, password, company_name]):
+        error_msg = "All fields are required."
+        if request.content_type == 'application/json' or 'application/json' in request.headers.get('Accept', ''):
+            return Response({"error": error_msg}, status=400)
+        messages.error(request, error_msg)
+        return render(request, 'company/signup.html')
+
+    if password != password_confirm:
+        error_msg = "Passwords do not match."
+        if request.content_type == 'application/json' or 'application/json' in request.headers.get('Accept', ''):
+            return Response({"error": error_msg}, status=400)
+        messages.error(request, error_msg)
+        return render(request, 'company/signup.html')
+
+    if Company.objects.filter(email=email).exists():
+        error_msg = "Email already registered."
+        if request.content_type == 'application/json' or 'application/json' in request.headers.get('Accept', ''):
+            return Response({"error": error_msg}, status=400)
+        messages.error(request, error_msg)
+        return render(request, 'company/signup.html')
+
+    # Generate API_KEY: SK_ + 32 random hex chars
+    api_key = f"SK_{secrets.token_hex(16)}"
+    
+    # Create Company
+    company = Company.objects.create(
+        name=company_name,
+        email=email,
+        password=password,  # Will be hashed by model.save()
+        api_key=api_key,
+        api_key_created_at=tz_now(),
+        is_active=True
+    )
+
+    # Check if JSON request
+    is_json = request.content_type == 'application/json' or 'application/json' in request.headers.get('Accept', '')
+    if is_json:
+        return Response({
+            "success": True,
+            "message": "Company registered successfully! Copy your API_KEY and add to .env",
+            "api_key": api_key,
+            "company": {
+                "id": str(company.id),
+                "name": company.name,
+                "email": company.email
+            }
+        }, status=201)
+
+    # Form request: render template with API_KEY to display
+    return render(request, 'company/signup_success.html', {
+        'api_key': api_key,
+        'company_name': company_name,
+        'email': email
     })
 

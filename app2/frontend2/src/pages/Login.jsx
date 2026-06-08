@@ -5,9 +5,11 @@ function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const loginHost = async () => {
     try {
+      setLoading(true);
       const response = await fetch(
         "http://localhost:8000/company/login/",
         {
@@ -25,13 +27,40 @@ function Login() {
       const data = await response.json();
 
       if (response.ok && data.token) {
-        localStorage.removeItem("api_key");
+        // Store JWT token
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("company", data.company.name || "Huddle");
+        localStorage.setItem("company_id", data.company.id || "");
+
+        // Fetch API key using JWT token
+        try {
+          const apiKeyResponse = await fetch(
+            "http://localhost:8000/company/api-key/",
+            {
+              method: "GET",
+              headers: {
+                "Authorization": `Bearer ${data.token}`,
+                "Content-Type": "application/json"
+              }
+            }
+          );
+
+          if (apiKeyResponse.ok) {
+            const apiKeyData = await apiKeyResponse.json();
+            if (apiKeyData.api_key) {
+              localStorage.setItem("api_key", apiKeyData.api_key);
+            }
+          }
+        } catch (apiErr) {
+          console.warn("Could not fetch API key:", apiErr);
+        }
+
+        // Clear old auth data
         localStorage.removeItem("user_id");
         localStorage.removeItem("email");
         localStorage.removeItem("username");
         localStorage.removeItem("name");
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("company", data.company.name || "Huddle");
+
         navigate("/company/dashboard");
       } else {
         alert(data.message || "Invalid Credentials");
@@ -39,6 +68,8 @@ function Login() {
     } catch (err) {
       console.error("Login failed:", err);
       alert("Could not connect to Company Login service.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,6 +101,7 @@ function Login() {
             placeholder="Enter Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
             style={{
               width: "100%",
               padding: "12px",
@@ -87,6 +119,7 @@ function Login() {
             placeholder="Enter Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
             style={{
               width: "100%",
               padding: "12px",
@@ -99,20 +132,27 @@ function Login() {
 
         <button
           onClick={loginHost}
+          disabled={loading}
           style={{
             width: "100%",
             padding: "14px",
-            background: "#6d28d9",
+            background: loading ? "#ccc" : "#6d28d9",
             color: "white",
             border: "none",
             borderRadius: "10px",
             fontWeight: "bold",
-            cursor: "pointer",
+            cursor: loading ? "not-allowed" : "pointer",
             transition: "0.3s"
           }}
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
+
+        <div style={{ textAlign: "center", marginTop: "15px", fontSize: "13px" }}>
+          <a href="http://localhost:8000/company/signup/" style={{ color: "#6d28d9", textDecoration: "none" }}>
+            New company? Register here
+          </a>
+        </div>
       </div>
     </div>
   );

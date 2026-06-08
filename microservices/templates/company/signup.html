@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Company Registration</title>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body{
+            background: linear-gradient(135deg,#4f46e5,#7c3aed);
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding: 20px;
+        }
+
+        .signup-container{
+            background:white;
+            width:420px;
+            padding:35px;
+            border-radius:20px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h2{
+            text-align:center;
+            margin-bottom:25px;
+            color:#222;
+        }
+
+        .subtitle{
+            text-align:center;
+            color:#666;
+            margin-bottom:25px;
+            font-size:14px;
+        }
+
+        .input-group{
+            margin-bottom:18px;
+        }
+
+        label{
+            display:block;
+            margin-bottom:8px;
+            font-weight:bold;
+            color:#444;
+            font-size:14px;
+        }
+
+        input{
+            width:100%;
+            padding:12px;
+            border:1px solid #ddd;
+            border-radius:10px;
+            outline:none;
+            font-size:14px;
+        }
+
+        input:focus{
+            border-color:#6d28d9;
+            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+        }
+
+        button{
+            width:100%;
+            padding:13px;
+            border:none;
+            background:#6d28d9;
+            color:white;
+            border-radius:10px;
+            cursor:pointer;
+            font-size:15px;
+            font-weight:bold;
+            transition:0.3s;
+            margin-top:10px;
+        }
+
+        button:hover{
+            background:#5b21b6;
+        }
+
+        button:disabled{
+            background:#ccc;
+            cursor:not-allowed;
+        }
+
+        .error{
+            color:red;
+            font-size:13px;
+            margin-top:5px;
+            display:none;
+        }
+
+        .modal{
+            display:none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:rgba(0,0,0,0.5);
+            justify-content:center;
+            align-items:center;
+            z-index:1000;
+        }
+
+        .modal-content{
+            background:white;
+            padding:40px;
+            width:400px;
+            border-radius:20px;
+            text-align:center;
+            animation: popup 0.3s ease;
+            max-width:90%;
+        }
+
+        @keyframes popup{
+            from{
+                transform:scale(0.8);
+                opacity:0;
+            }
+            to{
+                transform:scale(1);
+                opacity:1;
+            }
+        }
+
+        .modal-title{
+            font-size:22px;
+            font-weight:bold;
+            margin-bottom:15px;
+            color:#222;
+        }
+
+        .modal-subtitle{
+            color:#666;
+            font-size:14px;
+            margin-bottom:25px;
+        }
+
+        .api-key-box{
+            background:#f3f4f6;
+            padding:15px;
+            border-radius:10px;
+            margin:20px 0;
+            word-break:break-all;
+            font-weight:bold;
+            color:#4f46e5;
+            font-size:13px;
+            font-family:monospace;
+            border:2px solid #e5e7eb;
+        }
+
+        .button-group{
+            display:flex;
+            gap:10px;
+            margin-top:20px;
+        }
+
+        .button-group button{
+            flex:1;
+        }
+
+        .close-btn{
+            background:#999;
+        }
+
+        .close-btn:hover{
+            background:#777;
+        }
+
+        .copy-btn{
+            background:#10b981;
+        }
+
+        .copy-btn:hover{
+            background:#059669;
+        }
+
+        .success-icon{
+            font-size:40px;
+            margin-bottom:10px;
+        }
+
+        a{
+            color:#6d28d9;
+            text-decoration:none;
+            margin-top:15px;
+            display:block;
+            font-size:13px;
+        }
+
+        a:hover{
+            text-decoration:underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="signup-container">
+    <h2>🚀 Register Your Company</h2>
+    <p class="subtitle">Get your API Key to manage meetings</p>
+
+    <form id="signupForm">
+        {% csrf_token %}
+
+        <div class="input-group">
+            <label>Full Name</label>
+            <input
+                type="text"
+                id="full_name"
+                placeholder="Your full name"
+                required
+            >
+            <span class="error" id="full_name_error"></span>
+        </div>
+
+        <div class="input-group">
+            <label>Company Name</label>
+            <input
+                type="text"
+                id="company_name"
+                placeholder="Your company name"
+                required
+            >
+            <span class="error" id="company_name_error"></span>
+        </div>
+
+        <div class="input-group">
+            <label>Email</label>
+            <input
+                type="email"
+                id="email"
+                placeholder="your@company.com"
+                required
+            >
+            <span class="error" id="email_error"></span>
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input
+                type="password"
+                id="password"
+                placeholder="Create a strong password"
+                required
+            >
+            <span class="error" id="password_error"></span>
+        </div>
+
+        <div class="input-group">
+            <label>Confirm Password</label>
+            <input
+                type="password"
+                id="password_confirm"
+                placeholder="Confirm your password"
+                required
+            >
+            <span class="error" id="password_confirm_error"></span>
+        </div>
+
+        <button type="submit" id="submitBtn">
+            Register Company & Get API Key
+        </button>
+    </form>
+
+    <a href="/company/login/">Already have an account? Login here</a>
+</div>
+
+<!-- Modal Popup -->
+<div class="modal" id="responseModal">
+    <div class="modal-content">
+        <div class="success-icon" id="modalIcon">✅</div>
+        <div class="modal-title" id="modalTitle">Registration Successful!</div>
+        <div class="modal-subtitle" id="modalSubtitle">
+            Copy your API Key and add it to your .env file
+        </div>
+
+        <div class="api-key-box" id="apiKeyBox">
+            SK_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        </div>
+
+        <div style="background:#f0fdf4; padding:10px; border-radius:8px; color:#166534; font-size:12px; margin:15px 0;">
+            ⚠️ Save this key securely. It will not be shown again.
+        </div>
+
+        <div class="button-group">
+            <button class="copy-btn" onclick="copyAPIKey()" id="copyBtn">
+                📋 Copy API Key
+            </button>
+            <button class="close-btn" onclick="closeModal()">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+const form = document.getElementById("signupForm");
+
+form.addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    // Clear previous errors
+    document.querySelectorAll('.error').forEach(el => {
+        el.style.display = 'none';
+        el.textContent = '';
+    });
+
+    const full_name = document.getElementById("full_name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const password_confirm = document.getElementById("password_confirm").value;
+    const company_name = document.getElementById("company_name").value.trim();
+
+    // Client-side validation
+    if (!full_name || !email || !password || !password_confirm || !company_name) {
+        showError("full_name_error", "All fields are required");
+        return;
+    }
+
+    if (password.length < 6) {
+        showError("password_error", "Password must be at least 6 characters");
+        return;
+    }
+
+    if (password !== password_confirm) {
+        showError("password_confirm_error", "Passwords do not match");
+        return;
+    }
+
+    try {
+        document.getElementById("submitBtn").disabled = true;
+        document.getElementById("submitBtn").textContent = "Registering...";
+
+        const response = await fetch("/company/signup/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({
+                full_name,
+                email,
+                password,
+                password_confirm,
+                company_name
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Show success modal
+            document.getElementById("modalIcon").textContent = "✅";
+            document.getElementById("modalTitle").textContent = "Registration Successful!";
+            document.getElementById("modalSubtitle").textContent = "Copy your API Key and add it to your .env file";
+            document.getElementById("apiKeyBox").textContent = data.api_key;
+            document.getElementById("responseModal").style.display = "flex";
+            form.reset();
+        } else {
+            // Show error modal
+            document.getElementById("modalIcon").textContent = "❌";
+            document.getElementById("modalTitle").textContent = "Registration Failed";
+            document.getElementById("modalSubtitle").textContent = data.error || "Something went wrong. Try again.";
+            document.getElementById("apiKeyBox").textContent = "";
+            document.getElementById("responseModal").style.display = "flex";
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        document.getElementById("modalIcon").textContent = "❌";
+        document.getElementById("modalTitle").textContent = "Network Error";
+        document.getElementById("modalSubtitle").textContent = "Failed to connect to server. Try again.";
+        document.getElementById("apiKeyBox").textContent = error.message;
+        document.getElementById("responseModal").style.display = "flex";
+    } finally {
+        document.getElementById("submitBtn").disabled = false;
+        document.getElementById("submitBtn").textContent = "Register Company & Get API Key";
+    }
+});
+
+function showError(fieldId, message) {
+    const errorEl = document.getElementById(fieldId);
+    if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+    }
+}
+
+function closeModal(){
+    document.getElementById("responseModal").style.display = "none";
+}
+
+function copyAPIKey() {
+    const apiKeyBox = document.getElementById("apiKeyBox");
+    const apiKey = apiKeyBox.textContent;
+
+    navigator.clipboard.writeText(apiKey).then(() => {
+        const copyBtn = document.getElementById("copyBtn");
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = "✓ Copied!";
+        setTimeout(() => {
+            copyBtn.textContent = originalText;
+        }, 2000);
+    }).catch(err => {
+        alert("Failed to copy. Please copy manually: " + apiKey);
+    });
+}
+
+function getCookie(name){
+    let cookieValue = null;
+
+    if(document.cookie && document.cookie !== ''){
+        const cookies = document.cookie.split(';');
+
+        for(let i = 0; i < cookies.length; i++){
+            const cookie = cookies[i].trim();
+
+            if(cookie.substring(0, name.length + 1) === (name + '=')){
+                cookieValue = decodeURIComponent(
+                    cookie.substring(name.length + 1)
+                );
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+
+</script>
+</body>
+</html>

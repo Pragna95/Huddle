@@ -2,12 +2,15 @@ from django.contrib import admin
 from django.urls import path, include
 from apps.meetings.views import (
     company_login_view,
+    company_signup_view,
     company_api_key_get_view,
     company_api_key_generate_view,
     schedule_meeting_view
 )
 
 urlpatterns = [
+    path('company/signup/', company_signup_view, name='company_signup'),
+    path('company/signup', company_signup_view),
     path('company/login/', company_login_view, name='company_login'),
     
     # API key retrieval and generation (supporting with/without trailing slash)
