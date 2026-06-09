@@ -19,7 +19,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from backend.authentication import ApiKeyAuthentication, JWTCompanyAuthentication, AppApiKeyAuthentication
 from backend.permissions import IsCompanyUser
 from backend.jwt_utils import encode_jwt
-from .models import Company, Meeting, Participant
+from .models import Company, Meeting, Participant, SuperAdmin, Host, ApiKey, Application
 
 def check_rate_limit(company):
     """
@@ -715,7 +715,14 @@ def validate_meeting_view(request, company, letter, api_key, meeting_id):
             return Response({"error": "Company mismatch."}, status=404)
         
         # Validate API Key
-        if meeting.company.api_key != api_key:
+        # Check ApiKey model first or fall back to company.api_key
+        has_matching_key = False
+        if ApiKey.objects.filter(company=meeting.company, key=api_key, is_active=True).exists():
+            has_matching_key = True
+        elif meeting.company.api_key == api_key:
+            has_matching_key = True
+
+        if not has_matching_key:
             return Response({"error": "Invalid API key."}, status=403)
             
         # Ensure the company is active
@@ -737,6 +744,22 @@ def validate_meeting_view(request, company, letter, api_key, meeting_id):
     if not meeting.is_active:
         return Response({"error": "Meeting is inactive."}, status=403)
 
+    # Verify schedule (future check and duration link expiration)
+    if meeting.datetime:
+        try:
+            from django.utils.dateparse import parse_datetime
+            mtg_dt = parse_datetime(meeting.datetime.split('+')[0])
+            if mtg_dt:
+                from django.utils.timezone import is_aware, make_aware
+                now_dt = tz_now()
+                if not is_aware(mtg_dt):
+                    mtg_dt = make_aware(mtg_dt)
+                # If meeting scheduled start was more than 24 hours ago, reject as expired
+                if now_dt > mtg_dt + datetime.timedelta(hours=24):
+                    return Response({"error": "Meeting link has expired."}, status=403)
+        except Exception:
+            pass
+
     # Retrieve participant emails
     participants = list(meeting.participants.values_list('user_email', flat=True))
 
@@ -748,103 +771,134 @@ def validate_meeting_view(request, company, letter, api_key, meeting_id):
     })
 
 
-@api_view(['GET'])
-@permission_classes([AllowAny])
-@authentication_classes([])
-def validate_meeting_lobby_view(request, meeting_id):
+def super_admin_dashboard_view(request):
     """
-    Validates a meeting by meeting_id alone for the lobby redirect.
+    Super Admin Dashboard view inside microservices backend.
     """
-    try:
-        meeting = Meeting.objects.get(meeting_id=meeting_id)
-    except Meeting.DoesNotExist:
-        return Response({"error": "Meeting not found."}, status=404)
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return redirect('/admin/login/?next=/super-admin/dashboard/')
 
-    if not meeting.is_active:
-        return Response({"error": "Meeting is inactive."}, status=403)
+    super_admin, _ = SuperAdmin.objects.get_or_create(user=request.user)
 
-    participants = list(meeting.participants.values_list('user_email', flat=True))
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'create_host':
+            name = request.POST.get('name')
+            email = request.POST.get('email')
+            password = request.POST.get('password')
 
-    return Response({
-        "title": meeting.title,
-        "datetime": meeting.datetime or (meeting.start_time.isoformat() if meeting.start_time else ""),
-        "company_name": meeting.company.name if meeting.company else (meeting.host.username if meeting.host else "Huddle"),
-        "participants": participants
+            if not name or not email or not password:
+                messages.error(request, "All fields are required to create a Host.")
+            elif Host.objects.filter(email=email).exists():
+                messages.error(request, f"Host with email {email} already exists.")
+            else:
+                Host.objects.create(
+                    name=name,
+                    email=email,
+                    password=password,
+                    super_admin=super_admin
+                )
+                messages.success(request, f"Host account for {name} has been successfully created.")
+        
+        elif action == 'toggle_status':
+            host_id = request.POST.get('host_id')
+            try:
+                host = Host.objects.get(id=host_id)
+                host.is_active = not host.is_active
+                host.save()
+
+                # Toggle associated companies and meetings
+                companies = Company.objects.filter(host=host)
+                for c in companies:
+                    c.is_active = host.is_active
+                    c.save()
+                    Meeting.objects.filter(company=c).update(is_active=host.is_active)
+
+                messages.success(request, f"Host {host.name} status has been updated to {'Active' if host.is_active else 'Inactive'}.")
+            except Host.DoesNotExist:
+                messages.error(request, "Host not found.")
+
+        return redirect('super_admin_dashboard')
+
+    hosts = Host.objects.all().order_by('-created_at')
+    meetings = Meeting.objects.all().order_by('-created_at')
+    return render(request, 'super_admin/dashboard.html', {
+        'hosts': hosts,
+        'meetings': meetings
     })
 
 
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 @authentication_classes([])
-def company_signup_view(request):
+@csrf_exempt
+def company_register_view(request):
     """
-    Host company registration endpoint.
-    GET: Renders signup form
-    POST: Creates company, generates API_KEY, returns it once
+    Company Registration Portal for Hosts.
     """
     if request.method == 'GET':
-        return render(request, 'company/signup.html')
+        return render(request, 'company/register.html')
 
-    # POST: Extract data
-    full_name = request.data.get('full_name') or request.POST.get('full_name', '')
-    email = request.data.get('email') or request.POST.get('email', '')
-    password = request.data.get('password') or request.POST.get('password', '')
-    password_confirm = request.data.get('password_confirm') or request.POST.get('password_confirm', '')
-    company_name = request.data.get('company_name') or request.POST.get('company_name', '')
+    name = request.data.get('name')
+    email = request.data.get('email')
+    address = request.data.get('address')
+    contact_number = request.data.get('contact_number')
+    domain = request.data.get('domain', '')
+    password = request.data.get('password')
 
-    # Validation
-    if not all([full_name, email, password, company_name]):
-        error_msg = "All fields are required."
-        if request.content_type == 'application/json' or 'application/json' in request.headers.get('Accept', ''):
-            return Response({"error": error_msg}, status=400)
-        messages.error(request, error_msg)
-        return render(request, 'company/signup.html')
+    if not name or not email or not address or not contact_number or not password:
+        return Response({"error": "All fields (except domain) must be provided manually."}, status=400)
 
-    if password != password_confirm:
-        error_msg = "Passwords do not match."
-        if request.content_type == 'application/json' or 'application/json' in request.headers.get('Accept', ''):
-            return Response({"error": error_msg}, status=400)
-        messages.error(request, error_msg)
-        return render(request, 'company/signup.html')
+    # Check if Host is created by Super Admin and active
+    host = Host.objects.filter(email=email, is_active=True).first()
+    if not host:
+        return Response({"error": "No active Host account found with this email. Please contact the Super Admin to create a Host first."}, status=400)
 
+    # Prevent duplicate company registration
     if Company.objects.filter(email=email).exists():
-        error_msg = "Email already registered."
-        if request.content_type == 'application/json' or 'application/json' in request.headers.get('Accept', ''):
-            return Response({"error": error_msg}, status=400)
-        messages.error(request, error_msg)
-        return render(request, 'company/signup.html')
+        return Response({"error": "A company with this email address has already been registered."}, status=400)
 
-    # Generate API_KEY: SK_ + 32 random hex chars
-    api_key = f"SK_{secrets.token_hex(16)}"
-    
-    # Create Company
+    # Create company
     company = Company.objects.create(
-        name=company_name,
+        host=host,
+        name=name,
         email=email,
-        password=password,  # Will be hashed by model.save()
-        api_key=api_key,
-        api_key_created_at=tz_now(),
+        address=address,
+        contact_number=contact_number,
+        domain=domain,
+        password=password,
         is_active=True
     )
 
-    # Check if JSON request
-    is_json = request.content_type == 'application/json' or 'application/json' in request.headers.get('Accept', '')
-    if is_json:
-        return Response({
-            "success": True,
-            "message": "Company registered successfully! Copy your API_KEY and add to .env",
-            "api_key": api_key,
-            "company": {
-                "id": str(company.id),
-                "name": company.name,
-                "email": company.email
-            }
-        }, status=201)
+    # Generate ApiKey
+    new_key = f"sk_live_{secrets.token_hex(16)}"
+    ApiKey.objects.create(company=company, key=new_key, is_active=True)
 
-    # Form request: render template with API_KEY to display
-    return render(request, 'company/signup_success.html', {
-        'api_key': api_key,
-        'company_name': company_name,
-        'email': email
+    # Backwards compatibility key cache
+    company.api_key = new_key
+    company.api_key_created_at = tz_now()
+    company.save()
+
+    return Response({
+        "success": True,
+        "api_key": new_key
+    }, status=201)
+
+
+@api_view(['GET'])
+@authentication_classes([ApiKeyAuthentication])
+@permission_classes([IsAuthenticated])
+def verify_key_view(request):
+    """
+    Verification endpoint for app backends to validate host identity.
+    """
+    return Response({
+        "valid": True,
+        "company": {
+            "id": str(request.company.id),
+            "name": request.company.name,
+            "email": request.company.email,
+            "is_active": request.company.is_active
+        }
     })
 

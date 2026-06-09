@@ -2,7 +2,7 @@ import logging
 from django.conf import settings
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
-from apps.meetings.models import Company
+from apps.meetings.models import Company, ApiKey
 from .jwt_utils import decode_jwt
 
 logger = logging.getLogger(__name__)
@@ -20,10 +20,16 @@ class ApiKeyAuthentication(BaseAuthentication):
         if not key or not key.startswith('sk_live_'):
             return None
 
+        # Try to find key in ApiKey model first
         try:
-            company = Company.objects.get(api_key=key)
-        except Company.DoesNotExist:
-            raise AuthenticationFailed("Invalid API key")
+            api_key_obj = ApiKey.objects.select_related('company').get(key=key, is_active=True)
+            company = api_key_obj.company
+        except ApiKey.DoesNotExist:
+            # Fall back to legacy Company.api_key field
+            try:
+                company = Company.objects.get(api_key=key)
+            except Company.DoesNotExist:
+                raise AuthenticationFailed("Invalid API key")
 
         if not company.is_active:
             raise PermissionDenied("Company account is inactive.")

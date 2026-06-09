@@ -14,7 +14,7 @@ function LoginAuth() {
     setError("");
 
     try {
-      const authURL = import.meta.env.VITE_AUTH_URL || "http://localhost:8001";
+      const authURL = import.meta.env.VITE_AUTH_URL || "http://localhost:8002";
       const response = await axios.post(`${authURL}/api/auth/login/`, {
         email: usernameOrEmail, // Mapped to usernameOrEmail field
         password: password

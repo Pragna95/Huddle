@@ -13,7 +13,7 @@ axios.interceptors.request.use(
     // Add API Key and User parameters depending on target URL
     if (config.url) {
       const isMicroservice = config.url.includes(dataURL) || config.url.includes("127.0.0.1:8000") || config.url.includes("localhost:8000");
-      const isAuthBackend = config.url.includes(authURL) || config.url.includes("localhost:8001") || config.url.includes("localhost:8002");
+      const isAuthBackend = config.url.includes(authURL) || config.url.includes("localhost:8001") || config.url.includes("localhost:8002") || config.url.startsWith('/api');
 
       if (isMicroservice) {
         if (apiKey) {

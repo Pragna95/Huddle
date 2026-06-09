@@ -17,7 +17,7 @@ function DashboardAuth() {
       }
 
       try {
-        const authURL = import.meta.env.VITE_AUTH_URL || "http://localhost:8001";
+        const authURL = import.meta.env.VITE_AUTH_URL || "http://localhost:8002";
         // API Key and User Id are handled globally by Axios request interceptors.
         const response = await axios.get(`${authURL}/api/auth/user/`);
         setUser(response.data);
