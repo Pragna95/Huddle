@@ -13,11 +13,3 @@ class CustomUser(AbstractUser):
         return self.email
 
 
-class ApiKey(models.Model):
-    key = models.CharField(max_length=255, unique=True)
-    app_name = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"{self.app_name} - {self.key}"

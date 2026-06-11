@@ -1,194 +1,234 @@
-import { useState } from "react"
-import axios from "axios"
-import toast from "react-hot-toast"
-
+import { useState, useEffect } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import api,{microserviceApi} from "../../services/api";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Calendar, ChevronDown } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog"
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button"
+const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "Su"];
 
-import { Input } from "@/components/ui/input"
+export default function AdvanceSchedule({
+    open,
+    setOpen,
+    onAddSession,
+    onCancelSession,
+}) {
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [startDate, setStartDate] = useState(null);
+    const [startTime, setStartTime] = useState("09:00");
+    const [endTime, setEndTime] = useState("10:00");
 
-import {
-  Calendar,
-  ChevronDown,
-} from "lucide-react"
+    const [meetingLink, setMeetingLink] = useState("");
+    const [loading, setLoading] = useState(false);
 
-const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "Su"]
+    // ✅ NEW CHECKBOX STATES
+    const [allDay, setAllDay] = useState(false);
+    const [neverEnds, setNeverEnds] = useState(true);
 
-export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelSession }) {
+    const [selectedDays, setSelectedDays] = useState([0, 1, 2, 3, 4]);
 
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [startDate, setStartDate] = useState("")
-  const [startTime, setStartTime] = useState("09:00")
-  const [endTime, setEndTime] = useState("10:00")
+    const [recurrenceType, setRecurrenceType] = useState("Never");
 
-  const [meetingLink, setMeetingLink] = useState("")
-  const [loading, setLoading] = useState(false)
+    const [attendeesList, setAttendeesList] = useState([]);
+    const [availableUsers, setAvailableUsers] = useState([]);
+    const [newEmail, setNewEmail] = useState("");
+    const [attendeeError, setAttendeeError] = useState("");
+    const [errors, setErrors] = useState({});
 
-  // ✅ NEW CHECKBOX STATES
-  const [allDay, setAllDay] = useState(false)
-  const [neverEnds, setNeverEnds] = useState(true)
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await api.get("/api/auth/users/");
+                if (response.data) {
+                    setAvailableUsers(response.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch users", error);
+            }
+        };
+        fetchUsers();
+    }, []);
 
-  const [selectedDays, setSelectedDays] = useState([0, 1, 2, 3, 4])
+    const handleAddAttendee = () => {
+        setAttendeeError("");
+        if (!newEmail.trim()) return;
 
-  const [attendeesList, setAttendeesList] = useState([
-    { name: "John Doe", email: "john@example.com" },
-    { name: "Bob Johnson", email: "bob@example.com" },
-    { name: "Alice Smith", email: "alice@example.com" },
-    { name: "Charlie Brown", email: "charlie@example.com" }
-  ]);
-  const [newEmail, setNewEmail] = useState("");
-  const [attendeeError, setAttendeeError] = useState("");
-  const [errors, setErrors] = useState({});
-
-  const handleAddAttendee = () => {
-    setAttendeeError("");
-    if (!newEmail.trim()) return;
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newEmail.trim())) {
-      setAttendeeError("Please enter a valid email address");
-      return;
-    }
-
-    if (attendeesList.some(a => a.email.toLowerCase() === newEmail.trim().toLowerCase())) {
-      setAttendeeError("This person is already invited");
-      return;
-    }
-
-    const namePart = newEmail.split("@")[0];
-    const capitalizedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-
-    setAttendeesList(prev => [
-      ...prev,
-      { name: capitalizedName, email: newEmail.trim() }
-    ]);
-    setNewEmail("");
-  };
-
-  const handleRemoveAttendee = (email) => {
-    setAttendeesList(prev => prev.filter(a => a.email !== email));
-  };
-
-  const toggleDay = (index) => {
-    setSelectedDays((prev) =>
-      prev.includes(index)
-        ? prev.filter((d) => d !== index)
-        : [...prev, index]
-    )
-  }
-
-  const handleScheduleMeeting = async () => {
-    // Validate inputs
-    const newErrors = {};
-    if (!title.trim()) {
-      newErrors.title = "Meeting title is required";
-    }
-    if (!startDate) {
-      newErrors.startDate = "Start date is required";
-    }
-    if (!startTime) {
-      newErrors.startTime = "Start time is required";
-    }
-    if (!endTime) {
-      newErrors.endTime = "End time is required";
-    } else if (startTime && endTime <= startTime) {
-      newErrors.endTime = "End time must be after start time";
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    setErrors({});
-
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      const apiKey = localStorage.getItem("api_key");
-      const participant_emails = attendeesList.map(a => a.email);
-      const datetime = `${startDate}T${startTime}`;
-
-      console.log("[AdvanceSchedule] Token:", token ? token.substring(0, 30) + "..." : "MISSING");
-      console.log("[AdvanceSchedule] ApiKey:", apiKey || "MISSING");
-      console.log("[AdvanceSchedule] Payload:", { title, datetime, participant_emails });
-
-      const response = await fetch('/api/schedule-meeting', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-          'x-api-key': apiKey || ''
-        },
-        body: JSON.stringify({
-          title,
-          datetime,
-          participant_emails
-        })
-      });
-
-      console.log("[AdvanceSchedule] HTTP Status:", response.status, response.statusText);
-      const rawText = await response.text();
-      console.log("[AdvanceSchedule] Raw Response:", rawText);
-
-      let data;
-      try {
-        data = JSON.parse(rawText);
-      } catch (e) {
-        console.error("[AdvanceSchedule] Response is not JSON:", rawText);
-        toast.error("Server returned an unexpected response. Check console.");
-        return;
-      }
-
-      if (response.ok && data.success) {
-        const fullLink = data.link
-          ? `${window.location.origin}/${data.link}`
-          : "";
-        toast.success(`Meeting scheduled! Link copied to clipboard.`);
-        if (fullLink) {
-          try { await navigator.clipboard.writeText(fullLink); } catch (_) {}
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(newEmail.trim())) {
+            setAttendeeError("Please enter a valid email address");
+            return;
         }
 
-        onAddSession({
-          title,
-          description,
-          startDate,
-          startTime,
-          endTime,
-          participants: attendeesList.length,
-          link: fullLink,
-          meeting_id: data.meeting_id,
-        });
+        if (
+            attendeesList.some(
+                (a) => a.email.toLowerCase() === newEmail.trim().toLowerCase(),
+            )
+        ) {
+            setAttendeeError("This person is already invited");
+            return;
+        }
 
-        setOpen(false);
-        // Reset form
-        setTitle("");
-        setDescription("");
-        setStartDate("");
-        setStartTime("09:00");
-        setEndTime("10:00");
-      } else {
-        console.error("[AdvanceSchedule] API error response:", data);
-        toast.error(data.error || data.detail || "Failed to schedule meeting.");
-      }
-    } catch (error) {
-      console.error("[AdvanceSchedule] Network/fetch error:", error);
-      toast.error("Scheduling failed. Network error.");
-    } finally {
-      setLoading(false);
-    }
-  };
+        const matchedUser = availableUsers.find(
+            (u) => u.email.toLowerCase() === newEmail.trim().toLowerCase(),
+        );
+        const namePart = matchedUser
+            ? matchedUser.name || matchedUser.username
+            : newEmail.split("@")[0];
+        const capitalizedName =
+            namePart.charAt(0).toUpperCase() + namePart.slice(1);
 
-  return (
+        setAttendeesList((prev) => [
+            ...prev,
+            { name: capitalizedName, email: newEmail.trim() },
+        ]);
+        setNewEmail("");
+    };
 
-    <Dialog open={open} onOpenChange={setOpen}>
+    const handleRemoveAttendee = (email) => {
+        setAttendeesList((prev) => prev.filter((a) => a.email !== email));
+    };
 
-      <DialogContent
-  className="
+    const toggleDay = (index) => {
+        setSelectedDays((prev) =>
+            prev.includes(index)
+                ? prev.filter((d) => d !== index)
+                : [...prev, index],
+        );
+    };
+
+    const handleScheduleMeeting = async () => {
+        // Validate inputs
+        const newErrors = {};
+        if (!title.trim()) {
+            newErrors.title = "Meeting title is required";
+        }
+        if (!startDate) {
+            newErrors.startDate = "Start date is required";
+        }
+        if (!startTime) {
+            newErrors.startTime = "Start time is required";
+        }
+        if (!endTime) {
+            newErrors.endTime = "End time is required";
+        } else if (startTime && endTime <= startTime) {
+            newErrors.endTime = "End time must be after start time";
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+        setErrors({});
+
+        try {
+            setLoading(true);
+            const token = localStorage.getItem("token");
+            const apiKey = import.meta.env.VITE_X_API_KEY || localStorage.getItem("api_key") || "";
+            
+            let userEmail = localStorage.getItem("email") || "host@example.com";
+            let userName = localStorage.getItem("name") || "Host User";
+
+            // Fetch user details from the access token if available
+            if (token) {
+                try {
+                    const base64Url = token.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+                    const decoded = JSON.parse(jsonPayload);
+                    if (decoded.email) userEmail = decoded.email;
+                    if (decoded.name) userName = decoded.name;
+                } catch (e) {
+                    console.warn("Could not decode token", e);
+                }
+            }
+
+            const participant_emails = attendeesList.map((a) => a.email);
+            const dateStr = startDate ? format(startDate, "yyyy-MM-dd") : "";
+            const datetime = `${dateStr}T${startTime}`;
+
+            let response;
+            let data;
+            try {
+                response = await microserviceApi.post("/api/meeting/schedule/", {
+                    email: userEmail,
+                    name: userName,
+                    title,
+                    description,
+                    datetime,
+                    participant_emails,
+                }, {
+                    headers: {
+                        "X-Api-Key": apiKey,
+                    }
+                });
+                data = response.data;
+            } catch (err) {
+                console.error("[AdvanceSchedule] API Error:", err);
+                toast.error(err.response?.data?.error || "Server returned an unexpected response.");
+                return;
+            }
+
+            if (response.status === 201) {
+                // Construct URL: frontend_url/{meeting_code}/{encrypted_api_key}/{meeting_id}
+                const fullLink = `${window.location.origin}/${data.meeting_code}/${data.encrypted_api_key}/${data.meeting_id}`;
+                
+                toast.success(`Meeting scheduled! Link copied to clipboard.`);
+                try {
+                    await navigator.clipboard.writeText(fullLink);
+                } catch (_) {}
+
+                onAddSession({
+                    title,
+                    description,
+                    startDate,
+                    startTime,
+                    endTime,
+                    participants: attendeesList.length,
+                    link: fullLink,
+                    meeting_id: data.meeting_id,
+                });
+
+                setOpen(false);
+                // Reset form
+                setTitle("");
+                setDescription("");
+                setStartDate(null);
+                setStartTime("09:00");
+                setEndTime("10:00");
+            } else {
+                console.error("[AdvanceSchedule] API error response:", data);
+                toast.error(
+                    data.error || data.detail || "Failed to schedule meeting.",
+                );
+            }
+        } catch (error) {
+            console.error("[AdvanceSchedule] Network/fetch error:", error);
+            toast.error("Scheduling failed. Network error.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent
+                className="
    
     w-[981px]
     max-w-[95vw]
@@ -229,11 +269,11 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
     [&>button]:border-gray-400
     [&>button]:text-gray-700
   "
->
-        {/* HEADER */}
+            >
+                {/* HEADER */}
 
-        <div
-  className="
+                <div
+                    className="
     w-[915px]
     h-[44px]
 
@@ -246,40 +286,36 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
 
     mx-auto
   "
->
-
-          <div
-            className="
+                >
+                    <div
+                        className="
               bg-blue-100
               p-3
               rounded-2xl
               shrink-0
             "
-          >
-
-            <Calendar
-              className="
+                    >
+                        <Calendar
+                            className="
                 w-[24px]
                 h-[24px]
 
                 text-[#0b2a7a]
               "
-            />
+                        />
+                    </div>
 
-          </div>
-
-          <div
-  className="
+                    <div
+                        className="
     w-fit
     h-[44px]
 
     opacity-100
     rotate-0
   "
->
-
-  <h1
-    className="
+                    >
+                        <h1
+                            className="
       text-[20px]
       w-[272.7px]
       h-[28px]
@@ -294,12 +330,12 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
       pl-2
       -mt-2
     "
-  >
-    Schedule Advanced Session
-  </h1>
+                        >
+                            Schedule Advanced Session
+                        </h1>
 
-  <p
-    className="
+                        <p
+                            className="
       text-[12px]
       w-[272.7px]
       h-[16px]
@@ -310,17 +346,16 @@ export default function AdvanceSchedule({ open, setOpen, onAddSession, onCancelS
       pl-3
       
     "
-  >
-    Set up complex recurring meetings
-  </p>
+                        >
+                            Set up complex recurring meetings
+                        </p>
+                    </div>
+                </div>
 
-</div>
-        </div>
+                {/* BODY */}
 
-        {/* BODY */}
-
-        <div
-  className="
+                <div
+                    className="
     w-[915px]
 max-w-full
 
@@ -344,9 +379,9 @@ h-[795.19px]
     pb-0  
     
   "
->
-          <div
-            className="
+                >
+                    <div
+                        className="
               grid
 
               grid-cols-1
@@ -354,18 +389,15 @@ h-[795.19px]
 
               gap-8
             "
-          >
+                    >
+                        {/* LEFT SECTION */}
 
-            {/* LEFT SECTION */}
+                        <div className="space-y-5">
+                            {/* TITLE */}
 
-            <div className="space-y-5">
-
-              {/* TITLE */}
-
-              <div className="space-y-2 ">
-
-                <label
-                  className="
+                            <div className="space-y-2 ">
+                                <label
+                                    className="
                     text-[12px]
                     md:text-sm
 
@@ -382,15 +414,15 @@ h-[795.19px]
                     
                     
                   "
-                >
-                  Meeting Title
-                </label>
+                                >
+                                    Meeting Title
+                                </label>
 
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Design Sync"
-                  className="
+                                <Input
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="e.g. Design Sync"
+                                    className="
                     h-12
 
                     rounded-xl
@@ -407,21 +439,19 @@ h-[795.19px]
                     
                     
                   "
-                />
-                {errors.title && (
-                  <p className="text-xs text-red-500 mt-1 font-semibold">
-                    {errors.title}
-                  </p>
-                )}
+                                />
+                                {errors.title && (
+                                    <p className="text-xs text-red-500 mt-1 font-semibold">
+                                        {errors.title}
+                                    </p>
+                                )}
+                            </div>
 
-              </div>
+                            {/* DESCRIPTION */}
 
-              {/* DESCRIPTION */}
-
-              <div className="space-y-2">
-
-                <label
-                  className="
+                            <div className="space-y-2">
+                                <label
+                                    className="
                     text-xs
                     md:text-sm
 
@@ -435,15 +465,17 @@ h-[795.19px]
                     mb-2
                     block
                   "
-                >
-                  Description
-                </label>
+                                >
+                                    Description
+                                </label>
 
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter meeting description"
-                  className="
+                                <textarea
+                                    value={description}
+                                    onChange={(e) =>
+                                        setDescription(e.target.value)
+                                    }
+                                    placeholder="Enter meeting description"
+                                    className="
                     w-full
 
                     rounded-xl
@@ -462,15 +494,14 @@ h-[795.19px]
 
                     h-[120px]
                   "
-                />
+                                />
+                            </div>
 
-              </div>
+                            {/* START DATE */}
 
-              {/* START DATE */}
-
-              <div className="space-y-2">
-  <label
-    className="
+                            <div className="space-y-2">
+                                <label
+                                    className="
       text-xs
       md:text-sm
       tracking-[2px]
@@ -480,54 +511,43 @@ h-[795.19px]
       mb-2
       block
     "
-  >
-    Start Date
-  </label>
+                                >
+                                    Start Date
+                                </label>
 
-  <div className="relative">
-    <Input
-      type="date"
-      value={startDate}
-      onChange={(e) => setStartDate(e.target.value)}
-      className="
-        h-12
-        rounded-xl
-        bg-[#eef2f7]
-        border
-        border-gray-200
-        text-base
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-full h-12 rounded-xl bg-[#eef2f7] hover:bg-[#eef2f7] border border-gray-200 text-base px-4 justify-start text-left font-normal hover:text-[#0f172a] text-[#0f172a]",
+                                                !startDate && "text-gray-500"
+                                            )}
+                                        >
+                                            <Calendar className="mr-2 h-4 w-4 text-[#0b2a7a]" />
+                                            {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                                        <CalendarComponent
+                                            mode="single"
+                                            selected={startDate}
+                                            onSelect={setStartDate}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                {errors.startDate && (
+                                    <p className="text-xs text-red-500 mt-1 font-semibold">
+                                        {errors.startDate}
+                                    </p>
+                                )}
+                            </div>
 
-        px-4
-        pr-12
-        [&::-webkit-calendar-picker-indicator]:opacity-0
-        
-      "
-    />
+                            {/* TIME */}
 
-    <Calendar
-      className="
-        absolute
-        right-4
-        top-1/2
-        -translate-y-1/2
-        w-5
-        h-5
-        text-[#0b2a7a]
-        pointer-events-none
-      "
-    />
-  </div>
-  {errors.startDate && (
-    <p className="text-xs text-red-500 mt-1 font-semibold">
-      {errors.startDate}
-    </p>
-  )}
-</div>
-
-              {/* TIME */}
-
-              <div
-                className="
+                            <div
+                                className="
                   flex
 
                   flex-col
@@ -535,12 +555,10 @@ h-[795.19px]
 
                   gap-4
                 "
-              >
-
-                <div className="flex-1 space-y-2">
-
-                  <label
-                    className="
+                            >
+                                <div className="flex-1 space-y-2">
+                                    <label
+                                        className="
                       text-xs
                       md:text-sm
 
@@ -554,16 +572,18 @@ h-[795.19px]
                       mb-2
                     block
                     "
-                  >
-                    Start Time
-                  </label>
+                                    >
+                                        Start Time
+                                    </label>
 
-                  <Input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    disabled={allDay}
-                    className="
+                                    <Input
+                                        type="time"
+                                        value={startTime}
+                                        onChange={(e) =>
+                                            setStartTime(e.target.value)
+                                        }
+                                        disabled={allDay}
+                                        className="
                       h-12
 
                       rounded-xl
@@ -577,93 +597,91 @@ h-[795.19px]
 
                       px-4
                     "
-                  />
-                  {errors.startTime && (
-                    <p className="text-xs text-red-500 mt-1 font-semibold">
-                      {errors.startTime}
-                    </p>
-                  )}
-                </div>
+                                    />
+                                    {errors.startTime && (
+                                        <p className="text-xs text-red-500 mt-1 font-semibold">
+                                            {errors.startTime}
+                                        </p>
+                                    )}
+                                </div>
 
-                <div className="flex-1 space-y-2">
+                                {!allDay && (
+                                    <div className="flex-1 space-y-2">
+                                        <label
+                                            className="
+                        text-xs
+                        md:text-sm
 
-                  <label
-                    className="
-                      text-xs
-                      md:text-sm
+                        tracking-[2px]
 
-                      tracking-[2px]
+                        font-semibold
 
-                      font-semibold
+                        text-gray-500
 
-                      text-gray-500
+                        uppercase
+                        mb-2
+                      block
+                      "
+                                        >
+                                            End Time
+                                        </label>
 
-                      uppercase
-                      mb-2
-                    block
-                    "
-                  >
-                    End Time
-                  </label>
+                                        <Input
+                                            type="time"
+                                            value={endTime}
+                                            onChange={(e) =>
+                                                setEndTime(e.target.value)
+                                            }
+                                            className="
+                        h-12
 
-                  <Input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    disabled={allDay}
-                    className="
-                      h-12
+                        rounded-xl
 
-                      rounded-xl
+                        bg-[#eef2f7]
 
-                      bg-[#eef2f7]
+                        border
+                        border-gray-200
 
-                      border
-                      border-gray-200
+                        text-base
 
-                      text-base
+                        px-4
+                      "
+                                        />
+                                        {errors.endTime && (
+                                            <p className="text-xs text-red-500 mt-1 font-semibold">
+                                                {errors.endTime}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
 
-                      px-4
-                    "
-                  />
-                  {errors.endTime && (
-                    <p className="text-xs text-red-500 mt-1 font-semibold">
-                      {errors.endTime}
-                    </p>
-                  )}
-                </div>
+                            {/* ALL DAY CHECKBOX */}
 
-              </div>
-
-              {/* ALL DAY CHECKBOX */}
-
-              <div className="flex items-center gap-2 -mt-3">
-
-                <input
-                  type="checkbox"
-                  checked={allDay}
-                  onChange={() => setAllDay(!allDay)}
-                  className="
+                            <div className="flex items-center gap-2 -mt-3">
+                                <input
+                                    type="checkbox"
+                                    checked={allDay}
+                                    onChange={() => setAllDay(!allDay)}
+                                    className="
                    
                     w-4
                     h-4
 
                     accent-[#0b2a7a]
                   "
-                />
+                                />
 
-                <label className="text-sm text-gray-700">
-                  All Day
-                </label>
+                                <label className="text-sm text-gray-700">
+                                    All Day
+                                </label>
+                            </div>
 
-              </div>
+                            {/* RECURRENCE */}
 
-              {/* RECURRENCE */}
-
-              <div className="space-y-3">
-
-                <label
-                  className="
+                            <div className="space-y-3">
+                                <label
+                                    className="
                     text-xs
                     md:text-sm
 
@@ -677,183 +695,161 @@ h-[795.19px]
                     mb-2
                     block
                   "
-                >
-                  Recurrence
-                </label>
+                                >
+                                    Recurrence
+                                </label>
 
-                <div
-                  className="
-                    h-12
+                                <Select
+                                    value={recurrenceType}
+                                    onValueChange={setRecurrenceType}
+                                >
+                                    <SelectTrigger className="h-12 w-full rounded-xl bg-[#eef2f7] border border-gray-200 px-4 text-base outline-none text-[#0f172a] focus:ring-2 focus:ring-blue-100">
+                                        <SelectValue placeholder="Select Recurrence" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Never">Never</SelectItem>
+                                        <SelectItem value="Every Day">Every Day</SelectItem>
+                                        <SelectItem value="Every Weekday (Mon-Fri)">Every Weekday (Mon-Fri)</SelectItem>
+                                        <SelectItem value="Every Week">Every Week</SelectItem>
+                                        <SelectItem value="Every Month">Every Month</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                    rounded-xl
+                            {recurrenceType !== "Never" && (
+                                <>
+                                    {/* DAYS */}
 
-                    bg-[#eef2f7]
+                                    <div className="space-y-3">
+                                        <label
+                                            className="
+                        text-xs
+                        md:text-sm
 
-                    border
-                    border-gray-200
+                        tracking-[2px]
 
-                    px-4
-
-                    flex
-                    items-center
-                    justify-between
-
-                    text-base
-                  "
-                >
-
-                  <span>
-                    Every Weekday (Mon-Fri)
-                  </span>
-
-                  <ChevronDown className="w-5 h-5" />
-
-                </div>
-
-              </div>
-
-              {/* DAYS */}
-
-              <div className="space-y-3">
-
-                <label
-                  className="
-                    text-xs
-                    md:text-sm
-
-                    tracking-[2px]
-
-                    font-semibold
-
-                    text-gray-500
-
-                    uppercase
-                    mb-2
-                    block
-                  "
-                >
-                  Repeat On Days
-                </label>
-
-                <div
-                  className="
-                    flex
-                    gap-2
-                    flex-wrap
-                  "
-                >
-
-                  {WEEKDAYS.map((day, i) => (
-
-                    <button
-                      key={i}
-                      onClick={() => toggleDay(i)}
-                      className={`
-                        w-10
-                        h-10
-
-                        rounded-xl
-
-                        text-sm
                         font-semibold
 
-                        transition-all
+                        text-gray-500
 
-                        ${
-                          selectedDays.includes(i)
-                            ? "bg-[#0b2a7a] text-white"
-                            : "bg-white border border-gray-300 text-gray-500"
-                        }
-                      `}
-                    >
-                      {day}
-                    </button>
+                        uppercase
+                        mb-2
+                        block
+                      "
+                                        >
+                                            Repeat On Days
+                                        </label>
 
-                  ))}
+                                        <div
+                                            className="
+                        flex
+                        gap-2
+                        flex-wrap
+                      "
+                                        >
+                                            {WEEKDAYS.map((day, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => toggleDay(i)}
+                                                    className={`
+                            w-10
+                            h-10
 
-                </div>
+                            rounded-xl
 
-              </div>
-              {/* END RECURRENCE AFTER */}
-<div className="mt-8">
-  <label
-    className="
-      block
-      text-[14px]
-      font-semibold
-      tracking-[2px]
-      uppercase
-      text-[#64748b]
-      mb-2
-    "
-  >
-    End Recurrence After
-  </label>
+                            text-sm
+                            font-semibold
 
-  <div className="flex items-center gap-3">
-    
-    {/* Number Box */}
-    <input
-      type="number"
-      defaultValue={10}
-      className="
-        w-[96px]
-        h-[42px]
-        rounded-[12px]
-        border
-        border-[#d9e0ea]
-        bg-[#eef2f6]
-        px-4
-        text-[16px]
-        text-[#0f172a]
-        outline-none
-      "
-    />
+                            transition-all
 
-    {/* Dropdown */}
-    <select
-      className="
-        w-[110px]
-        h-[42px]
-        rounded-[12px]
-        border
-        border-[#d9e0ea]
-        bg-[#eef2f6]
-        px-3
-        text-[16px]
-        text-[#0f172a]
-        outline-none
-        cursor-pointer
-      "
-    >
-      <option>Weeks</option>
-      <option>Days</option>
-      <option>Months</option>
-    </select>
+                            ${
+                                selectedDays.includes(i)
+                                    ? "bg-[#0b2a7a] text-white"
+                                    : "bg-white border border-gray-300 text-gray-500"
+                            }
+                          `}
+                                                >
+                                                    {day}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    {/* END RECURRENCE AFTER */}
+                                    <div className="mt-8">
+                                        <label
+                                            className="
+                        block
+                        text-[14px]
+                        font-semibold
+                        tracking-[2px]
+                        uppercase
+                        text-[#64748b]
+                        mb-2
+                      "
+                                        >
+                                            End Recurrence After
+                                        </label>
 
-    {/* Text */}
-    <span className="text-[16px] text-[#64748b]">
-      occurrences
-    </span>
-  </div>
+                                        <div className="flex items-center gap-3">
+                                            {/* Number Box */}
+                                            <input
+                                                type="number"
+                                                defaultValue={10}
+                                                className="
+                          w-[96px]
+                          h-[42px]
+                          rounded-[12px]
+                          border
+                          border-[#d9e0ea]
+                          bg-[#eef2f6]
+                          px-4
+                          text-[16px]
+                          text-[#0f172a]
+                          outline-none
+                        "
+                                            />
 
-  {/* Never Checkbox */}
-  <div className="flex items-center gap-2 mt-3">
-    <input
-      type="checkbox"
-      className="w-5 h-5 rounded border-[#cbd5e1]"
-    />
+                                            {/* Dropdown */}
+                                            <Select defaultValue="Weeks">
+                                                <SelectTrigger className="w-[110px] h-[42px] rounded-[12px] border border-[#d9e0ea] bg-[#eef2f6] px-3 text-[16px] text-[#0f172a] outline-none">
+                                                    <SelectValue placeholder="Weeks" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Weeks">Weeks</SelectItem>
+                                                    <SelectItem value="Days">Days</SelectItem>
+                                                    <SelectItem value="Months">Months</SelectItem>
+                                                </SelectContent>
+                                            </Select>
 
-    <span className="text-[16px] text-[#64748b]">
-      Never
-    </span>
-  </div>
-</div>
+                                            {/* Text */}
+                                            <span className="text-[16px] text-[#64748b]">
+                                                occurrences
+                                            </span>
+                                        </div>
 
-              {/* BUTTONS */}
+                                        {/* Never Checkbox */}
+                                        <div className="flex items-center gap-2 mt-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={neverEnds}
+                                                onChange={() =>
+                                                    setNeverEnds(!neverEnds)
+                                                }
+                                                className="w-5 h-5 rounded border-[#cbd5e1]"
+                                            />
 
-              <div
-                className="
+                                            <span className="text-[16px] text-[#64748b]">
+                                                Never
+                                            </span>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* BUTTONS */}
+
+                            <div
+                                className="
                   flex
 
                   flex-col
@@ -863,15 +859,14 @@ h-[795.19px]
 
                   pt-4
                 "
-              >
-
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setOpen(false);
-                    onCancelSession();
-                  }}
-                  className="
+                            >
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setOpen(false);
+                                        onCancelSession();
+                                    }}
+                                    className="
                     h-12
 
                     w-full
@@ -883,16 +878,14 @@ h-[795.19px]
 
                     bg-white
                   "
-                >
-                  Cancel
-                </Button>
+                                >
+                                    Cancel
+                                </Button>
 
-                <Button
-                  onClick={handleScheduleMeeting}
-
-                  disabled={loading}
-
-                  className="
+                                <Button
+                                    onClick={handleScheduleMeeting}
+                                    disabled={loading}
+                                    className="
                     bg-[#002266]
                     hover:bg-[#09205e]
 
@@ -907,21 +900,14 @@ h-[795.19px]
 
                     text-base
                   "
-                >
-                  {
-                    loading
-                      ? "Scheduling..."
-                      : "Schedule Now"
-                  }
-                </Button>
+                                >
+                                    {loading ? "Scheduling..." : "Schedule Now"}
+                                </Button>
+                            </div>
 
-              </div>
-
-              {
-                meetingLink && (
-
-                  <div
-                    className="
+                            {meetingLink && (
+                                <div
+                                    className="
                       mt-6
 
                       bg-green-50
@@ -933,117 +919,127 @@ h-[795.19px]
 
                       p-4
                     "
-                  >
-
-                    <p
-                      className="
+                                >
+                                    <p
+                                        className="
                         text-sm
                         text-gray-500
                       "
-                    >
-                      Meeting Link
-                    </p>
+                                    >
+                                        Meeting Link
+                                    </p>
 
-                    <a
-                      href={meetingLink}
-                      target="_blank"
-                      rel="noreferrer"
-
-                      className="
+                                    <a
+                                        href={meetingLink}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="
                         text-[#0b2a7a]
                         font-semibold
                         break-all
                       "
-                    >
-                      {meetingLink}
-                    </a>
+                                    >
+                                        {meetingLink}
+                                    </a>
+                                </div>
+                            )}
+                        </div>
 
-                  </div>
-                )
-              }
+                        {/* RIGHT SECTION */}
 
-            </div>
+                        <div className="space-y-5">
+                            {/* INVITE */}
+                            <div className="space-y-2">
+                                <label className="text-xs md:text-sm tracking-[2px] font-bold text-gray-505 text-gray-500 uppercase mb-2 block">
+                                    Add People To Invite
+                                </label>
+                                <div className="flex gap-2">
+                                    <div className="flex-1">
+                                        <Select
+                                            value={newEmail}
+                                            onValueChange={setNewEmail}
+                                        >
+                                            <SelectTrigger className="w-full h-12 rounded-xl bg-[#eef2f7] border border-gray-200 text-base px-4 focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all duration-200 text-[#0f172a]">
+                                                <SelectValue placeholder="Select a user to invite..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {availableUsers.map((u, i) => (
+                                                    <SelectItem key={i} value={u.email}>
+                                                        {u.name || u.username} ({u.email})
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        onClick={handleAddAttendee}
+                                        className="h-12 bg-[#0b2a7a] hover:bg-[#081e59] text-white px-5 rounded-xl font-semibold cursor-pointer transition-all active:scale-95 shadow-sm"
+                                    >
+                                        Add
+                                    </Button>
+                                </div>
+                                {attendeeError && (
+                                    <p className="text-xs text-red-500 mt-1 font-medium">
+                                        {attendeeError}
+                                    </p>
+                                )}
+                            </div>
 
-            {/* RIGHT SECTION */}
+                            {/* ATTENDEE LIST */}
+                            <div className="border border-gray-100 rounded-2xl overflow-y-auto max-h-[300px] bg-white divide-y divide-gray-100 shadow-inner">
+                                {attendeesList.map((attendee, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <img
+                                                src={`https://i.pravatar.cc/100?u=${attendee.email}`}
+                                                alt=""
+                                                className="w-10 h-10 rounded-full border border-gray-250 border-gray-200 object-cover"
+                                            />
+                                            <div>
+                                                <h3 className="text-sm font-semibold text-gray-800">
+                                                    {attendee.name}
+                                                </h3>
+                                                <p className="text-gray-400 text-xs">
+                                                    {attendee.email}
+                                                </p>
+                                            </div>
+                                        </div>
 
-            <div className="space-y-5">
-
-              {/* INVITE */}
-              <div className="space-y-2">
-                <label className="text-xs md:text-sm tracking-[2px] font-bold text-gray-505 text-gray-500 uppercase mb-2 block">
-                  Add People To Invite
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Enter email address (e.g. user@example.com)"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddAttendee();
-                      }
-                    }}
-                    className="h-12 rounded-xl bg-[#eef2f7] border border-gray-200 text-base px-4 flex-1 focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all duration-200"
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleAddAttendee}
-                    className="h-12 bg-[#0b2a7a] hover:bg-[#081e59] text-white px-5 rounded-xl font-semibold cursor-pointer transition-all active:scale-95 shadow-sm"
-                  >
-                    Add
-                  </Button>
-                </div>
-                {attendeeError && (
-                  <p className="text-xs text-red-500 mt-1 font-medium">{attendeeError}</p>
-                )}
-              </div>
-
-              {/* ATTENDEE LIST */}
-              <div className="border border-gray-100 rounded-2xl overflow-y-auto max-h-[300px] bg-white divide-y divide-gray-100 shadow-inner">
-                {attendeesList.map((attendee, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={`https://i.pravatar.cc/100?u=${attendee.email}`}
-                        alt=""
-                        className="w-10 h-10 rounded-full border border-gray-250 border-gray-200 object-cover"
-                      />
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-800">
-                          {attendee.name}
-                        </h3>
-                        <p className="text-gray-400 text-xs">
-                          {attendee.email}
-                        </p>
-                      </div>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                handleRemoveAttendee(
+                                                    attendee.email,
+                                                )
+                                            }
+                                            className="text-gray-400 hover:text-red-500 p-1.5 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                            title="Remove attendee"
+                                        >
+                                            <svg
+                                                className="w-4 h-4"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
-                    
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAttendee(attendee.email)}
-                      className="text-gray-400 hover:text-red-500 p-1.5 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                      title="Remove attendee"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </DialogContent>
-
-    </Dialog>
-  )
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
 }

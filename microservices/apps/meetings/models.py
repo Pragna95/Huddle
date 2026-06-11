@@ -1,131 +1,177 @@
 import uuid
-import secrets
 from django.db import models
-from django.contrib.auth.hashers import make_password, check_password
-from django.contrib.auth import get_user_model
 
-class SuperAdmin(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name="super_admin_profile")
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.user.email
-
-
-class Host(models.Model):
+class Product(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128)  # Hashed
-    super_admin = models.ForeignKey(SuperAdmin, on_delete=models.SET_NULL, null=True, blank=True, related_name="hosts")
+    slug = models.CharField(max_length=255, unique=True)
+    status = models.CharField(max_length=50)
+    webhook_url = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'products'
+
+
+class ProductApiKey(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='api_keys')
+    api_key_hash = models.TextField()
+    environment = models.CharField(max_length=50)
+    rate_limit = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
-        if self.password and not (self.password.startswith('pbkdf2_sha256$') or self.password.startswith('bcrypt')):
-            self.password = make_password(self.password)
-        super().save(*args, **kwargs)
-
-    def check_password(self, raw_password):
-        if self.password.startswith('pbkdf2_sha256$') or self.password.startswith('bcrypt'):
-            return check_password(raw_password, self.password)
-        return self.password == raw_password
-
-    def __str__(self):
-        return f"{self.name} ({self.email})"
+    class Meta:
+        db_table = 'product_api_keys'
 
 
-class Company(models.Model):
+class User(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="companies", null=True, blank=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='users')
+    external_user_id = models.CharField(max_length=255)
+    email = models.EmailField()
     name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)  # Host login email
-    password = models.CharField(max_length=128)  # Hashed
-    address = models.TextField(blank=True, default="")
-    contact_number = models.CharField(max_length=20, blank=True, default="")
-    domain = models.CharField(max_length=255, blank=True, default="")
+    avatar_url = models.TextField(blank=True, null=True)
+    role = models.CharField(max_length=50)
+    metadata = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # Backwards compatibility fields
-    api_key = models.CharField(max_length=40, unique=True, null=True, blank=True)
-    api_key_created_at = models.DateTimeField(null=True, blank=True)
-
-    @property
-    def is_authenticated(self):
-        return True
-
-    @property
-    def is_anonymous(self):
-        return False
-
-    def save(self, *args, **kwargs):
-        if self.password and not (self.password.startswith('pbkdf2_sha256$') or self.password.startswith('bcrypt')):
-            self.password = make_password(self.password)
-        super().save(*args, **kwargs)
-
-    def set_password(self, raw_password):
-        self.password = make_password(raw_password)
-
-    def check_password(self, raw_password):
-        if self.password.startswith('pbkdf2_sha256$') or self.password.startswith('bcrypt'):
-            return check_password(raw_password, self.password)
-        return self.password == raw_password
-
-    def __str__(self):
-        return f"{self.name} ({self.email})"
+    class Meta:
+        db_table = 'users'
 
 
-class ApiKey(models.Model):
+class AuditLog(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="api_keys")
-    key = models.CharField(max_length=255, unique=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='audit_logs')
+    actor_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='audit_logs')
+    action = models.CharField(max_length=255)
+    resource_type = models.CharField(max_length=255)
+    resource_id = models.UUIDField()
+    metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True)
 
-    def __str__(self):
-        return f"{self.company.name} - {self.key}"
-
-
-class Application(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
-    api_key = models.ForeignKey(ApiKey, on_delete=models.SET_NULL, null=True, blank=True, related_name="applications")
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return self.name
+    class Meta:
+        db_table = 'audit_logs'
 
 
 class Meeting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='meetings')
+    created_by_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_meetings')
     title = models.CharField(max_length=255)
-    description = models.TextField(blank=True, default="")
-    datetime = models.CharField(max_length=255, null=True, blank=True)
-    meeting_id = models.CharField(max_length=50, null=True, blank=True)
-    link = models.CharField(max_length=255, null=True, blank=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="meetings", null=True, blank=True)
-    application = models.ForeignKey(Application, on_delete=models.SET_NULL, null=True, blank=True, related_name="meetings")
+    description = models.TextField(blank=True, null=True)
+    meeting_code = models.CharField(max_length=255, unique=True)
+    status = models.CharField(max_length=50)
+    scheduled_start = models.DateTimeField(null=True, blank=True)
+    scheduled_end = models.DateTimeField(null=True, blank=True)
+    actual_start = models.DateTimeField(null=True, blank=True)
+    actual_end = models.DateTimeField(null=True, blank=True)
+    timezone = models.CharField(max_length=50)
+    max_participants = models.IntegerField(default=100)
+    is_recording_enabled = models.BooleanField(default=False)
+    is_waiting_room_enabled = models.BooleanField(default=False)
+    settings = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
-    # New hybrid fields
-    host = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="hosted_meetings_list", null=True, blank=True)
-    start_time = models.DateTimeField(null=True, blank=True)
-    meeting_token = models.UUIDField(default=uuid.uuid4, null=True, blank=True)
-    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.title
+    class Meta:
+        db_table = 'meetings'
 
 
-class Participant(models.Model):
+class MeetingParticipant(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name="participants")
-    user_email = models.EmailField()
-    user_id = models.CharField(max_length=255)
-    joined_at = models.DateTimeField(auto_now_add=True)
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name='participants')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='meeting_participations')
+    role = models.CharField(max_length=50)
+    invited_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='invitations_sent')
+    invitation_status = models.CharField(max_length=50)
+    joined_once = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.user_email} in {self.meeting.title}"
+    class Meta:
+        db_table = 'meeting_participants'
 
+
+class RecurrenceRule(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name='recurrence_rules')
+    recurrence_type = models.CharField(max_length=50)
+    interval_value = models.IntegerField(default=1)
+    weekdays = models.JSONField(default=list, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'recurrence_rules'
+
+
+class MeetingSession(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name='sessions')
+    started_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='started_sessions')
+    session_number = models.IntegerField()
+    status = models.CharField(max_length=50)
+    started_at = models.DateTimeField(null=True, blank=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    peak_participant_count = models.IntegerField(default=0)
+    total_duration_seconds = models.IntegerField(default=0)
+    recording_status = models.CharField(max_length=50, blank=True, null=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'meeting_sessions'
+
+
+class ParticipantSession(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    meeting_session = models.ForeignKey(MeetingSession, on_delete=models.CASCADE, related_name='participant_sessions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions')
+    joined_at = models.DateTimeField()
+    left_at = models.DateTimeField(null=True, blank=True)
+    duration_seconds = models.IntegerField(default=0)
+    reconnect_count = models.IntegerField(default=0)
+    speaking_duration_seconds = models.IntegerField(default=0)
+    screen_share_duration_seconds = models.IntegerField(default=0)
+    network_avg_latency = models.FloatField(default=0.0)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        db_table = 'participant_sessions'
+
+
+class Recording(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    meeting_session = models.ForeignKey(MeetingSession, on_delete=models.CASCADE, related_name='recordings')
+    recording_type = models.CharField(max_length=50)
+    storage_provider = models.CharField(max_length=50)
+    file_path = models.TextField()
+    file_size_bytes = models.BigIntegerField(default=0)
+    duration_seconds = models.IntegerField(default=0)
+    mime_type = models.CharField(max_length=100)
+    processing_status = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'recordings'
+
+
+class Transcript(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    meeting_session = models.ForeignKey(MeetingSession, on_delete=models.CASCADE, related_name='transcripts')
+    recording = models.ForeignKey(Recording, on_delete=models.SET_NULL, null=True, related_name='transcripts')
+    language = models.CharField(max_length=50)
+    transcript_text = models.TextField()
+    summary_text = models.TextField(blank=True, null=True)
+    action_items = models.JSONField(default=list, blank=True)
+    generated_by = models.CharField(max_length=50)
+    processing_status = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'transcripts'

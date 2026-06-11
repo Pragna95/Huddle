@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../services/api";
 
 function SignupAuth() {
   const navigate = useNavigate();
@@ -21,8 +21,7 @@ function SignupAuth() {
     }
 
     try {
-      const authURL = import.meta.env.VITE_AUTH_URL || "http://localhost:8001";
-      const response = await axios.post(`${authURL}/api/auth/register/`, {
+      const response = await api.post("/api/auth/register/", {
         name,
         email,
         username,

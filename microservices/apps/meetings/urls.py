@@ -1,22 +1,17 @@
 from django.urls import path
-from . import views
+from django.contrib.auth import views as auth_views
+from .views import *
+from .MeetingViews import *
 
 urlpatterns = [
-    path('', views.meetings_view, name='meetings_api'),
-    path('participant/<str:meeting_id>/<str:user_id>/', views.participant_get_view, name='participant_get'),
-    path('participant/update/', views.participant_update_view, name='participant_update'),
+    # Auth
+    path('login/', CustomLoginView.as_view(), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
+    path('signup/', SignupView.as_view(), name='signup'),
     
-    # Hybrid Authentication & Template routes
-    path('login/', views.meetings_login_view, name='meetings_login'),
-    path('logout/', views.meetings_logout_view, name='meetings_logout'),
-    path('signup/', views.meetings_signup_view, name='meetings_signup'),
-    path('join/<uuid:token>/', views.join_meeting_view, name='join_meeting'),
-    path('create-meeting/', views.create_meeting_view, name='create_meeting'),
-    path('dashboard/', views.host_dashboard_view, name='host_dashboard'),
-    
-    # Validation route for System 1 React lobby
-    path('api/meeting/validate/<str:company>/<str:letter>/<str:api_key>/<str:meeting_id>', views.validate_meeting_view, name='validate_meeting'),
-    path('api/meeting/validate/<str:company>/<str:letter>/<str:api_key>/<str:meeting_id>/', views.validate_meeting_view),
-    path('api/meeting/validate-lobby/<str:meeting_id>', views.validate_meeting_lobby_view, name='validate_meeting_lobby'),
-    path('api/meeting/validate-lobby/<str:meeting_id>/', views.validate_meeting_lobby_view),
+    # Dashboard
+    path('super-admin/dashboard/', SuperAdminDashboardView.as_view(), name='super_admin_dashboard'),
+    path('api/meeting/schedule/', ScheduleMeetingView.as_view(), name='api_schedule_meeting'),
+    path('api/meeting/validate/<str:company>/<str:api_key>/<uuid:meeting_id>/', ValidateMeetingView.as_view(), name='api_validate_meeting'),
+    path('api/meeting/validate-lobby/<uuid:meeting_id>/', ValidateMeetingView.as_view(), name='api_validate_lobby'),
 ]

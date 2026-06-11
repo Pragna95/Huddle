@@ -18,8 +18,8 @@ export default defineConfig({
     port: 3000,
     host: true,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8001',
+      '/api/meeting': {
+        target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
       }

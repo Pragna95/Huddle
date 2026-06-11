@@ -9,6 +9,7 @@ import {
 import { Button } from "../ui/button";
 import toast from "react-hot-toast";
 import { Copy, Calendar, Users, RefreshCw } from "lucide-react";
+import api,{microserviceApi} from "../../services/api";
 
 export default function ScheduledMeetings({ refreshTrigger }) {
   const [meetings, setMeetings] = useState([]);
@@ -30,7 +31,7 @@ export default function ScheduledMeetings({ refreshTrigger }) {
       if (apiKey && apiKey !== "null" && apiKey !== "undefined") {
         headers["x-api-key"] = apiKey;
       }
-      const response = await axios.get("/api/meetings/", {
+      const response = await microserviceApi.get("/api/meetings/", {
         headers,
       });
       setMeetings(response.data);

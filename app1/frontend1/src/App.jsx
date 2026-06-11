@@ -1,89 +1,166 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
-import "./Admin.css";
+// Pages
+
 import Meeting from "./pages/Meeting";
 import MeetingLobby from "./pages/MeetingLobby";
+import LoginAuth from "./pages/LoginAuth";
+import SignupAuth from "./pages/SignupAuth";
+import AuthReturn from "./pages/AuthReturn";
+import ThankYou from "./pages/ThankYou";
+
+// Layout Components
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
+
+// Feature Components
 import HuddlePage from "@/components/huddle/HuddlePage";
 import ChatWindow from "@/components/chat/ChatWindow";
 import ChatList from "@/components/chat/ChatList";
-import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
-import LoginAuth from "./pages/LoginAuth";
-import SignupAuth from "./pages/SignupAuth";
-import DashboardAuth from "./pages/DashboardAuth";
 
-function Profile() {
-  return <div className="p-8">Profile Page (Placeholder)</div>;
-}
+/* -----------------------------
+   Placeholder Pages
+----------------------------- */
+const Profile = () => (
+  <div className="p-8">Profile Page (Placeholder)</div>
+);
 
-function Settings() {
-  return <div className="p-8">Settings Page (Placeholder)</div>;
-}
+const Settings = () => (
+  <div className="p-8">Settings Page (Placeholder)</div>
+);
 
-function NotFound() {
-  return <div className="p-8 text-center mt-20 text-xl font-semibold">404 - Page Not Found</div>;
-}
+const NotFound = () => (
+  <div className="p-8 mt-20 text-center text-xl font-semibold">
+    404 - Page Not Found
+  </div>
+);
 
-function Messaging() {
-  return (
-    <div className="flex h-screen bg-[#F8F9FB] overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-col flex-1">
-        <TopBar />
-        <main className="flex flex-1 w-full max-w-[1329px] h-full max-h-[824px] overflow-hidden p-4 gap-6 mx-auto animate-scale-in">
-          <ChatList />
-          <ChatWindow />
-        </main>
-      </div>
-    </div>
-  );
-}
-
-function ProtectedRoute({ children }) {
+/* -----------------------------
+   Protected Route
+----------------------------- */
+const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
-  const apiKey = localStorage.getItem("api_key");
-  return (token || apiKey) ? children : <Navigate to="/company/login" replace />;
-}
 
-function DashboardUI() {
-  return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <TopBar />
-        <div className="flex-1 overflow-hidden">
-          <HuddlePage />
-        </div>
+  return token ? children : <Navigate to="/login" replace />;
+};
+
+/* -----------------------------
+   Shared Dashboard Layout
+----------------------------- */
+const DashboardLayout = ({ children, bg = "bg-gray-100" }) => (
+  <div className={`flex h-screen overflow-hidden ${bg}`}>
+    <Sidebar />
+
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <TopBar />
+
+      <div className="flex-1 overflow-hidden">
+        {children}
       </div>
     </div>
-  );
-}
+  </div>
+);
 
+/* -----------------------------
+   Pages
+----------------------------- */
+const DashboardUI = () => (
+  <DashboardLayout>
+    <HuddlePage />
+  </DashboardLayout>
+);
+
+const Messaging = () => (
+  <DashboardLayout bg="bg-[#F8F9FB]">
+    <main className="mx-auto flex h-full w-full max-w-[1329px] flex-1 gap-6 overflow-hidden p-4 animate-scale-in">
+      <ChatList />
+      <ChatWindow />
+    </main>
+  </DashboardLayout>
+);
+
+/* -----------------------------
+   App
+----------------------------- */
 function App() {
   return (
     <>
       <Toaster position="top-right" />
+
       <Router>
         <Routes>
-          <Route path="/meeting" element={<Meeting />} />
-          <Route path="/meeting/:company/:letter/:api_key/:meeting_id" element={<MeetingLobby />} />
-          <Route path="/:company/:letter/:api_key/:meeting_id" element={<MeetingLobby />} />
-          <Route path="/lobby/:meeting_id" element={<MeetingLobby />} />
-          <Route path="/room/:meeting_id" element={<Meeting />} />
-          <Route path="/" element={<Navigate to="/company/login" replace />} />
-          <Route path="/dashboard-ui" element={<ProtectedRoute><DashboardUI /></ProtectedRoute>} />
-          <Route path="/message" element={<Messaging />} />
-          <Route path="/company/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          {/* Redirect */}
+          <Route
+            path="/"
+            element={<Navigate to="/login" replace />}
+          />
+
+          {/* Auth */}
           <Route path="/login" element={<LoginAuth />} />
           <Route path="/signup" element={<SignupAuth />} />
-          <Route path="/dashboard" element={<DashboardAuth />} />
-          <Route path="/company/login" element={<Login />} />
+          <Route path="/auth-return" element={<AuthReturn />} />
+
+          {/* Meetings */}
+          <Route path="/meeting" element={<Meeting />} />
+          <Route
+            path="/meeting/:company/:letter/:api_key/:meeting_id"
+            element={<MeetingLobby />}
+          />
+          <Route
+            path="/meeting/:company/:api_key/:meeting_id"
+            element={<MeetingLobby />}
+          />
+          <Route
+            path="/:company/:letter/:api_key/:meeting_id"
+            element={<MeetingLobby />}
+          />
+          <Route
+            path="/:company/:api_key/:meeting_id"
+            element={<MeetingLobby />}
+          />
+          <Route
+            path="/lobby/:meeting_id"
+            element={<MeetingLobby />}
+          />
+          <Route
+            path="/room/:meeting_id"
+            element={<Meeting />}
+          />
+          <Route path="/thank-you" element={<ThankYou />} />
+
+          {/* Protected Routes */}
+         
+
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardUI />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/message"
+            element={
+              <ProtectedRoute>
+                <Messaging />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Misc */}
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
+
+          {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>

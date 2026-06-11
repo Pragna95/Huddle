@@ -10,8 +10,8 @@ from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import ApiKey
 from .serializers import (
     UserSerializer,
     RegisterSerializer,
@@ -22,6 +22,7 @@ from .serializers import (
 User = get_user_model()
 
 class LoginView(APIView):
+    authentication_classes = []
     permission_classes = (AllowAny,)
 
     def post(self, request):
@@ -32,21 +33,11 @@ class LoginView(APIView):
         if not user:
             return Response({"detail": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
 
-        app_name = getattr(settings, 'APP_NAME', 'app1')
-        
-        # Fetch or generate API key for this backend
-        # Note: the key format is: "appX_sk_<32_random_chars>"
-        # Using token_hex(16) generates exactly 32 random hex characters.
-        api_key_obj, created = ApiKey.objects.get_or_create(
-            app_name=app_name,
-            defaults={
-                'key': f"{app_name}_sk_{secrets.token_hex(16)}",
-                'is_active': True
-            }
-        )
+        refresh = RefreshToken.for_user(user)
 
         return Response({
-            "api_key": api_key_obj.key,
+            "token": str(refresh.access_token),
+            "refresh": str(refresh),
             "user_id": user.id,
             "email": user.email,
             "username": user.username,
@@ -55,29 +46,24 @@ class LoginView(APIView):
 
 
 class RegisterView(CreateAPIView):
+    authentication_classes = []
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = (AllowAny,)
 
-    def create(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        app_name = getattr(settings, 'APP_NAME', 'app1')
-        api_key_obj, created = ApiKey.objects.get_or_create(
-            app_name=app_name,
-            defaults={
-                'key': f"{app_name}_sk_{secrets.token_hex(16)}",
-                'is_active': True
-            }
-        )
-
         user_data = UserSerializer(user).data
+
+        refresh = RefreshToken.for_user(user)
 
         return Response({
             "message": "User registered successfully.",
-            "api_key": api_key_obj.key,
+            "token": str(refresh.access_token),
+            "refresh": str(refresh),
             "user_id": user.id,
             "email": user.email,
             "user": user_data
@@ -102,7 +88,17 @@ class UserProfileView(RetrieveUpdateAPIView):
         return self.request.user
 
 
+class UserListView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class PasswordResetRequestView(APIView):
+    authentication_classes = []
     permission_classes = (AllowAny,)
 
     def post(self, request):
@@ -114,7 +110,7 @@ class PasswordResetRequestView(APIView):
         token = default_token_generator.make_token(user)
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
         
-        frontend_domain = request.headers.get('Origin', 'http://localhost:3000')
+        frontend_domain = request.headers.get('Origin', 'http://localhost:5000')
         reset_link = f"{frontend_domain}/password-reset/confirm/{uidb64}/{token}/"
 
         subject = "Password Reset Request"
@@ -143,6 +139,7 @@ class PasswordResetRequestView(APIView):
 
 
 class PasswordResetConfirmView(APIView):
+    authentication_classes = []
     permission_classes = (AllowAny,)
 
     def post(self, request):

@@ -100,11 +100,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # CORS configuration
 from corsheaders.defaults import default_headers
 CORS_ALLOW_HEADERS = list(default_headers) + ["x-api-key"]
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:5173",
-]
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = False
 
 # REST Framework settings
@@ -143,5 +139,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Valid API Keys allowed to connect to microservices
 VALID_API_KEYS = os.getenv(
     'VALID_API_KEYS',
-    'app1_sk_abcdefghijklmnopqrstuvwxyz123456,app2_sk_abcdefghijklmnopqrstuvwxyz123456'
 ).split(',')
+
+# Frontend configuration
+FRONTEND_URL = os.getenv('FrontendURL', 'http://localhost:3000')
