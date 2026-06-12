@@ -17,6 +17,7 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -139,6 +140,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Valid API Keys allowed to connect to microservices
 VALID_API_KEYS = os.getenv(
     'VALID_API_KEYS',
+    ''
 ).split(',')
 
 # Frontend configuration
