@@ -1,0 +1,13 @@
+django
+djangorestframework
+django-cors-headers
+django-filter
+channels
+channels-redis
+redis
+psycopg2-binary
+requests
+python-dotenv
+gunicorn
+drf-yasg
+celery
