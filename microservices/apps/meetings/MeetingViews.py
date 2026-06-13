@@ -104,6 +104,29 @@ class ScheduleMeetingView(APIView):
             'meeting_code': meeting.meeting_code,
             'encrypted_api_key': encrypted_api_key
         }, status=status.HTTP_201_CREATED)
+
+class ListMeetingsView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        meetings = Meeting.objects.filter(status='scheduled').order_by('scheduled_start')
+        data = []
+        for meeting in meetings:
+            participants = []
+            for participant in getattr(meeting, 'participants', []).all() if hasattr(meeting, 'participants') else []:
+                if participant.user:
+                    participants.append(participant.user.email)
+
+            data.append({
+                'id': str(meeting.id),
+                'title': meeting.title,
+                'datetime': meeting.scheduled_start.isoformat() if meeting.scheduled_start else None,
+                'participants': participants,
+                'link': f'/meeting/{meeting.meeting_code}/',
+            })
+
+        return Response(data, status=status.HTTP_200_OK)
+
 class ParticipantStateView(APIView):
 
     permission_classes = [AllowAny]
