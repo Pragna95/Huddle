@@ -110,7 +110,7 @@ class PasswordResetRequestView(APIView):
         token = default_token_generator.make_token(user)
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
         
-        frontend_domain = request.headers.get('Origin', 'http://localhost:5000')
+        frontend_domain = request.headers.get('Origin', 'http://localhost:8000')
         reset_link = f"{frontend_domain}/password-reset/confirm/{uidb64}/{token}/"
 
         subject = "Password Reset Request"

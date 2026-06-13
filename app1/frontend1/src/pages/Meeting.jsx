@@ -163,7 +163,7 @@ const Meeting = () => {
     }, [meetingId]);
 
     const userId = 1;
-    const API_URL = "http://127.0.0.1:5000/api/meetings";
+    const API_URL = "http://127.0.0.1:8000/api/meetings";
 
     useEffect(() => {
         fetchParticipantState();
@@ -172,7 +172,7 @@ const Meeting = () => {
     const fetchParticipantState = async () => {
         try {
             const apiKey = localStorage.getItem("api_key");
-            const userId = localStorage.getItem("user_id") || "1";
+            const userId = "042c3663-c7bb-4783-b2a5-71b715b342b2";
             const response = await axios.get(
                 `${API_URL}/participant/${meetingId}/${userId}/`,
                 {
@@ -208,7 +208,7 @@ const Meeting = () => {
     const updateParticipantState = async (mic, video, hand) => {
         try {
             const apiKey = localStorage.getItem("api_key");
-            const userId = localStorage.getItem("user_id") || "1";
+            const userId = "042c3663-c7bb-4783-b2a5-71b715b342b2";
             // Crucial: Must be axios.post, NOT axios.get
             await axios.post(
                 `${API_URL}/participant/update/`,

@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 
 from .models import ProductApiKey, Product, User, Meeting
-
+from .models import ParticipantState
 def generate_meeting_code():
     while True:
         segments = [
@@ -104,3 +104,51 @@ class ScheduleMeetingView(APIView):
             'meeting_code': meeting.meeting_code,
             'encrypted_api_key': encrypted_api_key
         }, status=status.HTTP_201_CREATED)
+class ParticipantStateView(APIView):
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, meeting_id, user_id):
+
+        try:
+            state = ParticipantState.objects.get(
+                meeting_id=meeting_id,
+                user_id=user_id
+            )
+
+            return Response({
+                "data": {
+                    "mic_on": state.mic_on,
+                    "video_on": state.video_on,
+                    "hand_raised": state.hand_raised
+                }
+            })
+
+        except ParticipantState.DoesNotExist:
+            return Response(
+                {"error": "Not Found"},
+                status=404
+            )
+class UpdateParticipantStateView(APIView):
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+
+        meeting_id = request.data.get("meeting_id")
+        user_id = request.data.get("user_id")
+
+        state, created = ParticipantState.objects.get_or_create(
+            meeting_id=meeting_id,
+            user_id=user_id
+        )
+
+        state.mic_on = request.data.get("mic_on", True)
+        state.video_on = request.data.get("video_on", True)
+        state.hand_raised = request.data.get("hand_raised", False)
+
+        state.save()
+
+        return Response({
+            "message": "updated"
+        })
