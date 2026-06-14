@@ -7,6 +7,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env file
 from dotenv import load_dotenv
 load_dotenv(BASE_DIR / '.env')
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-api-key",
+]
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-for-development-only-replace-this')
 
@@ -73,6 +78,8 @@ DATABASES = {
     }
 }
 
+
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -106,7 +113,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:8000",
 ]
+
+CORS_ALLOW_CREDENTIALS = True
 
 # REST Framework settings
 REST_FRAMEWORK = {
