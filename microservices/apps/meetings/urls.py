@@ -12,6 +12,10 @@ urlpatterns = [
     # Dashboard
     path('super-admin/dashboard/', SuperAdminDashboardView.as_view(), name='super_admin_dashboard'),
     path('api/meeting/schedule/', ScheduleMeetingView.as_view(), name='api_schedule_meeting'),
+    path('api/meetings/', ListMeetingsView.as_view(), name='api_list_meetings'),
     path('api/meeting/validate/<str:company>/<str:api_key>/<uuid:meeting_id>/', ValidateMeetingView.as_view(), name='api_validate_meeting'),
     path('api/meeting/validate-lobby/<uuid:meeting_id>/', ValidateMeetingView.as_view(), name='api_validate_lobby'),
+    path("api/meetings/participant/<str:meeting_id>/<str:user_id>/",
+    ParticipantStateView.as_view()),
+    path("api/meetings/participant/update/",UpdateParticipantStateView.as_view()),
 ]

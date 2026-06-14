@@ -2,6 +2,7 @@ django
 djangorestframework
 django-cors-headers
 django-filter
+daphne
 channels
 channels-redis
 redis

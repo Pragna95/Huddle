@@ -175,27 +175,41 @@ class ScheduleMeetingView(APIView):
         )
 
         # Send Email Invitations
+        # Send Email Invitations (Clean Format)
         if participant_emails:
-            send_mail(
-                subject=f"Meeting Invitation: {title}",
-                message=f"""
+            subject = f"Meeting Invitation: {title}"
+            message = f"""
 You have been invited to a meeting.
 
-Title: {title}
+TITLE
+{title}
 
-Description:
-{description}
+DESCRIPTION
+{description if description else "No description provided"}
 
-Date & Time:
-{scheduled_dt}
+DATE
+{scheduled_dt.strftime('%d %B %Y') if scheduled_dt else "N/A"}
 
-Meeting Link:
+TIME
+{scheduled_dt.strftime('%I:%M %p') if scheduled_dt else "N/A"}
+
+MEETING LINK
 {meeting_link}
-""",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=participant_emails,
-                fail_silently=False,
-            )
+
+
+Please join the meeting at the scheduled time using the link above.
+
+Regards,  
+Meeting Team
+"""
+
+        send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=participant_emails,
+        fail_silently=False,
+    )
 
         return Response(
             {
@@ -207,3 +221,75 @@ Meeting Link:
             },
             status=status.HTTP_201_CREATED,
         )
+    
+
+class ListMeetingsView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        meetings = Meeting.objects.filter(status='scheduled').order_by('scheduled_start')
+        data = []
+        for meeting in meetings:
+            participants = []
+            for participant in getattr(meeting, 'participants', []).all() if hasattr(meeting, 'participants') else []:
+                if participant.user:
+                    participants.append(participant.user.email)
+
+            data.append({
+                'id': str(meeting.id),
+                'title': meeting.title,
+                'datetime': meeting.scheduled_start.isoformat() if meeting.scheduled_start else None,
+                'participants': participants,
+                'link': f'/meeting/{meeting.meeting_code}/',
+            })
+
+        return Response(data, status=status.HTTP_200_OK)
+
+class ParticipantStateView(APIView):
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, meeting_id, user_id):
+
+        try:
+            state = ParticipantState.objects.get(
+                meeting_id=meeting_id,
+                user_id=user_id
+            )
+
+            return Response({
+                "data": {
+                    "mic_on": state.mic_on,
+                    "video_on": state.video_on,
+                    "hand_raised": state.hand_raised
+                }
+            })
+
+        except ParticipantState.DoesNotExist:
+            return Response(
+                {"error": "Not Found"},
+                status=404
+            )
+class UpdateParticipantStateView(APIView):
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+
+        meeting_id = request.data.get("meeting_id")
+        user_id = request.data.get("user_id")
+
+        state, created = ParticipantState.objects.get_or_create(
+            meeting_id=meeting_id,
+            user_id=user_id
+        )
+
+        state.mic_on = request.data.get("mic_on", True)
+        state.video_on = request.data.get("video_on", True)
+        state.hand_raised = request.data.get("hand_raised", False)
+
+        state.save()
+
+        return Response({
+            "message": "updated"
+        })

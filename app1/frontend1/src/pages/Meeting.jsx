@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import api from "../services/api.js";
@@ -87,8 +87,281 @@ const Meeting = () => {
     };
     const participantInitials = getInitials(participantName);
 
-    // CHAT
+    const localVideoRef = useRef(null);
+    const localStreamRef = useRef(null);
+    const wsRef = useRef(null);
+    const pcRefs = useRef({});
+    const pendingIceCandidatesRef = useRef({});
+
     const [message, setMessage] = useState("");
+    const [remoteStreams, setRemoteStreams] = useState([]);
+    const [roomPeers, setRoomPeers] = useState({});
+    const [localPeerId] = useState(() => `peer-${Math.random().toString(36).slice(2, 10)}`);
+    const [isWebRtcReady, setIsWebRtcReady] = useState(false);
+
+    const peerConfig = useMemo(
+        () => ({
+            iceServers: [
+                { urls: ["stun:stun.l.google.com:19302"] },
+            ],
+        }),
+        [],
+    );
+
+    const addRemoteStream = (peerId, stream) => {
+        setRemoteStreams((prev) => {
+            if (prev.some((item) => item.peerId === peerId)) {
+                return prev;
+            }
+            return [...prev, { peerId, stream }];
+        });
+    };
+
+    const removePeer = (peerId) => {
+        const pc = pcRefs.current[peerId];
+        if (pc) {
+            pc.close();
+            delete pcRefs.current[peerId];
+        }
+        delete pendingIceCandidatesRef.current[peerId];
+        setRemoteStreams((prev) => prev.filter((item) => item.peerId !== peerId));
+        setRoomPeers((prev) => {
+            const next = { ...prev };
+            delete next[peerId];
+            return next;
+        });
+    };
+
+    const sendSignal = (payload) => {
+        const socket = wsRef.current;
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            return;
+        }
+
+        socket.send(
+            JSON.stringify({
+                sender: localPeerId,
+                meeting_id: meetingId,
+                ...payload,
+            }),
+        );
+    };
+
+    const createPeerConnection = async (
+        remotePeerId,
+        sendOffer = false,
+        remoteSdp = null,
+        remoteSdpType = null,
+    ) => {
+        if (pcRefs.current[remotePeerId]) {
+            return pcRefs.current[remotePeerId];
+        }
+
+        const pc = new RTCPeerConnection(peerConfig);
+        pcRefs.current[remotePeerId] = pc;
+
+        pc.onicecandidate = (event) => {
+            if (event.candidate) {
+                sendSignal({
+                    type: "ice",
+                    target: remotePeerId,
+                    candidate: event.candidate,
+                });
+            }
+        };
+
+        pc.ontrack = (event) => {
+            if (event.streams && event.streams[0]) {
+                addRemoteStream(remotePeerId, event.streams[0]);
+            }
+        };
+
+        pc.onconnectionstatechange = () => {
+            if (
+                pc.connectionState === "failed" ||
+                pc.connectionState === "disconnected" ||
+                pc.connectionState === "closed"
+            ) {
+                removePeer(remotePeerId);
+            }
+        };
+
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach((track) => {
+                pc.addTrack(track, localStreamRef.current);
+            });
+        }
+
+        if (remoteSdp) {
+            await pc.setRemoteDescription({ type: remoteSdpType, sdp: remoteSdp });
+            if (remoteSdpType === "offer") {
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                sendSignal({
+                    type: "answer",
+                    target: remotePeerId,
+                    sdp: answer.sdp,
+                    sdpType: answer.type,
+                });
+            }
+            const queuedCandidates = pendingIceCandidatesRef.current[remotePeerId];
+            if (queuedCandidates && queuedCandidates.length) {
+                for (const candidate of queuedCandidates) {
+                    try {
+                        await pc.addIceCandidate(candidate);
+                    } catch (err) {
+                        console.warn("Queued ICE candidate failed", err);
+                    }
+                }
+                delete pendingIceCandidatesRef.current[remotePeerId];
+            }
+        } else if (sendOffer) {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            sendSignal({
+                type: "offer",
+                target: remotePeerId,
+                sdp: offer.sdp,
+                sdpType: offer.type,
+            });
+        }
+
+        return pc;
+    };
+
+    const handleSignalMessage = async (message) => {
+        if (!message || message.sender === localPeerId) {
+            return;
+        }
+
+        const { type, sender, target } = message;
+        if (target && target !== localPeerId) {
+            return;
+        }
+
+        switch (type) {
+            case "join": {
+                setRoomPeers((prev) => ({
+                    ...prev,
+                    [sender]: {
+                        name: message.name || `Guest ${sender.slice(-4)}`,
+                    },
+                }));
+                if (localPeerId < sender) {
+                    await createPeerConnection(sender, true);
+                }
+                break;
+            }
+            case "offer": {
+                await createPeerConnection(sender, false, message.sdp, message.sdpType);
+                break;
+            }
+            case "answer": {
+                const pc = pcRefs.current[sender];
+                if (pc) {
+                    await pc.setRemoteDescription({ type: message.sdpType, sdp: message.sdp });
+                }
+                break;
+            }
+            case "ice": {
+                const pc = pcRefs.current[sender];
+                if (pc && message.candidate) {
+                    try {
+                        await pc.addIceCandidate(message.candidate);
+                    } catch (error) {
+                        console.warn("Failed to add ICE candidate", error);
+                    }
+                } else if (message.candidate) {
+                    pendingIceCandidatesRef.current[sender] = [
+                        ...(pendingIceCandidatesRef.current[sender] || []),
+                        message.candidate,
+                    ];
+                }
+                break;
+            }
+            case "leave": {
+                removePeer(sender);
+                break;
+            }
+            default:
+                break;
+        }
+    };
+
+    useEffect(() => {
+        const setupMedia = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true,
+                });
+                localStreamRef.current = stream;
+                if (localVideoRef.current) {
+                    localVideoRef.current.srcObject = stream;
+                }
+                setIsWebRtcReady(true);
+            } catch (err) {
+                console.error("Error accessing media devices.", err);
+            }
+        };
+
+        setupMedia();
+
+        return () => {
+            if (localStreamRef.current) {
+                localStreamRef.current.getTracks().forEach((track) => track.stop());
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!isWebRtcReady) {
+            return;
+        }
+
+        const socket = new WebSocket(
+            `${api.defaults.baseURL.replace("http", "ws")}/ws/participants/${meetingId}/`,
+        );
+        wsRef.current = socket;
+
+        socket.onopen = () => {
+            console.log("WebSocket Connected");
+            sendSignal({ type: "join", name: participantName });
+        };
+
+        socket.onmessage = async (event) => {
+            try {
+                const payload = JSON.parse(event.data);
+                await handleSignalMessage(payload);
+            } catch (err) {
+                console.error("Invalid websocket message", err);
+            }
+        };
+
+        socket.onerror = (error) => {
+            console.log("WebSocket Error:", error);
+        };
+
+        socket.onclose = (event) => {
+            console.log("WebSocket Closed", event.code, event.reason);
+        };
+
+        const cleanup = () => {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ sender: localPeerId, meeting_id: meetingId, type: "leave" }));
+                socket.close();
+            }
+            Object.values(pcRefs.current).forEach((pc) => pc.close());
+            wsRef.current = null;
+        };
+
+        window.addEventListener("beforeunload", cleanup);
+
+        return () => {
+            cleanup();
+            window.removeEventListener("beforeunload", cleanup);
+        };
+    }, [meetingId, localPeerId, participantName, isWebRtcReady]);
     const [chatMessages, setChatMessages] = useState([
         {
             sender: "Rahul",
@@ -132,38 +405,8 @@ const Meeting = () => {
 
         setMessage("");
     };
-
-    useEffect(() => {
-        console.log("Creating WebSocket...");
-
-        const socket = new WebSocket(
-            `${api.defaults.baseURL.replace("http", "ws")}/ws/participants/${meetingId}/`,
-        );
-
-        socket.onopen = () => {
-            console.log("WebSocket Connected");
-        };
-
-        socket.onmessage = (event) => {
-            console.log("Message:", JSON.parse(event.data));
-        };
-
-        socket.onerror = (error) => {
-            console.log("WebSocket Error:", error);
-        };
-
-        socket.onclose = (event) => {
-            console.log("WebSocket Closed", event.code, event.reason);
-        };
-
-        return () => {
-            console.log("Cleaning up WebSocket");
-            socket.close();
-        };
-    }, [meetingId]);
-
     const userId = 1;
-    const API_URL = "http://127.0.0.1:5000/api/meetings";
+    const API_URL = "http://127.0.0.1:8000/api/meetings";
 
     useEffect(() => {
         fetchParticipantState();
@@ -172,7 +415,7 @@ const Meeting = () => {
     const fetchParticipantState = async () => {
         try {
             const apiKey = localStorage.getItem("api_key");
-            const userId = localStorage.getItem("user_id") || "1";
+            const userId = "042c3663-c7bb-4783-b2a5-71b715b342b2";
             const response = await axios.get(
                 `${API_URL}/participant/${meetingId}/${userId}/`,
                 {
@@ -208,7 +451,7 @@ const Meeting = () => {
     const updateParticipantState = async (mic, video, hand) => {
         try {
             const apiKey = localStorage.getItem("api_key");
-            const userId = localStorage.getItem("user_id") || "1";
+            const userId = "042c3663-c7bb-4783-b2a5-71b715b342b2";
             // Crucial: Must be axios.post, NOT axios.get
             await axios.post(
                 `${API_URL}/participant/update/`,
@@ -471,16 +714,47 @@ const Meeting = () => {
                             </h1>
 
                             {/* SMALL VIDEO */}
-                            <div className="absolute bottom-5 right-5 w-[220px] h-[140px] rounded-[24px] bg-[#121215]/80 backdrop-blur-xl border border-white/10 flex items-center justify-center z-20 shadow-2xl hover:scale-105 hover:border-white/20 transition-all duration-300">
-                                <div className="text-center">
-                                    <div className="w-16 h-16 rounded-full bg-[#002B6B] text-white flex items-center justify-center mx-auto font-bold text-lg border border-blue-400 shadow-inner">
-                                        {participantInitials}
-                                    </div>
-
-                                    <p className="text-white text-sm font-semibold mt-3">
-                                        {participantName}
-                                    </p>
+                            <div className="absolute bottom-5 right-5 z-20 space-y-3">
+                                <div className="relative w-[220px] h-[140px] rounded-[24px] overflow-hidden bg-black/90 border border-white/10 shadow-2xl">
+                                    <video
+                                        ref={localVideoRef}
+                                        autoPlay
+                                        muted
+                                        playsInline
+                                        className="w-full h-full object-cover"
+                                    />
+                                    {!isVideoOn && (
+                                        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white">
+                                            <MicOff size={24} />
+                                            <span className="text-xs mt-2">Camera off</span>
+                                        </div>
+                                    )}
                                 </div>
+
+                                {remoteStreams.length > 0 && (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {remoteStreams.slice(0, 2).map((remote) => (
+                                            <div
+                                                key={remote.peerId}
+                                                className="relative w-full h-[80px] rounded-[20px] overflow-hidden bg-black/90 border border-white/10"
+                                            >
+                                                <video
+                                                    autoPlay
+                                                    playsInline
+                                                    ref={(el) => {
+                                                        if (el) {
+                                                            el.srcObject = remote.stream;
+                                                        }
+                                                    }}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <div className="absolute left-2 bottom-2 bg-black/70 px-2 py-1 rounded-full text-[10px] text-white">
+                                                    {roomPeers[remote.peerId]?.name || remote.peerId}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </>
                     )}

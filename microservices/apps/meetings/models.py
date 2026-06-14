@@ -175,3 +175,24 @@ class Transcript(models.Model):
 
     class Meta:
         db_table = 'transcripts'
+class ParticipantState(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    meeting = models.ForeignKey(
+        Meeting,
+        on_delete=models.CASCADE
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+
+    mic_on = models.BooleanField(default=True)
+    video_on = models.BooleanField(default=True)
+    hand_raised = models.BooleanField(default=False)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "participant_states"
